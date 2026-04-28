@@ -1,0 +1,21 @@
+# Dependencies (rebuilt inside container)
+node_modules/
+
+# Build output
+dist/
+.angular/
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git
+.gitignore
+
+# Tests
+*.spec.ts
+
+# OS
+.DS_Store
+Thumbs.db

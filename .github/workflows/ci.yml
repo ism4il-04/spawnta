@@ -1,0 +1,104 @@
+name: CI
+ 
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+ 
+jobs:
+ 
+  # ── Backend: lint + test ────────────────────────────────────
+  backend:
+    name: Backend (Java 21)
+    runs-on: ubuntu-latest
+ 
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3-alpine
+        env:
+          POSTGRES_DB: spawnta_test
+          POSTGRES_USER: spawnta
+          POSTGRES_PASSWORD: test123
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+ 
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+ 
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: maven
+ 
+      - name: Run tests
+        working-directory: backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/spawnta_test
+          SPRING_DATASOURCE_USERNAME: spawnta
+          SPRING_DATASOURCE_PASSWORD: test123
+          SPRING_DATA_REDIS_HOST: localhost
+          JWT_SECRET: test_secret_for_ci_only_32chars_min
+        run: mvn verify -B
+ 
+  # ── Frontend: lint + build ──────────────────────────────────
+  frontend:
+    name: Frontend (Angular)
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+ 
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+ 
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+ 
+      - name: Build
+        working-directory: frontend
+        run: npm run build -- --configuration production
+ 
+  # ── Admin: lint + build ─────────────────────────────────────
+  admin:
+    name: Admin (Angular)
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+ 
+      - run: npm ci
+        working-directory: admin
+ 
+      - run: npm run build -- --configuration production
+        working-directory: admin

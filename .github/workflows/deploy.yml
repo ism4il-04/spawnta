@@ -1,0 +1,106 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  DOCKERHUB_USERNAME: i5m4il
+
+jobs:
+
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Build & push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_USERNAME }}/spawnta-backend:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKERHUB_USERNAME }}/spawnta-backend:latest
+
+      - name: Build & push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_USERNAME }}/spawnta-frontend:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKERHUB_USERNAME }}/spawnta-frontend:latest
+
+      - name: Build & push admin
+        uses: docker/build-push-action@v5
+        with:
+          context: ./admin
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_USERNAME }}/spawnta-admin:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKERHUB_USERNAME }}/spawnta-admin:latest
+
+      - name: Build & push nginx
+        uses: docker/build-push-action@v5
+        with:
+          context: ./devops/nginx
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_USERNAME }}/spawnta-nginx:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKERHUB_USERNAME }}/spawnta-nginx:latest
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Copy compose files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker-compose.yml,docker-compose.prod.yml"
+          target: "/opt/spawnta"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /opt/spawnta
+            echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" > .env.deploy
+            cat .env >> .env.deploy
+            docker compose \
+              -f docker-compose.yml \
+              -f docker-compose.prod.yml \
+              --env-file .env.deploy \
+              pull
+            docker compose \
+              -f docker-compose.yml \
+              -f docker-compose.prod.yml \
+              --env-file .env.deploy \
+              up -d --remove-orphans
+            docker image prune -f
+            rm .env.deploy

@@ -1,0 +1,38 @@
+services:
+
+  backend:
+    image: i5m4il/spawnta-backend:${IMAGE_TAG:-latest}
+    build: !reset null
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+  frontend:
+    image: i5m4il/spawnta-frontend:${IMAGE_TAG:-latest}
+    build: !reset null
+
+  admin:
+    image: i5m4il/spawnta-admin:${IMAGE_TAG:-latest}
+    build: !reset null
+
+  nginx:
+    image: i5m4il/spawnta-nginx:${IMAGE_TAG:-latest}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - certbot_webroot:/var/www/certbot
+    depends_on:
+      - backend
+      - frontend
+      - admin
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done"
+
+volumes:
+  certbot_webroot:

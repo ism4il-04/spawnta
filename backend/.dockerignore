@@ -1,0 +1,25 @@
+# Build artifacts
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.iws
+*.ipr
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Maven wrapper jar (downloaded at build)
+.mvn/wrapper/maven-wrapper.jar
+
+# Docs
+HELP.md
+README.md
+
+# OS
+.DS_Store
+Thumbs.db
