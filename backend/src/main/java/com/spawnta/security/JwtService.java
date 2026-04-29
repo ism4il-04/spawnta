@@ -17,8 +17,8 @@ public class JwtService {
     private final long accessExpiry;
 
     public JwtService(
-        @Value("${JWT_SECRET}") String secret,
-        @Value("${JWT_ACCESS_EXPIRY:3600000}") long accessExpiry
+        @Value("${app.jwt.secret}") String secret,
+        @Value("${app.jwt.access-expiry}") long accessExpiry
     ) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiry = accessExpiry;
