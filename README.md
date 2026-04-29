@@ -1,6 +1,6 @@
 # 🏙️ Spawnta
 
-> Real-estate platform built with **Spring Boot 4** + **Angular 21** — containerised with Docker & deployed via GitHub Actions.
+> **Spawnta** is an interactive, real-time social mapping platform designed for spontaneous outings and event organization. Users can broadcast immediate local activities (e.g., "Grabbing coffee downtown") or plan ambitious long-distance excursions like hiking trips. These activities populate a live interactive map and a real-time news feed, allowing the community to discover, join, and interact with events seamlessly. By combining social networking features, real-time messaging, and AI-driven recommendations, Spawnta makes it effortless to connect with others and organize collective outings.
 
 ---
 
