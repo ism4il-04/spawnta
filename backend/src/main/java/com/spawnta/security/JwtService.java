@@ -1,5 +1,6 @@
 package com.spawnta.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,20 +36,27 @@ public class JwtService {
     }
 
     public String extractEmail(String token) {
-        return Jwts.parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .getSubject();
+        return parseClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return (String) parseClaims(token).get("role");
     }
 
     public boolean isValid(String token) {
         try {
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            parseClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
     }
 }

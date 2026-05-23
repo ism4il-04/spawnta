@@ -47,13 +47,26 @@ export class LoginComponent {
     this.loading = true;
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
+        this.loading = false;
         this.snackBar.open('Login successful!', 'Close', { duration: 3000 });
-        this.router.navigate(['/']);
+        this.router.navigate(['/profile']);
       },
       error: (err: any) => {
         this.loading = false;
-        this.snackBar.open(err.error?.error || 'Login failed', 'Close', { duration: 3000 });
+        if (err.error?.code === 'EMAIL_NOT_VERIFIED') {
+          const email: string = err.error.email ?? this.loginForm.value.email;
+          this.snackBar.open('Please verify your email first.', 'Resend', { duration: 6000 })
+            .onAction().subscribe(() => {
+              this.authService.resendVerification(email).subscribe({
+                next: () => this.snackBar.open('Verification email resent!', 'Close', { duration: 3000 }),
+                error: () => this.snackBar.open('Could not resend email.', 'Close', { duration: 3000 })
+              });
+            });
+        } else {
+          this.snackBar.open(err.error?.error || 'Login failed', 'Close', { duration: 3000 });
+        }
       }
     });
   }
 }
+

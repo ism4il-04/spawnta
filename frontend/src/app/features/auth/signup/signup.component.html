@@ -33,6 +33,13 @@
           <mat-error *ngIf="signupForm.get('password')?.hasError('minlength')">Min 6 characters</mat-error>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <input matInput formControlName="confirmPassword" type="password">
+          <mat-error *ngIf="signupForm.get('confirmPassword')?.hasError('required')">Please confirm your password</mat-error>
+          <mat-error *ngIf="passwordMismatch">Passwords do not match</mat-error>
+        </mat-form-field>
+
         <div class="actions">
           <button mat-raised-button color="primary" type="submit" [disabled]="signupForm.invalid || loading">
             {{ loading ? 'Creating account...' : 'Sign Up' }}

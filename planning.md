@@ -37,25 +37,25 @@
 
 ---
 
-### 🚧 PHASE 1 — Identité, Profil & Sécurité
-*Statut : En cours (Avancement : 40%)*
+### ✅ PHASE 1 — Identité, Profil & Sécurité
+*Statut : Terminé (OAuth2 reporté)*
 
 - **Authentification (Backend) :**
   - [x] `JwtService` pour génération et validation des tokens.
-  - [ ] Endpoints `/api/auth/register` et `/api/auth/login`.
-  - [ ] Mécanisme de **Refresh Token** pour sessions prolongées.
-  - [ ] Intégration **OAuth2 Google** (Backend-side).
+  - [x] Endpoints `/api/auth/register` et `/api/auth/login`.
+  - [x] Mécanisme de **Refresh Token** pour sessions prolongées.
+  - [-] Intégration **OAuth2 Google** (Backend-side) - *Reporté/Annulé*.
 - **Gestion du Profil Riche (Backend/Frontend) :**
-  - [ ] **Modèle Profil** : Ajout biographie, galerie (liste de liens Cloudinary), pays visités.
-  - [ ] **Réseaux Sociaux** : Champs dédiés (Facebook, Instagram, WhatsApp).
-  - [ ] **Centres d'intérêt** : Logique de sélection stricte (Max 10 intérêts).
-  - [ ] **Confidentialité** : Service de gestion des champs Publics vs Privés.
-  - [ ] **Média** : Service d'upload d'image vers Cloudinary avec redimensionnement.
+  - [x] **Modèle Profil** : Ajout biographie, galerie (liste de liens Cloudinary), pays visités.
+  - [x] **Réseaux Sociaux** : Champs dédiés (Facebook, Instagram, WhatsApp).
+  - [x] **Centres d'intérêt** : Logique de sélection stricte (Max 10 intérêts).
+  - [x] **Confidentialité** : Service de gestion des champs Publics vs Privés.
+  - [x] **Média** : Service d'upload d'image vers Cloudinary avec redimensionnement.
 
 ---
 
-### ⏳ PHASE 2 — Activités & Cartographie Interactive
-*Statut : À venir*
+### 🚧 PHASE 2 — Activités & Cartographie Interactive
+*Statut : En cours*
 
 - **Moteur d'Activités (Backend) :**
   - [ ] **CRUD Activités** : Titre, description, horodatage, photo de couverture.
@@ -125,9 +125,9 @@
 ---
 
 ## 📈 Suivi & KPI
-- **Sprint Actuel** : S2 — Finalisation de la base Auth & Profil.
+- **Sprint Actuel** : S3 — Début de la Phase 2 (Activités & Cartographie).
 - **Vitesse Équipe** : Moyenne de 12 tickets / semaine.
-- **Progression Totale** : [▓▓░░░░░░░░░░░░░] 15%
+- **Progression Totale** : [▓▓▓▓▓░░░░░░░░░░] 30%
 
-> *Dernière mise à jour : 07 Mai 2026*
+> *Dernière mise à jour : 23 Mai 2026*
 

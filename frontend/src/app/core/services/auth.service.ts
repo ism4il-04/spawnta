@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -24,10 +25,9 @@ export class AuthService {
     }
   }
 
-  signup(data: any): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/signup`, data).pipe(
-      tap(res => this.setSession(res))
-    );
+  signup(data: any): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/signup`, data);
+    // No setSession — user must verify email before logging in
   }
 
   login(data: any): Observable<AuthResponse> {
@@ -36,7 +36,28 @@ export class AuthService {
     );
   }
 
+  verifyEmail(token: string): Observable<AuthResponse> {
+    return this.http.get<AuthResponse>(`${this.apiUrl}/verify-email`, { params: { token } }).pipe(
+      tap(res => this.setSession(res))
+    );
+  }
+
+  resendVerification(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/resend-verification`, { email });
+  }
+
+  refresh(): Observable<AuthResponse> {
+    const user = this.currentUserValue;
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, { refreshToken: user?.refreshToken }).pipe(
+      tap(res => this.setSession(res))
+    );
+  }
+
   logout() {
+    const user = this.currentUserValue;
+    if (user?.refreshToken) {
+      this.http.post(`${this.apiUrl}/logout`, { refreshToken: user.refreshToken }).subscribe();
+    }
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
   }
@@ -53,4 +74,9 @@ export class AuthService {
   public isLoggedIn(): boolean {
     return !!this.currentUserValue;
   }
+
+  public getAccessToken(): string | null {
+    return this.currentUserValue?.accessToken ?? null;
+  }
 }
+

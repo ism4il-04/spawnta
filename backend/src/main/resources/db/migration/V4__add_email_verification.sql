@@ -1,0 +1,3 @@
+-- V4: Add email verification columns
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255);
