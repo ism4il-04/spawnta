@@ -26,8 +26,9 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
+
+    @PostMapping("/signup")
+    public ResponseEntity<AuthResponse> signup(
             @Valid @RequestBody SignupRequest request,
             HttpServletRequest servletRequest,
             HttpServletResponse servletResponse) {

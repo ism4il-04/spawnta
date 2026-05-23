@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,7 +26,7 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './signup.component.scss'
 })
 export class SignupComponent {
-  signupForm: FormGroup;
+  signupForm!: FormGroup;
   loading = false;
 
   constructor(
@@ -37,11 +37,19 @@ export class SignupComponent {
   ) {
     this.signupForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.pattern('.*\\d.*')]],
+      confirmPassword: ['', Validators.required],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required]
-    });
+    }, { validators: this.passwordMatchValidator });
   }
+
+  /** Custom validator that ensures password and confirmPassword are identical */
+  private passwordMatchValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+    const password = group.get('password')?.value;
+    const confirm = group.get('confirmPassword')?.value;
+    return password === confirm ? null : { passwordMismatch: true };
+  };
 
   onSubmit() {
     if (this.signupForm.invalid) return;
@@ -59,3 +67,5 @@ export class SignupComponent {
     });
   }
 }
+
+
