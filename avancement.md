@@ -25,7 +25,7 @@
   - [x] Réseaux sociaux : facebook, instagram, whatsapp.
   - [x] Centres d'intérêt : enum `Interest` (25 catégories), max 10 par utilisateur.
   - [x] Confidentialité : champ `profilePublic` (Public vs Privé).
-  - [x] Migration Flyway V2 : colonnes profil + tables `user_interests`, `user_gallery`, `user_visited_countries`.
+  - [x] Migration Flyway V2/3/4 : colonnes profil + tables `user_interests`, `user_gallery`, `user_visited_countries`, `email_verification`.
   - [x] `CloudinaryService` : upload avatar (crop 400×400) et photos de galerie.
   - [x] `ProfileController` : GET/PUT `/api/users/me`, PUT `/interests`, POST/DELETE `/avatar`, `/gallery`.
 - **Frontend :**
