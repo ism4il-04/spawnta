@@ -1,0 +1,47 @@
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">Spawnta</p>
+    <h1>Toutes les fonctionnalites au meme endroit.</h1>
+    <p class="lede">
+      Cette page principale vous permet d'acceder rapidement a la carte, au profil,
+      a la creation de compte et aux parcours essentiels de l'application.
+    </p>
+
+    <div class="hero-actions">
+      <a class="primary-btn" [routerLink]="authService.isLoggedIn() ? '/map' : '/login'">
+        {{ authService.isLoggedIn() ? 'Aller a la carte' : 'Se connecter' }}
+      </a>
+      <a class="secondary-btn" routerLink="/signup">Creer un compte</a>
+    </div>
+  </div>
+
+  <div class="hero-panel">
+    <div class="panel-card">
+      <span class="panel-kicker">Acces rapide</span>
+      <ul>
+        <li>Connexion et verification email</li>
+        <li>Edition du profil et des interets</li>
+        <li>Exploration de la carte</li>
+        <li>Creation d'activites meetup ou trip</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <article class="feature-card" *ngFor="let feature of features">
+    <h2>{{ feature.title }}</h2>
+    <p>{{ feature.description }}</p>
+    <a [routerLink]="feature.link">{{ feature.cta }}</a>
+  </article>
+</section>
+
+<section class="summary">
+  <div class="summary-box">
+    <h2>Workflow conseille</h2>
+    <p>
+      Commencez par creer un compte, verifiez votre email, completez votre profil,
+      puis ouvrez la carte pour creer ou rejoindre une activite.
+    </p>
+  </div>
+</section>

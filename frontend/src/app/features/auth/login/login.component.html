@@ -1,7 +1,23 @@
 <div class="auth-container">
+  <section class="auth-hero">
+    <p class="eyebrow">Spawnta Access</p>
+    <h1>Reconnectez-vous a vos sorties.</h1>
+    <p class="hero-text">
+      Retrouvez votre profil, vos activites et la carte interactive depuis un espace
+      coherent avec le reste de l'application.
+    </p>
+
+    <div class="hero-points">
+      <span>Carte interactive</span>
+      <span>Profil voyageur</span>
+      <span>Rencontres et trips</span>
+    </div>
+  </section>
+
   <mat-card class="auth-card">
     <mat-card-header>
-      <mat-card-title>Login to Spawnta</mat-card-title>
+      <p class="card-kicker">Connexion</p>
+      <mat-card-title>Bon retour sur Spawnta</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">

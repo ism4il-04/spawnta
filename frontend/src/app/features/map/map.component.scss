@@ -1,0 +1,120 @@
+.map-container {
+  height: min(78vh, 860px);
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(22, 50, 41, 0.08);
+  border-radius: 1.75rem;
+  box-shadow: 0 22px 48px rgba(36, 75, 58, 0.12);
+  background: #f4faf6;
+}
+
+.map-wrapper {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+.side-panel {
+  width: min(420px, 92vw);
+  padding: 1.1rem;
+  background-color: #f8fcf9;
+  border-left: 1px solid rgba(22, 50, 41, 0.08);
+}
+
+.fab-create {
+  position: absolute;
+  bottom: 1.4rem;
+  right: 1.4rem;
+  z-index: 1000;
+  box-shadow: 0 16px 32px rgba(22, 50, 41, 0.22);
+}
+
+.search-overlay {
+  position: absolute;
+  top: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: min(440px, calc(100% - 2rem));
+
+  .search-card {
+    padding: 0.85rem;
+    background: rgba(255, 255, 255, 0.94);
+    border-radius: 1rem;
+    box-shadow: 0 14px 24px rgba(36, 75, 58, 0.12);
+  }
+
+  .search-field {
+    width: 100%;
+  }
+
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.3rem;
+  }
+
+  .search-results {
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 1rem;
+    box-shadow: 0 14px 24px rgba(36, 75, 58, 0.12);
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 0.4rem;
+    
+    .result-item {
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(22, 50, 41, 0.08);
+      font-size: 14px;
+      color: #244b3a;
+      
+      &:hover {
+        background-color: #eef6f1;
+      }
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+.panel-content {
+  height: 100%;
+  overflow: auto;
+}
+
+@media (max-width: 900px) {
+  .map-container {
+    height: 72vh;
+    min-height: 540px;
+    border-radius: 1.35rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .map-container {
+    height: 68vh;
+    min-height: 500px;
+  }
+
+  .search-overlay {
+    width: min(100% - 1rem, 440px);
+
+    .filters-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .fab-create {
+    bottom: 1rem;
+    right: 1rem;
+  }
+}

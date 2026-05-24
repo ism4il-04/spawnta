@@ -1,1 +1,18 @@
-<router-outlet></router-outlet>
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/">Spawnta</a>
+
+    <nav class="nav-links">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
+      <a routerLink="/map" routerLinkActive="active">Carte</a>
+      <a routerLink="/profile" routerLinkActive="active">Profil</a>
+      <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active">Connexion</a>
+      <a *ngIf="!authService.isLoggedIn()" routerLink="/signup" routerLinkActive="active">Inscription</a>
+      <button *ngIf="authService.isLoggedIn()" type="button" class="logout-btn" (click)="logout()">Deconnexion</button>
+    </nav>
+  </header>
+
+  <main class="page-frame">
+    <router-outlet></router-outlet>
+  </main>
+</div>

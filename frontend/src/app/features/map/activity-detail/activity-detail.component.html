@@ -1,0 +1,64 @@
+<div class="detail-container">
+  <button mat-icon-button class="close-btn" (click)="closePanel.emit()">
+    <mat-icon>close</mat-icon>
+  </button>
+
+  <h2>{{ activity.title }}</h2>
+  <span class="category-badge">{{ activity.category || activity.activityType }}</span>
+
+  <p class="desc">{{ activity.description }}</p>
+
+  <div class="info-list">
+    <div class="info-item">
+      <mat-icon>event</mat-icon>
+      <span>{{ activity.scheduledAt | date:'medium' }}</span>
+    </div>
+    
+    <div class="info-item">
+      <mat-icon>schedule</mat-icon>
+      <span>{{ activity.durationMinutes }} min</span>
+    </div>
+
+    <div class="info-item">
+      <mat-icon>group</mat-icon>
+      <span>{{ activity.participantCount }} / {{ activity.maxParticipants || 'Unlimited' }} joined</span>
+    </div>
+
+    <div class="info-item">
+      <mat-icon>person</mat-icon>
+      <span>Host: {{ activity.hostFirstName }} {{ activity.hostLastName }}</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button *ngIf="!isHost" mat-raised-button color="accent" class="join-btn" (click)="joinActivity()">
+      {{ activity.participationMode === 'DIRECT' ? 'Join Now' : 'Request to Join' }}
+    </button>
+    <div *ngIf="isHost" class="host-note">You are hosting this activity.</div>
+  </div>
+
+  <div *ngIf="isHost && activity.participationMode === 'APPROVAL'" class="pending-box">
+    <h3>Pending requests</h3>
+    <p *ngIf="loadingPending" class="pending-state">Loading requests...</p>
+    <p *ngIf="!loadingPending && pendingParticipants.length === 0" class="pending-state">
+      No pending requests for now.
+    </p>
+
+    <div class="pending-item" *ngFor="let participant of pendingParticipants">
+      <div class="pending-copy">
+        <strong>{{ participant.firstName }} {{ participant.lastName }}</strong>
+        <span>{{ participant.email }}</span>
+        <p *ngIf="participant.introMessage">{{ participant.introMessage }}</p>
+      </div>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        type="button"
+        [disabled]="approvingId === participant.id"
+        (click)="approveParticipant(participant)">
+        {{ approvingId === participant.id ? 'Approving...' : 'Approve' }}
+      </button>
+    </div>
+  </div>
+</div>

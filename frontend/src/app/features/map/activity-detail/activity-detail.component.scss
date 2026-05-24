@@ -1,0 +1,121 @@
+.detail-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-top: 0.4rem;
+
+  .close-btn {
+    position: absolute;
+    top: -0.2rem;
+    right: -0.2rem;
+  }
+
+  h2 {
+    margin-top: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-weight: 700;
+    color: #163229;
+  }
+
+  .category-badge {
+    display: inline-block;
+    background-color: #dff1e7;
+    color: #204c3c;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+    align-self: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .desc {
+    color: #4d685e;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+  }
+
+  .info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 1.8rem;
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: #355449;
+
+      mat-icon {
+        color: #1f7a5a;
+      }
+    }
+  }
+
+  .actions {
+    margin-top: auto;
+    
+    .join-btn {
+      width: 100%;
+      padding: 0.9rem 0;
+      font-size: 16px;
+      border-radius: 999px;
+    }
+  }
+
+  .host-note {
+    padding: 0.85rem 1rem;
+    border-radius: 1rem;
+    background: #eef6f1;
+    color: #355449;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .pending-box {
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(22, 50, 41, 0.08);
+  }
+
+  .pending-box h3 {
+    margin: 0 0 0.8rem;
+    color: #163229;
+    font-size: 1rem;
+  }
+
+  .pending-state {
+    margin: 0;
+    color: #587469;
+  }
+
+  .pending-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid rgba(22, 50, 41, 0.08);
+  }
+
+  .pending-item:last-child {
+    border-bottom: none;
+  }
+
+  .pending-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: #4d685e;
+  }
+
+  .pending-copy strong {
+    color: #163229;
+  }
+
+  .pending-copy p {
+    margin: 0.2rem 0 0;
+  }
+}

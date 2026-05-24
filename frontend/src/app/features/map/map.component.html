@@ -1,0 +1,99 @@
+<mat-sidenav-container class="map-container">
+  
+  <mat-sidenav #sidenav mode="over" position="end" class="side-panel">
+    <!-- Panel Content -->
+    <div class="panel-content">
+      <app-create-activity 
+        #createCmp
+        *ngIf="panelMode === 'CREATE'"
+        (created)="onActivityCreated($event)"
+        (cancel)="closePanel()">
+      </app-create-activity>
+
+      <app-activity-detail
+        *ngIf="panelMode === 'DETAIL' && selectedActivity"
+        [activity]="selectedActivity"
+        (closePanel)="closePanel()">
+      </app-activity-detail>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="search-overlay">
+      <div class="search-card">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search location...</mat-label>
+          <input matInput [(ngModel)]="searchQuery" (keyup.enter)="searchLocation()">
+          <button matSuffix mat-icon-button (click)="searchLocation()">
+            <mat-icon>search</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <div class="filters-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Radius</mat-label>
+            <mat-select [(ngModel)]="filters.radiusKm" (selectionChange)="applyFilters()">
+              <mat-option [value]="10">10 km</mat-option>
+              <mat-option [value]="25">25 km</mat-option>
+              <mat-option [value]="50">50 km</mat-option>
+              <mat-option [value]="100">100 km</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select [(ngModel)]="filters.category" (selectionChange)="applyFilters()">
+              <mat-option value="">All</mat-option>
+              <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Activity type</mat-label>
+            <mat-select [(ngModel)]="filters.activityType" (selectionChange)="applyFilters()">
+              <mat-option value="">All</mat-option>
+              <mat-option value="MEETUP">Meetup</mat-option>
+              <mat-option value="TRIP">Trip</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Join mode</mat-label>
+            <mat-select [(ngModel)]="filters.participationMode" (selectionChange)="applyFilters()">
+              <mat-option value="">All</mat-option>
+              <mat-option value="DIRECT">Direct</mat-option>
+              <mat-option value="APPROVAL">Approval</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date</mat-label>
+            <input matInput type="date" [(ngModel)]="filters.scheduledDate" (change)="applyFilters()">
+          </mat-form-field>
+        </div>
+
+        <div class="filter-actions">
+          <button mat-stroked-button type="button" (click)="resetFilters()">Reset</button>
+        </div>
+      </div>
+      
+      <div class="search-results" *ngIf="searchResults.length > 0">
+        <div class="result-item" *ngFor="let res of searchResults" (click)="selectResult(res)">
+          {{ res.display_name }}
+        </div>
+      </div>
+    </div>
+
+    <div class="map-wrapper"
+         leaflet
+         [leafletOptions]="options"
+         [leafletLayers]="layers"
+         (leafletMapReady)="onMapReady($event)">
+    </div>
+
+    <button mat-fab color="primary" class="fab-create" (click)="openCreate()">
+      <mat-icon>add</mat-icon>
+    </button>
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

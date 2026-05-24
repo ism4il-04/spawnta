@@ -152,5 +152,7 @@ public class User {
 
     public String getVerificationToken() { return verificationToken; }
     public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
+
+    public boolean isPremium() { return false; /* TODO: implement premium logic */ }
 }
 

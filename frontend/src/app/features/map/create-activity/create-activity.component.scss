@@ -1,0 +1,66 @@
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-width: 100%;
+
+  h2 {
+    margin: 0 0 0.2rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #163229;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .row {
+    display: flex;
+    gap: 0.85rem;
+
+    .half-width {
+      flex: 1;
+    }
+  }
+
+  .location-info {
+    margin: 0.15rem 0;
+    padding: 0.9rem 1rem;
+    background-color: #eef6f1;
+    border: 1px solid rgba(31, 122, 90, 0.12);
+    border-radius: 1rem;
+    font-size: 14px;
+    color: #355449;
+
+    .instruction {
+      margin-top: 0;
+      color: #567367;
+    }
+
+    .text-warn {
+      color: #f44336;
+    }
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.6rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .create-form {
+    .row {
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .actions {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+  }
+}
