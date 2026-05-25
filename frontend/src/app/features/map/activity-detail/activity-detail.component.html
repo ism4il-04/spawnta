@@ -65,6 +65,11 @@
       <span class="host-name">{{ activity.hostFirstName }} {{ activity.hostLastName }}</span>
       <span class="host-email">{{ activity.hostEmail }}</span>
     </div>
+    <div class="host-actions" *ngIf="!isHost">
+      <button mat-icon-button color="primary" matTooltip="Contacter l'hôte" (click)="contactUser(activity.hostId)">
+        <mat-icon>chat</mat-icon>
+      </button>
+    </div>
   </div>
 
   <!-- Participation Section for Guests -->
@@ -90,6 +95,13 @@
   <div *ngIf="isHost" class="host-status-banner">
     <mat-icon>workspace_premium</mat-icon>
     <span>You are hosting this activity.</span>
+  </div>
+
+  <div class="group-chat-actions" style="margin-top: 1rem; text-align: center;">
+    <button mat-stroked-button color="primary" (click)="openGroupChat()">
+      <mat-icon>forum</mat-icon>
+      Accéder au chat du groupe
+    </button>
   </div>
 
   <!-- Pending requests box for Host -->
@@ -121,7 +133,10 @@
           <p class="message-text">"{{ participant.introMessage }}"</p>
         </div>
 
-        <div class="pending-actions">
+        <div class="pending-actions" style="display: flex; gap: 8px;">
+          <button mat-icon-button color="primary" matTooltip="Contacter" (click)="contactUser(participant.userId)">
+            <mat-icon>chat</mat-icon>
+          </button>
           <button
             mat-flat-button
             color="primary"

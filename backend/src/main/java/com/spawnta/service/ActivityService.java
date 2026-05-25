@@ -26,14 +26,17 @@ public class ActivityService {
     private final ActivityRepository activityRepository;
     private final ActivityParticipantRepository participantRepository;
     private final UserRepository userRepository;
+    private final ChatService chatService;
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public ActivityService(ActivityRepository activityRepository,
                            ActivityParticipantRepository participantRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           ChatService chatService) {
         this.activityRepository = activityRepository;
         this.participantRepository = participantRepository;
         this.userRepository = userRepository;
+        this.chatService = chatService;
     }
 
     @Transactional
@@ -82,6 +85,9 @@ public class ActivityService {
         // Host is automatically joined as approved
         ActivityParticipant hostParticipation = new ActivityParticipant(activity, host, ParticipationStatus.APPROVED, null);
         participantRepository.save(hostParticipation);
+
+        // Auto-create Group Chat
+        chatService.createGroupChat(activity);
 
         return mapToResponse(activity);
     }
@@ -174,6 +180,10 @@ public class ActivityService {
         }
         ActivityParticipant participant = new ActivityParticipant(activity, user, status, intro);
         participantRepository.save(participant);
+
+        if (status == ParticipationStatus.APPROVED) {
+            chatService.addParticipantToGroupChat(activityId, user.getId());
+        }
     }
 
     @Transactional
@@ -201,6 +211,8 @@ public class ActivityService {
 
         participant.setStatus(ParticipationStatus.APPROVED);
         participantRepository.save(participant);
+
+        chatService.addParticipantToGroupChat(activityId, participant.getUser().getId());
     }
 
     @Transactional(readOnly = true)

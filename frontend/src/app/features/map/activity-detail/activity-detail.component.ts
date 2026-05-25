@@ -5,13 +5,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import {
-  ActivityParticipantResponse,
-  ActivityResponse,
-  ActivityService
-} from '../../../core/services/activity.service';
+import { ActivityParticipantResponse, ActivityResponse, ActivityService } from '../../../core/services/activity.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ChatService } from '../../../core/services/chat.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-activity-detail',
@@ -23,6 +22,7 @@ import { AuthService } from '../../../core/services/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatSnackBarModule,
+    MatTooltipModule,
     FormsModule
   ],
   providers: [DatePipe],
@@ -43,6 +43,8 @@ export class ActivityDetailComponent implements OnChanges {
   constructor(
     private activityService: ActivityService,
     private authService: AuthService,
+    private chatService: ChatService,
+    private router: Router,
     private snackBar: MatSnackBar
   ) {}
 
@@ -112,6 +114,24 @@ export class ActivityDetailComponent implements OnChanges {
       },
       error: () => {
         this.loadingPending = false;
+      }
+    });
+  }
+
+  openGroupChat() {
+    this.router.navigate(['/chat']);
+    this.snackBar.open('Redirection vers la messagerie...', 'OK', { duration: 2000 });
+  }
+
+  contactUser(userId: number) {
+    this.chatService.createPrivateChat(userId).subscribe({
+      next: (chat) => {
+        this.router.navigate(['/chat']);
+        this.snackBar.open('Chat privé ouvert', 'OK', { duration: 2000 });
+      },
+      error: (err) => {
+        console.error('Failed to create private chat', err);
+        this.snackBar.open('Erreur lors de la création du chat', 'Fermer', { duration: 3000 });
       }
     });
   }

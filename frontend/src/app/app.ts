@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
+import { ChatService } from './core/services/chat.service';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ import { AuthService } from './core/services/auth.service';
 export class App {
   protected readonly title = signal('frontend');
   protected readonly authService = inject(AuthService);
+  protected readonly chatService = inject(ChatService);
   private readonly router = inject(Router);
 
   protected logout(): void {
