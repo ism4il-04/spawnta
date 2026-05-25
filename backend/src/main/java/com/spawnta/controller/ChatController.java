@@ -153,6 +153,15 @@ public class ChatController {
         return ResponseEntity.ok(Map.of("message", "La conversation privée a été bloquée"));
     }
 
+    @PostMapping("/{chatId}/unblock")
+    public ResponseEntity<Map<String, String>> unblockPrivateChat(
+            @PathVariable Long chatId,
+            Authentication authentication) {
+        String email = authentication.getName();
+        chatService.unblockPrivateChat(chatId, email);
+        return ResponseEntity.ok(Map.of("message", "La conversation privée a été débloquée"));
+    }
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));

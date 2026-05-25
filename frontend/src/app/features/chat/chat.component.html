@@ -100,9 +100,12 @@
             <span class="material-icons">{{ chat.notificationsEnabled ? 'notifications_active' : 'notifications_off' }}</span>
           </button>
 
-          <!-- Block (private) -->
+          <!-- Block / Unblock (private) -->
           <button *ngIf="chat.type === 'PRIVATE' && chat.status !== 'BLOCKED'" class="icon-btn danger" (click)="blockConversation()" title="Bloquer">
             <span class="material-icons">block</span>
+          </button>
+          <button *ngIf="chat.type === 'PRIVATE' && chat.status === 'BLOCKED'" class="icon-btn" (click)="unblockConversation()" title="Débloquer">
+            <span class="material-icons">lock_open</span>
           </button>
 
           <!-- Leave -->

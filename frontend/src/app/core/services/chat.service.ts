@@ -65,6 +65,7 @@ export class ChatService {
 
   private reconnectAttempts = 0;
   private currentSubscribedChatId: number | null = null;
+  private readonly subscribedChats = new Set<number>();
 
   /** Set which chat the user is currently viewing (to avoid counting it as unread) */
   public setActiveChatId(id: number | null): void {
@@ -120,10 +121,14 @@ export class ChatService {
       this.connectionStatusSubject.next(true);
       console.log('STOMP Connected successfully!');
       
-      // Resubscribe to chat if user was viewing one
-      if (this.currentSubscribedChatId !== null) {
-        this.subscribeToChat(this.currentSubscribedChatId);
-      }
+      this.subscribedChats.clear(); // Clear local cache on fresh connect
+
+      // Fetch all chats and subscribe to them for global background notifications
+      this.getUserChats().subscribe({
+        next: (chats) => {
+          chats.forEach(c => this.subscribeToChat(c.id));
+        }
+      });
 
       // Sync missing messages by telling listeners to refresh (Requirement 9.3)
       this.messageStreamSubject.next({ type: 'RECONNECTED', payload: null });
@@ -176,8 +181,12 @@ export class ChatService {
       return;
     }
 
-    // Unsubscribe from previous chat logic in stomp client is handled automatically by new subscriptions in component,
-    // but here we just establish the active room subscription.
+    if (this.subscribedChats.has(chatId)) {
+      return; // Already subscribed
+    }
+    
+    this.subscribedChats.add(chatId);
+
     const destination = `/topic/chats/${chatId}`;
     
     this.stompClient.subscribe(destination, (message: IMessage) => {
@@ -270,5 +279,9 @@ export class ChatService {
 
   public blockChat(chatId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${chatId}/block`, {});
+  }
+
+  public unblockChat(chatId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${chatId}/unblock`, {});
   }
 }

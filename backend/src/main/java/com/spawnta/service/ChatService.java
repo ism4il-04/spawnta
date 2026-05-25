@@ -293,6 +293,24 @@ public class ChatService {
     }
 
     @Transactional
+    public void unblockPrivateChat(Long chatId, Long userId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
+
+        if (chat.getType() != ChatType.PRIVATE) {
+            throw new IllegalArgumentException("Seuls les chats privés peuvent être débloqués.");
+        }
+
+        boolean participates = chatParticipantRepository.existsByChatIdAndUserId(chatId, userId);
+        if (!participates) {
+            throw new IllegalStateException("Vous ne participez pas à ce chat.");
+        }
+
+        chat.setStatus(ChatStatus.ACTIVE);
+        chatRepository.save(chat);
+    }
+
+    @Transactional
     public void toggleNotifications(Long chatId, Long userId, boolean enabled) {
         ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Participant not found"));
@@ -514,6 +532,13 @@ public class ChatService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         blockPrivateChat(chatId, user.getId());
+    }
+
+    @Transactional
+    public void unblockPrivateChat(Long chatId, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        unblockPrivateChat(chatId, user.getId());
     }
 
     @Transactional

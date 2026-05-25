@@ -193,8 +193,39 @@ export class ChatComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.chatService.sendStompMessage(activeChat.id, this.newMessageText);
+    const text = this.newMessageText;
     this.newMessageText = '';
+
+    // Utiliser l'API REST pour avoir un retour instantané et éviter l'attente
+    this.chatService.sendMessageRest(activeChat.id, text).subscribe({
+      next: (msg) => {
+        // Ajout immédiat (optimistic update)
+        this.messages.update(current => {
+          if (current.find(m => m.id === msg.id)) return current;
+          return [...current, msg];
+        });
+        setTimeout(() => this.scrollToBottom(), 50);
+        
+        // Mettre à jour la prévisualisation dans la liste
+        this.chats.update(currentChats => {
+          return currentChats.map(c => {
+            if (c.id === msg.chatId) {
+              return {
+                ...c,
+                lastMessage: msg.content,
+                lastMessageTime: msg.createdAt,
+                lastMessageSender: msg.senderName
+              };
+            }
+            return c;
+          });
+        });
+      },
+      error: (err) => {
+        console.error('Erreur d\'envoi', err);
+        alert('Erreur lors de l\'envoi du message');
+      }
+    });
   }
 
   protected handleWebSocketEvent(event: { type: string; payload: any }): void {
@@ -203,7 +234,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (event.type === 'MESSAGE') {
       const msg = event.payload as MessageResponse;
       if (activeChat && msg.chatId === activeChat.id) {
-        this.messages.update(current => [...current, msg]);
+        // Éviter les doublons avec l'envoi immédiat
+        this.messages.update(current => {
+          if (current.find(m => m.id === msg.id)) return current;
+          return [...current, msg];
+        });
         setTimeout(() => this.scrollToBottom(), 50);
       }
 
@@ -291,6 +326,21 @@ export class ChatComponent implements OnInit, OnDestroy {
           alert('Conversation bloquée.');
         },
         error: (err) => alert(err.error?.error || 'Erreur lors du blocage')
+      });
+    }
+  }
+
+  protected unblockConversation(): void {
+    const activeChat = this.selectedChat();
+    if (!activeChat) return;
+
+    if (confirm('Voulez-vous débloquer cette conversation privée ?')) {
+      this.chatService.unblockChat(activeChat.id).subscribe({
+        next: () => {
+          activeChat.status = 'ACTIVE';
+          alert('Conversation débloquée.');
+        },
+        error: (err) => alert(err.error?.error || 'Erreur lors du déblocage')
       });
     }
   }
