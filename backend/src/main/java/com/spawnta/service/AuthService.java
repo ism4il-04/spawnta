@@ -34,10 +34,15 @@ public class AuthService {
     }
 
     public void signup(SignupRequest request) {
+        System.out.println("=== AuthService.signup() START ===");
+        System.out.println("Checking if email exists: " + request.email());
+        
         if (userRepository.existsByEmail(request.email())) {
+            System.err.println("Email already exists: " + request.email());
             throw new IllegalArgumentException("Email already registered");
         }
 
+        System.out.println("Creating new user...");
         User user = new User(
             request.email(),
             passwordEncoder.encode(request.password()),
@@ -48,9 +53,28 @@ public class AuthService {
         String token = UUID.randomUUID().toString();
         user.setEmailVerified(false);
         user.setVerificationToken(token);
-        userRepository.save(user);
+        
+        System.out.println("Saving user to database...");
+        try {
+            userRepository.save(user);
+            System.out.println("User saved successfully with ID: " + user.getId());
+        } catch (Exception e) {
+            System.err.println("Error saving user: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
 
-        emailService.sendVerificationEmail(user.getEmail(), token);
+        System.out.println("Sending verification email...");
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), token);
+            System.out.println("Verification email sent successfully");
+        } catch (Exception e) {
+            System.err.println("Error sending email: " + e.getMessage());
+            e.printStackTrace();
+            // Don't throw here - user is already created
+        }
+        
+        System.out.println("=== AuthService.signup() END ===");
     }
 
     public AuthResponse login(LoginRequest request) {
