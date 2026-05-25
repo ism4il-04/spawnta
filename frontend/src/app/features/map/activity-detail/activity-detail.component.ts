@@ -2,6 +2,10 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
 import {
   ActivityParticipantResponse,
   ActivityResponse,
@@ -12,7 +16,15 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-activity-detail',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
+  imports: [
+    CommonModule, 
+    MatButtonModule, 
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSnackBarModule,
+    FormsModule
+  ],
   providers: [DatePipe],
   templateUrl: './activity-detail.component.html',
   styleUrl: './activity-detail.component.scss'
@@ -20,18 +32,24 @@ import { AuthService } from '../../../core/services/auth.service';
 export class ActivityDetailComponent implements OnChanges {
   @Input() activity!: ActivityResponse;
   @Output() closePanel = new EventEmitter<void>();
+  
   pendingParticipants: ActivityParticipantResponse[] = [];
   loadingPending = false;
   approvingId: number | null = null;
+  
+  // Custom intro message state
+  introMessage = '';
 
   constructor(
     private activityService: ActivityService,
-    private authService: AuthService
+    private authService: AuthService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['activity']?.currentValue) {
       this.pendingParticipants = [];
+      this.introMessage = ''; // Reset input field on activity switch
       if (this.isHost) {
         this.loadPendingParticipants();
       }
@@ -43,22 +61,27 @@ export class ActivityDetailComponent implements OnChanges {
   }
 
   joinActivity() {
-    const introMessage = this.activity.participationMode === 'APPROVAL'
-      ? window.prompt('Add a short introduction for the host (max 150 characters):', '')?.trim()
-      : undefined;
+    const isApproval = this.activity.participationMode === 'APPROVAL';
+    const message = isApproval ? this.introMessage.trim() : undefined;
 
-    if (this.activity.participationMode === 'APPROVAL' && !introMessage) {
-      alert('An introduction message is required for approval-based activities.');
+    if (isApproval && !message) {
+      this.snackBar.open('✍️ Please enter a message for the host.', 'OK', { duration: 3000 });
       return;
     }
 
-    this.activityService.join(this.activity.id, introMessage).subscribe({
+    this.activityService.join(this.activity.id, message).subscribe({
       next: () => {
-        alert(this.activity.participationMode === 'DIRECT' ? 'Joined successfully!' : 'Join request sent!');
+        const successMsg = isApproval 
+          ? '📩 Request sent! The host will review your message.' 
+          : '🎉 You have successfully joined the activity!';
+        this.snackBar.open(successMsg, 'Great', { duration: 4000 });
+        this.activity.participantCount++;
+        this.introMessage = '';
       },
       error: (err: any) => {
         console.error('Join failed', err);
-        alert(err.error?.error || 'Failed to join');
+        const errMsg = err.error?.error || 'Failed to join. Please try again.';
+        this.snackBar.open(errMsg, 'Close', { duration: 4000 });
       }
     });
   }
@@ -69,11 +92,13 @@ export class ActivityDetailComponent implements OnChanges {
       next: () => {
         this.pendingParticipants = this.pendingParticipants.filter(item => item.id !== participant.id);
         this.approvingId = null;
-        alert('Participant approved.');
+        this.activity.participantCount++;
+        this.snackBar.open(`✔️ Approved ${participant.firstName} successfully!`, 'Done', { duration: 3000 });
       },
       error: (err: any) => {
         this.approvingId = null;
-        alert(err.error?.error || 'Failed to approve participant');
+        const errMsg = err.error?.error || 'Failed to approve participant.';
+        this.snackBar.open(errMsg, 'Close', { duration: 4000 });
       }
     });
   }

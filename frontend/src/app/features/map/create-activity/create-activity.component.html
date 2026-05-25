@@ -1,14 +1,13 @@
 <form [formGroup]="activityForm" (ngSubmit)="onSubmit()" class="create-form">
-  <h2>Create Activity</h2>
 
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Title</mat-label>
-    <input matInput formControlName="title">
+    <input matInput formControlName="title" placeholder="Give your activity a catchy name">
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Description</mat-label>
-    <textarea matInput formControlName="description" rows="3"></textarea>
+    <textarea matInput formControlName="description" rows="3" placeholder="Describe what people will do..."></textarea>
   </mat-form-field>
 
   <div class="row">
@@ -35,7 +34,7 @@
   <div class="row">
     <mat-form-field appearance="outline" class="half-width">
       <mat-label>Date</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="scheduledAt">
+      <input matInput [matDatepicker]="picker" formControlName="scheduledAt" placeholder="Pick a date">
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
@@ -63,41 +62,49 @@
 
   <div class="location-info">
     <p class="instruction">
-      <i>Please click on the map to set the location.</i>
+      <mat-icon>info</mat-icon>
+      <span>Click on the map to set location points</span>
     </p>
+    
     <div *ngIf="activityForm.get('activityType')?.value === 'MEETUP'">
-      <span *ngIf="activityForm.get('latitude')?.value">
-        Meetup set: {{ activityForm.get('latitude')?.value | number:'1.4-4' }}, {{ activityForm.get('longitude')?.value | number:'1.4-4' }}
-      </span>
-      <span *ngIf="!activityForm.get('latitude')?.value" class="text-warn">
-        Missing location
-      </span>
+      <div class="coords-display" *ngIf="activityForm.get('latitude')?.value">
+        <mat-icon style="font-size:16px; color:#0f766e; width:16px; height:16px; margin-right:4px;">location_on</mat-icon>
+        <span>Location: {{ activityForm.get('latitude')?.value | number:'1.4-4' }}, {{ activityForm.get('longitude')?.value | number:'1.4-4' }}</span>
+      </div>
+      <div *ngIf="!activityForm.get('latitude')?.value" class="text-warn">
+        <mat-icon style="font-size:16px; color:#ef4444; width:16px; height:16px; margin-right:4px;">gpp_maybe</mat-icon>
+        <span>No location selected yet</span>
+      </div>
     </div>
 
     <div *ngIf="activityForm.get('activityType')?.value === 'TRIP'">
-      <div>
-        <span *ngIf="activityForm.get('startLatitude')?.value">
-          Start: {{ activityForm.get('startLatitude')?.value | number:'1.4-4' }}
-        </span>
-        <span *ngIf="!activityForm.get('startLatitude')?.value" class="text-warn">
-          Missing start location
-        </span>
+      <div style="margin-bottom: 4px;">
+        <div class="coords-display" *ngIf="activityForm.get('startLatitude')?.value">
+          <mat-icon style="font-size:16px; color:#0f766e; width:16px; height:16px; margin-right:4px;">flag</mat-icon>
+          <span>Start: {{ activityForm.get('startLatitude')?.value | number:'1.4-4' }}, {{ activityForm.get('startLongitude')?.value | number:'1.4-4' }}</span>
+        </div>
+        <div *ngIf="!activityForm.get('startLatitude')?.value" class="text-warn">
+          <mat-icon style="font-size:16px; color:#ef4444; width:16px; height:16px; margin-right:4px;">gpp_maybe</mat-icon>
+          <span>No start location selected</span>
+        </div>
       </div>
       <div>
-        <span *ngIf="activityForm.get('destLatitude')?.value">
-          Dest: {{ activityForm.get('destLatitude')?.value | number:'1.4-4' }}
-        </span>
-        <span *ngIf="!activityForm.get('destLatitude')?.value" class="text-warn">
-          Missing destination
-        </span>
+        <div class="coords-display" *ngIf="activityForm.get('destLatitude')?.value">
+          <mat-icon style="font-size:16px; color:#0f766e; width:16px; height:16px; margin-right:4px; transform: rotate(15deg);">tour</mat-icon>
+          <span>Dest: {{ activityForm.get('destLatitude')?.value | number:'1.4-4' }}, {{ activityForm.get('destLongitude')?.value | number:'1.4-4' }}</span>
+        </div>
+        <div *ngIf="!activityForm.get('destLatitude')?.value" class="text-warn">
+          <mat-icon style="font-size:16px; color:#ef4444; width:16px; height:16px; margin-right:4px;">gpp_maybe</mat-icon>
+          <span>No destination selected</span>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="actions">
-    <button mat-button type="button" (click)="cancel.emit()">Cancel</button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="activityForm.invalid || loading">
-      {{ loading ? 'Saving...' : 'Create' }}
+    <button mat-button type="button" class="cancel-btn" (click)="cancel.emit()">Cancel</button>
+    <button mat-flat-button class="submit-btn" type="submit" [disabled]="activityForm.invalid || loading">
+      {{ loading ? 'Saving...' : 'Host Activity' }}
     </button>
   </div>
 </form>

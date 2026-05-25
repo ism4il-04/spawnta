@@ -8,6 +8,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-create-activity',
@@ -20,7 +22,9 @@ import { MatNativeDateModule } from '@angular/material/core';
     MatSelectModule,
     MatButtonModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatSnackBarModule,
+    MatIconModule
   ],
   templateUrl: './create-activity.component.html',
   styleUrl: './create-activity.component.scss'
@@ -32,7 +36,11 @@ export class CreateActivityComponent {
   activityForm: FormGroup;
   loading = false;
 
-  constructor(private fb: FormBuilder, private activityService: ActivityService) {
+  constructor(
+    private fb: FormBuilder, 
+    private activityService: ActivityService,
+    private snackBar: MatSnackBar
+  ) {
     this.activityForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
@@ -59,12 +67,13 @@ export class CreateActivityComponent {
     if (this.activityForm.get('activityType')?.value === 'MEETUP') {
       this.activityForm.patchValue({ latitude: lat, longitude: lng });
     } else {
-      // Logic for TRIP (start vs dest) would go here
-      // For simplicity, just set start
+      // Logic for TRIP (start vs dest)
       if (!this.activityForm.get('startLatitude')?.value) {
         this.activityForm.patchValue({ startLatitude: lat, startLongitude: lng });
+        this.snackBar.open('📍 Trip start point set!', 'OK', { duration: 2500 });
       } else {
         this.activityForm.patchValue({ destLatitude: lat, destLongitude: lng });
+        this.snackBar.open('🏁 Trip destination set!', 'OK', { duration: 2500 });
       }
     }
   }
@@ -86,7 +95,8 @@ export class CreateActivityComponent {
       error: (err: any) => {
         this.loading = false;
         console.error('Failed to create activity', err);
-        alert(err?.error?.error || 'Failed to create activity. Please pick a future date and try again.');
+        const errMsg = err?.error?.error || 'Failed to create activity. Please pick a future date and try again.';
+        this.snackBar.open(errMsg, 'Close', { duration: 5000 });
       }
     });
   }

@@ -23,11 +23,11 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
         )
         AND a.location IS NOT NULL
         AND a.scheduled_at > now()
-        AND (:category IS NULL OR a.category = :category)
-        AND (:participationMode IS NULL OR a.participation_mode = :participationMode)
-        AND (:activityType IS NULL OR a.activity_type = :activityType)
-        AND (:scheduledFrom IS NULL OR a.scheduled_at >= :scheduledFrom)
-        AND (:scheduledTo IS NULL OR a.scheduled_at <= :scheduledTo)
+        AND (CAST(:category AS text) IS NULL OR a.category = CAST(:category AS text))
+        AND (CAST(:participationMode AS text) IS NULL OR a.participation_mode = CAST(:participationMode AS text))
+        AND (CAST(:activityType AS text) IS NULL OR a.activity_type = CAST(:activityType AS text))
+        AND (CAST(:scheduledFrom AS timestamp) IS NULL OR a.scheduled_at >= CAST(:scheduledFrom AS timestamp))
+        AND (CAST(:scheduledTo AS timestamp) IS NULL OR a.scheduled_at <= CAST(:scheduledTo AS timestamp))
         ORDER BY a.scheduled_at ASC
         """, nativeQuery = true)
     List<Activity> findNearbyMeetups(
@@ -53,11 +53,11 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
         )
         AND a.start_location IS NOT NULL
         AND a.scheduled_at > now()
-        AND (:category IS NULL OR a.category = :category)
-        AND (:participationMode IS NULL OR a.participation_mode = :participationMode)
-        AND (:activityType IS NULL OR a.activity_type = :activityType)
-        AND (:scheduledFrom IS NULL OR a.scheduled_at >= :scheduledFrom)
-        AND (:scheduledTo IS NULL OR a.scheduled_at <= :scheduledTo)
+        AND (CAST(:category AS text) IS NULL OR a.category = CAST(:category AS text))
+        AND (CAST(:participationMode AS text) IS NULL OR a.participation_mode = CAST(:participationMode AS text))
+        AND (CAST(:activityType AS text) IS NULL OR a.activity_type = CAST(:activityType AS text))
+        AND (CAST(:scheduledFrom AS timestamp) IS NULL OR a.scheduled_at >= CAST(:scheduledFrom AS timestamp))
+        AND (CAST(:scheduledTo AS timestamp) IS NULL OR a.scheduled_at <= CAST(:scheduledTo AS timestamp))
         ORDER BY a.scheduled_at ASC
         """, nativeQuery = true)
     List<Activity> findNearbyTrips(
