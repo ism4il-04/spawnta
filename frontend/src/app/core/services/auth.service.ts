@@ -78,5 +78,9 @@ export class AuthService {
   public getAccessToken(): string | null {
     return this.currentUserValue?.accessToken ?? null;
   }
+
+  public hasRefreshToken(): boolean {
+    return !!this.currentUserValue?.refreshToken;
+  }
 }
 

@@ -1,53 +1,108 @@
 .create-form {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 16px;
   max-width: 100%;
-
-  h2 {
-    margin: 0 0 0.2rem;
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: #163229;
-  }
+  color: #1e293b;
+  font-family: 'Inter', sans-serif;
 
   .full-width {
     width: 100%;
+    
+    ::ng-deep .mat-mdc-text-field-wrapper {
+      border-radius: 12px;
+    }
   }
 
   .row {
     display: flex;
-    gap: 0.85rem;
+    gap: 12px;
 
     .half-width {
       flex: 1;
+      width: 100%;
+      
+      ::ng-deep .mat-mdc-text-field-wrapper {
+        border-radius: 12px;
+      }
     }
   }
 
+  /* Location Info callout card */
   .location-info {
-    margin: 0.15rem 0;
-    padding: 0.9rem 1rem;
-    background-color: #eef6f1;
-    border: 1px solid rgba(31, 122, 90, 0.12);
-    border-radius: 1rem;
-    font-size: 14px;
-    color: #355449;
+    margin: 4px 0;
+    padding: 14px 16px;
+    background-color: rgba(15, 118, 110, 0.04);
+    border: 1px dashed rgba(15, 118, 110, 0.25);
+    border-radius: 12px;
+    font-size: 13px;
+    color: #334155;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 
     .instruction {
-      margin-top: 0;
-      color: #567367;
+      margin: 0;
+      color: #64748b;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #0f766e;
+      }
+    }
+
+    .coords-display {
+      font-weight: 600;
+      color: #0f766e;
+      margin: 0;
+      font-family: monospace;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .text-warn {
-      color: #f44336;
+      color: #ef4444;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
   }
 
   .actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.75rem;
-    margin-top: 0.6rem;
+    gap: 12px;
+    margin-top: 12px;
+    
+    button {
+      height: 42px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .cancel-btn {
+      color: #64748b;
+    }
+    
+    .submit-btn {
+      background: #0f766e !important;
+      color: white !important;
+      
+      &:hover {
+        background: #0d9488 !important;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+      }
+    }
   }
 }
 
@@ -61,6 +116,10 @@
     .actions {
       flex-direction: column-reverse;
       align-items: stretch;
+      
+      button {
+        width: 100%;
+      }
     }
   }
 }

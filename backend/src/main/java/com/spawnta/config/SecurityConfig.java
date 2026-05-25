@@ -44,7 +44,7 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/api/auth/**"
                 ).permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/activities/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/activities", "/api/activities/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
