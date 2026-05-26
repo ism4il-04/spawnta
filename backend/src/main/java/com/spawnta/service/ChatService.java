@@ -289,6 +289,7 @@ public class ChatService {
         }
 
         chat.setStatus(ChatStatus.BLOCKED);
+        chat.setBlockedByUserId(userId);
         chatRepository.save(chat);
     }
 
@@ -306,7 +307,12 @@ public class ChatService {
             throw new IllegalStateException("Vous ne participez pas à ce chat.");
         }
 
+        if (chat.getBlockedByUserId() != null && !chat.getBlockedByUserId().equals(userId)) {
+            throw new IllegalStateException("Seul l'utilisateur qui a bloqué la conversation peut la débloquer.");
+        }
+
         chat.setStatus(ChatStatus.ACTIVE);
+        chat.setBlockedByUserId(null);
         chatRepository.save(chat);
     }
 
@@ -445,7 +451,8 @@ public class ChatService {
                 lastMessage,
                 lastMessageTime,
                 lastMessageSender,
-                notificationsEnabled
+                notificationsEnabled,
+                chat.getBlockedByUserId()
             ));
         }
         return responses;

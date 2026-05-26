@@ -104,7 +104,7 @@
           <button *ngIf="chat.type === 'PRIVATE' && chat.status !== 'BLOCKED'" class="icon-btn danger" (click)="blockConversation()" title="Bloquer">
             <span class="material-icons">block</span>
           </button>
-          <button *ngIf="chat.type === 'PRIVATE' && chat.status === 'BLOCKED'" class="icon-btn" (click)="unblockConversation()" title="Débloquer">
+          <button *ngIf="chat.type === 'PRIVATE' && chat.status === 'BLOCKED' && chat.blockedByUserId === activeUserId()" class="icon-btn" (click)="unblockConversation()" title="Débloquer">
             <span class="material-icons">lock_open</span>
           </button>
 

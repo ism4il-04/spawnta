@@ -59,7 +59,7 @@ public class ChatController {
                 .findFirst()
                 .orElse(new ChatResponse(
                     chat.getId(), "PRIVATE", null, null, "ACTIVE", chat.getCreatedAt(),
-                    "Conversation", null, "", null, null, true
+                    "Conversation", null, "", null, null, true, chat.getBlockedByUserId()
                 ));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(matched);

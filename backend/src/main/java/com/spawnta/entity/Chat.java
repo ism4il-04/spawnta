@@ -28,6 +28,9 @@ public class Chat {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "blocked_by_user_id")
+    private Long blockedByUserId;
+
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatParticipant> participants = new ArrayList<>();
 
@@ -59,6 +62,9 @@ public class Chat {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Long getBlockedByUserId() { return blockedByUserId; }
+    public void setBlockedByUserId(Long blockedByUserId) { this.blockedByUserId = blockedByUserId; }
 
     public List<ChatParticipant> getParticipants() { return participants; }
     public void setParticipants(List<ChatParticipant> participants) { this.participants = participants; }

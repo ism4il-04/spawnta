@@ -17,6 +17,7 @@ export interface ChatResponse {
   lastMessageTime: string | null;
   lastMessageSender: string | null;
   notificationsEnabled: boolean;
+  blockedByUserId: number | null;
 }
 
 export interface MessageResponse {

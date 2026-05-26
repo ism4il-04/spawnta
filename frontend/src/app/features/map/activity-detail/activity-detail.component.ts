@@ -119,7 +119,7 @@ export class ActivityDetailComponent implements OnChanges {
   }
 
   openGroupChat() {
-    this.router.navigate(['/chat']);
+    this.router.navigate(['/chat'], { queryParams: { activityId: this.activity.id } });
     this.snackBar.open('Redirection vers la messagerie...', 'OK', { duration: 2000 });
   }
 

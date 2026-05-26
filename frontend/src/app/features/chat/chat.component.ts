@@ -73,10 +73,14 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.route.queryParams.subscribe((params) => {
       const chatIdParam = params['id'];
       const targetUserIdParam = params['userId'];
+      const activityIdParam = params['activityId'];
 
       if (chatIdParam) {
         const chatId = Number(chatIdParam);
         this.selectChatById(chatId);
+      } else if (activityIdParam) {
+        const activityId = Number(activityIdParam);
+        this.selectChatByActivityId(activityId);
       } else if (targetUserIdParam) {
         const targetUserId = Number(targetUserIdParam);
         this.startPrivateChat(targetUserId);
@@ -88,14 +92,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
     // Do not disconnect WebSocket globally here in case the user toggles tabs,
     // let it persist as defined in ConnectionManager unless they logout.
+    this.chatService.setActiveChatId(null);
   }
 
   protected loadChats(autoSelectFirst = false): void {
     this.chatService.getUserChats().subscribe({
       next: (chatsList) => {
         this.chats.set(chatsList);
-        // Auto-select first chat if none is selected and no query param
-        if (autoSelectFirst && chatsList.length > 0 && !this.selectedChat() && !this.route.snapshot.queryParams['id']) {
+        // Auto-select first chat if none is selected and no query param overriding it
+        if (autoSelectFirst && chatsList.length > 0 && !this.selectedChat() && 
+            !this.route.snapshot.queryParams['id'] && 
+            !this.route.snapshot.queryParams['activityId'] && 
+            !this.route.snapshot.queryParams['userId']) {
           this.selectChat(chatsList[0]);
         }
       },
@@ -134,6 +142,18 @@ export class ChatComponent implements OnInit, OnDestroy {
       const chat = chatsList.find(c => c.id === chatId);
       if (chat) {
         this.selectChat(chat);
+      }
+    });
+  }
+
+  private selectChatByActivityId(activityId: number): void {
+    this.chatService.getUserChats().subscribe((chatsList) => {
+      this.chats.set(chatsList);
+      const chat = chatsList.find(c => c.activityId === activityId && c.type === 'GROUP');
+      if (chat) {
+        this.selectChat(chat);
+      } else {
+        alert("Vous n'avez pas encore rejoint le chat de ce groupe, ou vous êtes en attente d'approbation.");
       }
     });
   }
@@ -323,6 +343,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.chatService.blockChat(activeChat.id).subscribe({
         next: () => {
           activeChat.status = 'BLOCKED';
+          activeChat.blockedByUserId = this.activeUserId();
           alert('Conversation bloquée.');
         },
         error: (err) => alert(err.error?.error || 'Erreur lors du blocage')
@@ -338,6 +359,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.chatService.unblockChat(activeChat.id).subscribe({
         next: () => {
           activeChat.status = 'ACTIVE';
+          activeChat.blockedByUserId = null;
           alert('Conversation débloquée.');
         },
         error: (err) => alert(err.error?.error || 'Erreur lors du déblocage')

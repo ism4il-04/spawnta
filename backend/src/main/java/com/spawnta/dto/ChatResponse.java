@@ -14,5 +14,6 @@ public record ChatResponse(
     String lastMessage,
     LocalDateTime lastMessageTime,
     String lastMessageSender,
-    boolean notificationsEnabled
+    boolean notificationsEnabled,
+    Long blockedByUserId
 ) {}
