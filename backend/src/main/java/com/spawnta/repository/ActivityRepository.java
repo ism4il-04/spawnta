@@ -75,4 +75,8 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
      * Count activities created by a host after a given date (for weekly limit check).
      */
     long countByHostIdAndCreatedAtAfter(Long hostId, LocalDateTime after);
+
+    long countByHostId(Long hostId);
+
+    List<Activity> findAllByScheduledAtAfter(LocalDateTime time);
 }

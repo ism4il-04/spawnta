@@ -76,10 +76,10 @@ Statut : En cours (15 commits planifiés)
 - [x] Validation de présence (check-in, QR code) — Commit 2
 - [x] Système de notation d'activités — Commit 2
 - [x] Schéma recommandations et notifications — Commit 3
-- [ ] Services gamification (XP & leveling) — Commit 4
-- [ ] Services validation et présence — Commit 5
-- [ ] Moteur recommandations (scoring) — Commit 6
-- [ ] Pipeline notifications temps réel — Commit 7
+- [x] Services gamification (XP & leveling) — Commit 4
+- [x] Services validation et présence — Commit 5
+- [x] Moteur recommandations (scoring) — Commit 6
+- [x] Pipeline notifications temps réel — Commit 7
 - [ ] API endpoints gamification — Commit 8
 - [ ] API endpoints attendance & rating — Commit 9
 - [ ] API endpoints recommandations — Commit 10
