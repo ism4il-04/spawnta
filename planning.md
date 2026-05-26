@@ -80,9 +80,9 @@ Statut : En cours (15 commits planifiés)
 - [x] Services validation et présence — Commit 5
 - [x] Moteur recommandations (scoring) — Commit 6
 - [x] Pipeline notifications temps réel — Commit 7
-- [ ] API endpoints gamification — Commit 8
-- [ ] API endpoints attendance & rating — Commit 9
-- [ ] API endpoints recommandations — Commit 10
+- [x] API endpoints gamification — Commit 8
+- [x] API endpoints attendance & rating — Commit 9
+- [x] API endpoints recommandations — Commit 10
 - [ ] UI composants gamification — Commit 11
 - [ ] UI composants check-in & rating — Commit 12
 - [ ] UI feed recommandations & inbox notifications — Commit 13
