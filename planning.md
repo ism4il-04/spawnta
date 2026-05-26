@@ -69,13 +69,27 @@ Statut : A venir
 - notifications temps reel
 
 ### Phase 4 - Post-sortie, gamification et IA
-Statut : A venir
+Statut : En cours (15 commits planifiés)
 
-- validation de presence
-- evaluations
-- XP et niveaux
-- recommandations d'activites
-- recommandations d'amis
+- [x] Planification complète avec architecture
+- [x] Entités gamification (XP, niveaux, badges) — Commit 1
+- [x] Validation de présence (check-in, QR code) — Commit 2
+- [x] Système de notation d'activités — Commit 2
+- [ ] Schéma recommandations et notifications — Commit 3
+- [ ] Services gamification (XP & leveling) — Commit 4
+- [ ] Services validation et présence — Commit 5
+- [ ] Moteur recommandations (scoring) — Commit 6
+- [ ] Pipeline notifications temps réel — Commit 7
+- [ ] API endpoints gamification — Commit 8
+- [ ] API endpoints attendance & rating — Commit 9
+- [ ] API endpoints recommandations — Commit 10
+- [ ] UI composants gamification — Commit 11
+- [ ] UI composants check-in & rating — Commit 12
+- [ ] UI feed recommandations & inbox notifications — Commit 13
+- [ ] Tests unitaires & intégration — Commit 14
+- [ ] Documentation API & deployment — Commit 15
+
+**Détails**: Voir `PHASE4_IMPLEMENTATION_PLAN.md` pour plan complet, architecture, fichiers à créer, et timeline (7-8 semaines estimées).
 
 ### Phase 5 - Monetisation et dashboard admin
 Statut : A venir
@@ -87,7 +101,12 @@ Statut : A venir
 
 ---
 
-## Etat actuel
+## 📚 Documentation
+
+- `PHASE4_EXECUTIVE_SUMMARY.md` - High-level overview, business impact, timeline (read first!)
+- `PHASE4_IMPLEMENTATION_PLAN.md` - Complete technical architecture, 15 commits breakdown
+- `PHASE4_COMMIT_CHECKLIST.md` - Detailed per-commit checklist with verification steps
+- `PHASE4_QUICK_REFERENCE.md` - Quick lookup tables, APIs, debugging tips
 
 - Sprint courant : preparation Phase 3
 - Progression globale estimee : 45%
