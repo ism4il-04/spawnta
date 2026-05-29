@@ -18,6 +18,7 @@ export interface ChatResponse {
   lastMessageSender: string | null;
   notificationsEnabled: boolean;
   blockedByUserId: number | null;
+  participantStatus: string;
 }
 
 export interface MessageResponse {
@@ -284,5 +285,9 @@ export class ChatService {
 
   public unblockChat(chatId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${chatId}/unblock`, {});
+  }
+
+  public deleteConversation(chatId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${chatId}/conversation`);
   }
 }

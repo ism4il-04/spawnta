@@ -59,7 +59,7 @@ public class ChatController {
                 .findFirst()
                 .orElse(new ChatResponse(
                     chat.getId(), "PRIVATE", null, null, "ACTIVE", chat.getCreatedAt(),
-                    "Conversation", null, "", null, null, true, chat.getBlockedByUserId()
+                    "Conversation", null, "", null, null, true, chat.getBlockedByUserId(), "ACTIVE"
                 ));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(matched);
@@ -142,6 +142,15 @@ public class ChatController {
         String email = authentication.getName();
         chatService.leaveChat(chatId, email);
         return ResponseEntity.ok(Map.of("message", "Vous avez quitté la conversation"));
+    }
+
+    @DeleteMapping("/{chatId}/conversation")
+    public ResponseEntity<Map<String, String>> deleteConversation(
+            @PathVariable Long chatId,
+            Authentication authentication) {
+        String email = authentication.getName();
+        chatService.deleteConversation(chatId, email);
+        return ResponseEntity.ok(Map.of("message", "La conversation a été supprimée"));
     }
 
     @PostMapping("/{chatId}/block")
