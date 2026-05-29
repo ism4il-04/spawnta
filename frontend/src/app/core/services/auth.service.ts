@@ -67,6 +67,10 @@ export class AuthService {
     this.currentUserSubject.next(authRes);
   }
 
+  public get currentUser$(): Observable<AuthResponse | null> {
+    return this.currentUserSubject.asObservable();
+  }
+
   public get currentUserValue(): AuthResponse | null {
     return this.currentUserSubject.value;
   }

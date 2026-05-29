@@ -1,49 +1,121 @@
 <div class="auth-container">
-  <section class="auth-hero">
-    <p class="eyebrow">Spawnta Access</p>
-    <h1>Reconnectez-vous a vos sorties.</h1>
+  <section class="auth-hero animate-fade-in-up">
+    <div class="hero-badge">
+      <span class="badge-icon">🚀</span>
+      <span>Spawnta Access</span>
+    </div>
+    <h1>Reconnectez-vous à vos sorties.</h1>
     <p class="hero-text">
-      Retrouvez votre profil, vos activites et la carte interactive depuis un espace
-      coherent avec le reste de l'application.
+      Retrouvez votre profil, vos activités et la carte interactive depuis un espace 
+      cohérent avec le reste de l'application. Votre communauté vous attend.
     </p>
 
-    <div class="hero-points">
-      <span>Carte interactive</span>
-      <span>Profil voyageur</span>
-      <span>Rencontres et trips</span>
+    <div class="hero-features">
+      <div class="feature-item">
+        <div class="feature-icon">🗺️</div>
+        <span>Carte interactive</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">👤</div>
+        <span>Profil voyageur</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🤝</div>
+        <span>Rencontres et trips</span>
+      </div>
     </div>
   </section>
 
-  <mat-card class="auth-card">
-    <mat-card-header>
-      <p class="card-kicker">Connexion</p>
-      <mat-card-title>Bon retour sur Spawnta</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email" placeholder="email@example.com">
-          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">Email is required</mat-error>
-          <mat-error *ngIf="loginForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
-        </mat-form-field>
+  <div class="auth-card-container animate-slide-in-right">
+    <div class="modern-card auth-card">
+      <div class="card-header">
+        <div class="card-badge">Connexion</div>
+        <h2 class="card-title">Bon retour sur Spawnta</h2>
+        <p class="card-subtitle">Connectez-vous pour accéder à votre compte</p>
+      </div>
+      
+      <div class="card-body">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="modern-form">
+          <div class="modern-form-field">
+            <label class="form-label" for="email">Adresse email</label>
+            <input 
+              id="email"
+              class="form-input"
+              [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              formControlName="email"
+              type="email"
+              placeholder="votre@email.com"
+              autocomplete="email">
+            <span class="form-error" *ngIf="loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched">
+              L'email est requis
+            </span>
+            <span class="form-error" *ngIf="loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched">
+              Veuillez entrer un email valide
+            </span>
+          </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="password" type="password">
-          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Password is required</mat-error>
-          <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">Min 6 characters</mat-error>
-        </mat-form-field>
+          <div class="modern-form-field">
+            <label class="form-label" for="password">Mot de passe</label>
+            <div class="password-input-wrapper">
+              <input 
+                id="password"
+                class="form-input"
+                [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                formControlName="password"
+                [type]="showPassword ? 'text' : 'password'"
+                placeholder="Votre mot de passe"
+                autocomplete="current-password">
+              <button 
+                type="button" 
+                class="password-toggle"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+                <i class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</i>
+              </button>
+            </div>
+            <span class="form-error" *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched">
+              Le mot de passe est requis
+            </span>
+            <span class="form-error" *ngIf="loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched">
+              Le mot de passe doit contenir au moins 6 caractères
+            </span>
+          </div>
 
-        <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading">
-            {{ loading ? 'Logging in...' : 'Login' }}
-          </button>
+          <div class="form-actions">
+            <button 
+              type="submit" 
+              class="btn btn-primary btn-lg btn-full"
+              [disabled]="loginForm.invalid || loading">
+              <span *ngIf="!loading">
+                <i class="material-icons">login</i>
+                Se connecter
+              </span>
+              <span *ngIf="loading" class="loading-content">
+                <div class="spinner"></div>
+                Connexion en cours...
+              </span>
+            </button>
+          </div>
+
+          <div class="forgot-password">
+            <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+          </div>
+        </form>
+      </div>
+      
+      <div class="card-footer">
+        <p class="footer-text">
+          Vous n'avez pas encore de compte ? 
+          <a routerLink="/signup" class="footer-link">Créer un compte</a>
+        </p>
+        <div class="social-divider">
+          <span>ou</span>
         </div>
-      </form>
-    </mat-card-content>
-    <mat-card-footer>
-      <p>Don't have an account? <a routerLink="/signup">Sign up</a></p>
-    </mat-card-footer>
-  </mat-card>
+        <button type="button" class="btn btn-outline btn-full social-btn">
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="social-icon">
+          Continuer avec Google
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

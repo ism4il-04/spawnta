@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -20,7 +21,8 @@ import { AuthService } from '../../../core/services/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatIconModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
@@ -28,6 +30,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class LoginComponent {
   loginForm: FormGroup;
   loading = false;
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -41,6 +44,10 @@ export class LoginComponent {
     });
   }
 
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
   onSubmit() {
     if (this.loginForm.invalid) return;
 
@@ -48,22 +55,22 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.loading = false;
-        this.snackBar.open('Login successful!', 'Close', { duration: 3000 });
+        this.snackBar.open('Connexion réussie !', 'Fermer', { duration: 3000 });
         this.router.navigate(['/profile']);
       },
       error: (err: any) => {
         this.loading = false;
         if (err.error?.code === 'EMAIL_NOT_VERIFIED') {
           const email: string = err.error.email ?? this.loginForm.value.email;
-          this.snackBar.open('Please verify your email first.', 'Resend', { duration: 6000 })
+          this.snackBar.open('Veuillez d\'abord vérifier votre email.', 'Renvoyer', { duration: 6000 })
             .onAction().subscribe(() => {
               this.authService.resendVerification(email).subscribe({
-                next: () => this.snackBar.open('Verification email resent!', 'Close', { duration: 3000 }),
-                error: () => this.snackBar.open('Could not resend email.', 'Close', { duration: 3000 })
+                next: () => this.snackBar.open('Email de vérification renvoyé !', 'Fermer', { duration: 3000 }),
+                error: () => this.snackBar.open('Impossible de renvoyer l\'email.', 'Fermer', { duration: 3000 })
               });
             });
         } else {
-          this.snackBar.open(err.error?.error || 'Login failed', 'Close', { duration: 3000 });
+          this.snackBar.open(err.error?.error || 'Échec de la connexion', 'Fermer', { duration: 3000 });
         }
       }
     });

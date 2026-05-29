@@ -1,47 +1,56 @@
-<section class="hero">
-  <div class="hero-copy">
-    <p class="eyebrow">Spawnta</p>
-    <h1>Toutes les fonctionnalites au meme endroit.</h1>
-    <p class="lede">
-      Cette page principale vous permet d'acceder rapidement a la carte, au profil,
-      a la creation de compte et aux parcours essentiels de l'application.
+<section class="home-page">
+
+  <!-- ══ Hero ══ -->
+  <div class="hero">
+    <span class="eyebrow-pill">🌍 Découvrez votre ville autrement</span>
+
+    <h1 class="hero-title">
+      Toutes les fonctionnalités<br>
+      <span class="hero-title-accent">au même endroit.</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Explorez les activités autour de vous, connectez-vous avec votre communauté
+      et planifiez vos sorties en un clin d'œil.
     </p>
 
-    <div class="hero-actions">
-      <a class="primary-btn" [routerLink]="authService.isLoggedIn() ? '/map' : '/login'">
-        {{ authService.isLoggedIn() ? 'Aller a la carte' : 'Se connecter' }}
+    <div class="hero-ctas">
+      <a routerLink="/map" class="cta-primary" id="hero-btn-carte">
+        <mat-icon>map</mat-icon>
+        Aller à la carte
       </a>
-      <a class="secondary-btn" routerLink="/signup">Creer un compte</a>
+      <a *ngIf="!authService.isLoggedIn()" routerLink="/signup" class="cta-outline" id="hero-btn-inscription">
+        Créer un compte <span class="arrow">→</span>
+      </a>
     </div>
   </div>
 
-  <div class="hero-panel">
-    <div class="panel-card">
-      <span class="panel-kicker">Acces rapide</span>
-      <ul>
-        <li>Connexion et verification email</li>
-        <li>Edition du profil et des interets</li>
-        <li>Exploration de la carte</li>
-        <li>Creation d'activites meetup ou trip</li>
-      </ul>
+  <!-- ══ Welcome banner (logged-in) ══ -->
+  <div *ngIf="authService.isLoggedIn()" class="welcome-banner">
+    <span class="welcome-wave">👋</span>
+    <div class="welcome-body">
+      <h2 class="welcome-title">
+        Bon retour, {{ authService.currentUserValue?.firstName }} !
+      </h2>
+      <p class="welcome-text">
+        Retrouvez vos activités favorites et découvrez les nouveautés autour de vous.
+      </p>
+    </div>
+    <a routerLink="/map" class="welcome-cta" id="welcome-btn-explorer">Explorer →</a>
+  </div>
+
+  <!-- ══ Feature cards ══ -->
+  <div class="features-grid">
+    <div *ngFor="let f of features" class="feature-card">
+      <div class="card-icon-wrap">
+        <mat-icon>{{ f.icon }}</mat-icon>
+      </div>
+      <h2 class="card-title">{{ f.title }}</h2>
+      <p class="card-desc">{{ f.description }}</p>
+      <a [routerLink]="f.link" class="card-link" [id]="'feature-' + f.id">
+        {{ f.cta }} <span class="arrow">→</span>
+      </a>
     </div>
   </div>
-</section>
 
-<section class="features">
-  <article class="feature-card" *ngFor="let feature of features">
-    <h2>{{ feature.title }}</h2>
-    <p>{{ feature.description }}</p>
-    <a [routerLink]="feature.link">{{ feature.cta }}</a>
-  </article>
-</section>
-
-<section class="summary">
-  <div class="summary-box">
-    <h2>Workflow conseille</h2>
-    <p>
-      Commencez par creer un compte, verifiez votre email, completez votre profil,
-      puis ouvrez la carte pour creer ou rejoindre une activite.
-    </p>
-  </div>
 </section>

@@ -1,24 +1,131 @@
-<div class="app-shell">
-  <header class="topbar">
-    <a class="brand" routerLink="/">Spawnta</a>
+<div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
 
-    <nav class="nav-links">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
-      <a routerLink="/map" routerLinkActive="active">Carte</a>
-      <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active" class="nav-msg-link">
-        Messagerie
-        <span class="unread-badge" *ngIf="(chatService.unreadCount$ | async) as count">
-          {{ count > 9 ? '9+' : count }}
-        </span>
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Menu principal">
+
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <span class="brand-globe">🌍</span>
+      <span class="brand-text">Spawnta</span>
+    </div>
+
+    <!-- Nav links -->
+    <nav class="sidebar-nav">
+
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
+         class="nav-item" id="nav-accueil">
+        <mat-icon class="nav-icon">home</mat-icon>
+        <span class="nav-label">Accueil</span>
       </a>
-      <a routerLink="/profile" routerLinkActive="active">Profil</a>
-      <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active">Connexion</a>
-      <a *ngIf="!authService.isLoggedIn()" routerLink="/signup" routerLinkActive="active">Inscription</a>
-      <button *ngIf="authService.isLoggedIn()" type="button" class="logout-btn" (click)="logout()">Deconnexion</button>
-    </nav>
-  </header>
 
-  <main class="page-frame">
-    <router-outlet></router-outlet>
-  </main>
+      <a routerLink="/map" routerLinkActive="active" class="nav-item" id="nav-carte">
+        <mat-icon class="nav-icon">map</mat-icon>
+        <span class="nav-label">Carte</span>
+      </a>
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active"
+         class="nav-item" id="nav-messagerie">
+        <span class="nav-icon-wrap">
+          <mat-icon class="nav-icon">chat_bubble_outline</mat-icon>
+          <span class="nav-badge" *ngIf="(chatService.unreadCount$ | async) as count">
+            {{ count > 0 ? count : null }}
+          </span>
+        </span>
+        <span class="nav-label">Messagerie</span>
+      </a>
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/profile" routerLinkActive="active"
+         class="nav-item" id="nav-profil">
+        <mat-icon class="nav-icon">person_outline</mat-icon>
+        <span class="nav-label">Profil</span>
+      </a>
+
+      <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active"
+         class="nav-item" id="nav-connexion">
+        <mat-icon class="nav-icon">login</mat-icon>
+        <span class="nav-label">Connexion</span>
+      </a>
+
+      <a *ngIf="!authService.isLoggedIn()" routerLink="/signup" routerLinkActive="active"
+         class="nav-item" id="nav-inscription">
+        <mat-icon class="nav-icon">person_add</mat-icon>
+        <span class="nav-label">Inscription</span>
+      </a>
+
+    </nav>
+
+    <!-- Collapse button -->
+    <button class="sidebar-collapse-btn" (click)="toggleSidebar()" id="btn-collapse-sidebar"
+            [attr.aria-label]="sidebarCollapsed ? 'Développer le menu' : 'Réduire le menu'">
+      <mat-icon class="collapse-icon">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      <span class="nav-label">Réduire</span>
+    </button>
+  </aside>
+
+  <!-- ══════════ MAIN AREA ══════════ -->
+  <div class="main-area">
+
+    <!-- Topbar -->
+    <header class="app-topbar" role="banner">
+
+      <div class="topbar-search">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input id="topbar-search-input" type="search" class="search-input"
+               placeholder="Rechercher des activités, lieux…" autocomplete="off">
+      </div>
+
+      <div class="topbar-end">
+
+        <button *ngIf="authService.isLoggedIn()" class="icon-btn" id="btn-notifications"
+                aria-label="Notifications">
+          <mat-icon>notifications_none</mat-icon>
+        </button>
+
+        <button class="icon-btn" id="btn-settings" aria-label="Paramètres">
+          <mat-icon>settings</mat-icon>
+        </button>
+
+        <!-- Logged-in: avatar + dropdown -->
+        <div *ngIf="authService.isLoggedIn()" class="user-menu-wrapper">
+          <button class="avatar-btn" id="btn-avatar"
+                  (click)="$event.stopPropagation(); toggleUserMenu()"
+                  [attr.aria-expanded]="userMenuOpen"
+                  aria-haspopup="menu">
+            {{ getInitials() }}
+          </button>
+
+          <div *ngIf="userMenuOpen" class="user-dropdown" role="menu">
+            <div class="dropdown-header">
+              <strong>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</strong>
+              <span class="dropdown-email">{{ currentUser?.email }}</span>
+            </div>
+            <hr class="dropdown-divider">
+            <button class="dropdown-item" role="menuitem"
+                    (click)="navigateToProfile()" id="menu-profil">
+              <mat-icon>person</mat-icon> Mon profil
+            </button>
+            <button class="dropdown-item logout-item" role="menuitem"
+                    (click)="logout()" id="menu-deconnexion">
+              <mat-icon>logout</mat-icon> Déconnexion
+            </button>
+          </div>
+        </div>
+
+        <!-- Guest: auth links -->
+        <ng-container *ngIf="!authService.isLoggedIn()">
+          <a routerLink="/login" class="auth-link" id="topbar-login">Connexion</a>
+          <a routerLink="/signup" class="auth-link auth-link--primary" id="topbar-signup">
+            Inscription
+          </a>
+        </ng-container>
+
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content" role="main">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
 </div>
