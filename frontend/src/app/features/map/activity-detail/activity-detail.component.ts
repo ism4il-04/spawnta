@@ -27,7 +27,7 @@ import { Router } from '@angular/router';
   ],
   providers: [DatePipe],
   templateUrl: './activity-detail.component.html',
-  styleUrl: './activity-detail.component.scss'
+  styleUrls: ['./activity-detail.component.scss']
 })
 export class ActivityDetailComponent implements OnChanges {
   @Input() activity!: ActivityResponse;

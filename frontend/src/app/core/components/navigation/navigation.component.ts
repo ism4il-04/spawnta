@@ -29,7 +29,7 @@ interface User {
     MatIconModule
   ],
   templateUrl: './navigation.component.html',
-  styleUrl: './navigation.component.scss'
+  styleUrls: ['./navigation.component.scss']
 })
 export class NavigationComponent implements OnInit, OnDestroy {
   @Input() showSearch = true;

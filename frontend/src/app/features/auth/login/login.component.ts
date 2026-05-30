@@ -25,7 +25,7 @@ import { AuthService } from '../../../core/services/auth.service';
     MatIconModule
   ],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
   loginForm: FormGroup;

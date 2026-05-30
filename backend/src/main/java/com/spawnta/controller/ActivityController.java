@@ -105,9 +105,22 @@ public class ActivityController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
         FieldError firstError = ex.getBindingResult().getFieldErrors().stream().findFirst().orElse(null);
-        String message = firstError != null
-            ? firstError.getField() + ": " + firstError.getDefaultMessage()
-            : "Invalid activity request";
+        String message;
+        
+        if (firstError != null) {
+            String field = firstError.getField();
+            String defaultMessage = firstError.getDefaultMessage();
+            
+            // Messages personnalisés pour certains champs
+            if ("scheduledAt".equals(field)) {
+                message = "La date et l'heure de l'activité doivent être dans le futur. Veuillez sélectionner une date ultérieure.";
+            } else {
+                message = field + ": " + defaultMessage;
+            }
+        } else {
+            message = "Données de l'activité invalides";
+        }
+        
         return ResponseEntity.badRequest().body(Map.of("error", message));
     }
 }

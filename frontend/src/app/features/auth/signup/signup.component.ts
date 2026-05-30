@@ -31,7 +31,7 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
     MatIconModule
   ],
   templateUrl: './signup.component.html',
-  styleUrl: './signup.component.scss'
+  styleUrls: ['./signup.component.scss']
 })
 export class SignupComponent {
   signupForm: FormGroup;

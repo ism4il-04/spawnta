@@ -40,7 +40,7 @@ export const ALL_INTERESTS = [
     MatDividerModule
   ],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.scss'
+  styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
   profile: UserProfile | null = null;

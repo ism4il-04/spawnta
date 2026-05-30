@@ -3,11 +3,8 @@
   <!-- ══════════════ LEFT PANEL – Conversation list ══════════════ -->
   <aside class="chat-sidebar">
     <div class="sidebar-header">
-      <div class="sidebar-header-left">
-        <span class="material-icons sidebar-icon">chat_bubble</span>
-        <h2>Messagerie</h2>
-      </div>
-      <span class="chat-count-badge">{{ chats().length }}</span>
+      <h2>Messagerie</h2>
+      <span class="chat-count-badge" *ngIf="chats().length > 0">{{ chats().length }}</span>
     </div>
 
     <div class="sidebar-scroll">
@@ -31,9 +28,6 @@
           <span *ngIf="!chat.avatarUrl" class="avatar-letter">
             {{ chat.title.charAt(0).toUpperCase() }}
           </span>
-          <span class="chat-type-badge" [class.group]="chat.type === 'GROUP'" [class.private]="chat.type === 'PRIVATE'">
-            <span class="material-icons">{{ chat.type === 'GROUP' ? 'groups' : 'person' }}</span>
-          </span>
         </div>
 
         <div class="chat-item-content">
@@ -44,16 +38,7 @@
             </span>
           </div>
           <div class="chat-preview">
-            <span class="preview-sender" *ngIf="chat.lastMessageSender">
-              {{ chat.lastMessageSender.split(' ')[0] }}:
-            </span>
-            <span class="preview-text">{{ chat.lastMessage || 'Pas encore de message' }}</span>
-          </div>
-          <div class="chat-item-tags">
-            <span *ngIf="chat.status === 'BLOCKED'" class="tag tag-blocked">bloqué</span>
-            <span *ngIf="!chat.notificationsEnabled" class="tag tag-muted">
-              <span class="material-icons" style="font-size: 11px;">notifications_off</span>
-            </span>
+            <span class="preview-text">{{ chat.lastMessage || 'Conversation privée' }}</span>
           </div>
         </div>
       </div>
@@ -84,9 +69,7 @@
           </div>
           <div class="header-info">
             <span class="header-title">{{ chat.title }}</span>
-            <span class="header-sub">
-              {{ chat.type === 'GROUP' ? 'Chat de groupe · ' + (chat.activityTitle || '') : 'Conversation privée' }}
-            </span>
+            <span class="header-sub">Conversation privée</span>
           </div>
         </div>
 
@@ -97,25 +80,17 @@
             (click)="toggleNotifications()"
             [title]="chat.notificationsEnabled ? 'Couper les notifications' : 'Activer les notifications'"
           >
-            <span class="material-icons">{{ chat.notificationsEnabled ? 'notifications_active' : 'notifications_off' }}</span>
+            <span class="material-icons">{{ chat.notificationsEnabled ? 'notifications' : 'notifications_off' }}</span>
           </button>
 
-          <!-- Block / Unblock (private) -->
-          <button *ngIf="chat.type === 'PRIVATE' && chat.status !== 'BLOCKED'" class="icon-btn danger" (click)="blockConversation()" title="Bloquer">
-            <span class="material-icons">block</span>
-          </button>
-          <button *ngIf="chat.type === 'PRIVATE' && chat.status === 'BLOCKED' && chat.blockedByUserId === activeUserId()" class="icon-btn" (click)="unblockConversation()" title="Débloquer">
-            <span class="material-icons">lock_open</span>
-          </button>
-
-          <!-- Leave -->
-          <button *ngIf="chat.type === 'GROUP' && chat.participantStatus === 'ACTIVE'" class="icon-btn leave-btn" (click)="leaveConversation()" title="Quitter le groupe">
-            <span class="material-icons">exit_to_app</span>
+          <!-- More options -->
+          <button class="icon-btn" title="Plus d'options">
+            <span class="material-icons">more_vert</span>
           </button>
 
           <!-- Delete -->
-          <button class="icon-btn danger" (click)="deleteConversation()" title="Supprimer la conversation">
-            <span class="material-icons">delete</span>
+          <button class="icon-btn" (click)="deleteConversation()" title="Supprimer la conversation">
+            <span class="material-icons">delete_outline</span>
           </button>
         </div>
       </div>
@@ -209,7 +184,7 @@
         <textarea
           class="message-textarea"
           [(ngModel)]="newMessageText"
-          placeholder="Écrivez un message… (Entrée pour envoyer, Maj+Entrée pour nouvelle ligne)"
+          placeholder="Écrivez un message... (Entrée pour envoyer, Maj+Entrée pour nouvelle ligne)"
           [disabled]="chat.status === 'BLOCKED'"
           [maxlength]="maxMessageLength"
           (keydown.enter)="$event.preventDefault(); sendMessage()"
@@ -217,19 +192,14 @@
           rows="1"
         ></textarea>
 
-        <div class="input-footer">
-          <span class="char-counter" [class.near-limit]="newMessageText.length > maxMessageLength * 0.9">
-            {{ newMessageText.length }} / {{ maxMessageLength }}
-          </span>
-          <button
-            class="send-btn"
-            (click)="sendMessage()"
-            [disabled]="!newMessageText.trim() || chat.status === 'BLOCKED'"
-          >
-            <span class="material-icons">send</span>
-            Envoyer
-          </button>
-        </div>
+        <button
+          class="send-btn"
+          (click)="sendMessage()"
+          [disabled]="!newMessageText.trim() || chat.status === 'BLOCKED'"
+          title="Envoyer"
+        >
+          <span class="material-icons">send</span>
+        </button>
       </div>
 
     </ng-container>

@@ -1,60 +1,78 @@
 <div class="detail-container">
   
+  <div class="header-section">
+    <h2 class="activity-title">{{ activity.title }}</h2>
+    <p class="activity-location" *ngIf="activity.address">
+      <mat-icon>location_on</mat-icon>
+      <span>{{ activity.address }}</span>
+    </p>
+  </div>
+
   <div class="header-badges">
     <span class="badge category-badge">{{ activity.category || 'General' }}</span>
-    <span class="badge type-badge" [class.trip-type]="activity.activityType === 'TRIP'">
+    <span class="badge type-badge">
       <mat-icon class="badge-icon">{{ activity.activityType === 'TRIP' ? 'explore' : 'groups' }}</mat-icon>
       <span>{{ activity.activityType }}</span>
     </span>
   </div>
 
-  <h2 class="activity-title">{{ activity.title }}</h2>
-  
   <p class="desc">{{ activity.description }}</p>
 
   <div class="section-title">
     <mat-icon>info</mat-icon>
-    <span>Activity Details</span>
+    <span>ACTIVITY DETAILS</span>
   </div>
 
-  <div class="info-list">
-    <div class="info-item">
-      <mat-icon class="icon">event</mat-icon>
-      <div class="info-content">
-        <label>Scheduled At</label>
-        <span>{{ activity.scheduledAt | date:'medium' }}</span>
+  <div class="info-cards">
+    <div class="info-card">
+      <mat-icon class="card-icon">event</mat-icon>
+      <div class="card-content">
+        <label>SCHEDULED AT</label>
+        <span>{{ activity.scheduledAt | date:'MMM d, y, h:mm:ss a' }}</span>
       </div>
     </div>
     
-    <div class="info-item">
-      <mat-icon class="icon">schedule</mat-icon>
-      <div class="info-content">
-        <label>Duration</label>
+    <div class="info-card">
+      <mat-icon class="card-icon">schedule</mat-icon>
+      <div class="card-content">
+        <label>DURATION</label>
         <span>{{ activity.durationMinutes || 'Flexible' }} minutes</span>
       </div>
     </div>
 
-    <div class="info-item">
-      <mat-icon class="icon">group</mat-icon>
-      <div class="info-content">
-        <label>Participants</label>
-        <span>{{ activity.participantCount }} / {{ activity.maxParticipants || 'Unlimited' }} joined</span>
-      </div>
-    </div>
-
-    <div class="info-item" *ngIf="activity.address">
-      <mat-icon class="icon">location_on</mat-icon>
-      <div class="info-content">
-        <label>Location</label>
-        <span class="address-text">{{ activity.address }}</span>
+    <div class="info-card">
+      <mat-icon class="card-icon">group</mat-icon>
+      <div class="card-content">
+        <label>PARTICIPANTS</label>
+        <span>{{ activity.participantCount }}/{{ activity.maxParticipants || '∞' }} joined</span>
       </div>
     </div>
   </div>
 
+  <!-- Join Button for Guests -->
+  <div class="join-actions" *ngIf="!isHost">
+    <div class="approval-form-wrapper" *ngIf="activity.participationMode === 'APPROVAL'">
+      <mat-form-field appearance="outline" class="intro-field">
+        <mat-label>Why would you like to join?</mat-label>
+        <textarea matInput [(ngModel)]="introMessage" placeholder="Tell the host a bit about yourself..." maxlength="150" rows="3"></textarea>
+        <mat-hint align="end">{{ introMessage.length || 0 }}/150</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <button mat-flat-button class="join-btn-modern" (click)="joinActivity()">
+      Rejoindre l'activité
+    </button>
+  </div>
+
+  <div *ngIf="isHost" class="host-status-banner">
+    <mat-icon>workspace_premium</mat-icon>
+    <span>You are hosting this activity.</span>
+  </div>
+
   <!-- Host Details Section -->
-  <div class="section-title">
+  <div class="section-title" style="margin-top: 24px;">
     <mat-icon>account_circle</mat-icon>
-    <span>Host Information</span>
+    <span>HOST INFORMATION</span>
   </div>
   
   <div class="host-card">
@@ -72,32 +90,7 @@
     </div>
   </div>
 
-  <!-- Participation Section for Guests -->
-  <div class="join-actions" *ngIf="!isHost">
-    <div class="approval-form-wrapper" *ngIf="activity.participationMode === 'APPROVAL'">
-      <div class="section-title">
-        <mat-icon>chat_bubble_outline</mat-icon>
-        <span>Introduce yourself to host</span>
-      </div>
-      <mat-form-field appearance="outline" class="intro-field">
-        <mat-label>Why would you like to join?</mat-label>
-        <textarea matInput [(ngModel)]="introMessage" placeholder="Tell the host a bit about yourself..." maxlength="150" rows="3"></textarea>
-        <mat-hint align="end">{{ introMessage.length || 0 }}/150</mat-hint>
-      </mat-form-field>
-    </div>
-
-    <button mat-flat-button color="primary" class="join-btn" (click)="joinActivity()">
-      <mat-icon>{{ activity.participationMode === 'DIRECT' ? 'bolt' : 'send' }}</mat-icon>
-      <span>{{ activity.participationMode === 'DIRECT' ? 'Join Instantly' : 'Submit Join Request' }}</span>
-    </button>
-  </div>
-
-  <div *ngIf="isHost" class="host-status-banner">
-    <mat-icon>workspace_premium</mat-icon>
-    <span>You are hosting this activity.</span>
-  </div>
-
-  <div class="group-chat-actions" style="margin-top: 1rem; text-align: center;">
+  <div class="group-chat-actions">
     <button mat-stroked-button color="primary" (click)="openGroupChat()">
       <mat-icon>forum</mat-icon>
       Accéder au chat du groupe
@@ -108,7 +101,7 @@
   <div *ngIf="isHost && activity.participationMode === 'APPROVAL'" class="pending-section">
     <div class="section-title">
       <mat-icon>hourglass_empty</mat-icon>
-      <span>Pending Join Requests</span>
+      <span>PENDING JOIN REQUESTS</span>
     </div>
     
     <p *ngIf="loadingPending" class="pending-state">Loading pending participants...</p>
@@ -133,7 +126,7 @@
           <p class="message-text">"{{ participant.introMessage }}"</p>
         </div>
 
-        <div class="pending-actions" style="display: flex; gap: 8px;">
+        <div class="pending-actions">
           <button mat-icon-button color="primary" matTooltip="Contacter" (click)="contactUser(participant.userId)">
             <mat-icon>chat</mat-icon>
           </button>

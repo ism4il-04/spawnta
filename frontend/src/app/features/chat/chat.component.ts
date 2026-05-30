@@ -13,7 +13,7 @@ import { MessageFormatterPipe } from '../../core/pipes/message-formatter.pipe';
   standalone: true,
   imports: [CommonModule, FormsModule, MessageFormatterPipe],
   templateUrl: './chat.component.html',
-  styleUrl: './chat.component.scss'
+  styleUrls: ['./chat.component.scss']
 })
 export class ChatComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);

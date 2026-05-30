@@ -39,7 +39,7 @@ import { debounceTime } from 'rxjs/operators';
     ActivityDetailComponent
   ],
   templateUrl: './map.component.html',
-  styleUrl: './map.component.scss'
+  styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements OnInit, OnDestroy {
   @ViewChild('sidenav') sidenav!: MatSidenav;
@@ -271,44 +271,46 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   private buildPopupHtml(act: ActivityResponse, isDestination = false): string {
-    const categoryText = this.escapeHtml(act.category || 'General');
     const title = this.escapeHtml(act.title);
-    const type = this.escapeHtml(act.activityType);
-    const dateText = new Date(act.scheduledAt).toLocaleString();
+    const address = this.escapeHtml(act.address || 'Location TBA');
+    const activityType = act.activityType === 'TRIP' ? 'Trip' : 'Meetup';
+    const dateText = new Date(act.scheduledAt).toLocaleDateString('fr-FR', { 
+      day: '2-digit', 
+      month: 'long', 
+      year: 'numeric' 
+    }).replace(/^\w/, c => c.toUpperCase());
     const count = act.participantCount || 0;
-    const headerClass = isDestination ? 'destination-popup' : act.activityType === 'TRIP' ? 'trip-popup' : 'meetup-popup';
-    const tripLabel = isDestination ? 'Trip destination' : 'Trip start';
+    const maxParticipants = act.maxParticipants || '∞';
+    const participantDisplay = maxParticipants === '∞' ? `${count}` : `${count}/${maxParticipants}`;
 
     return `
-      <div class="activity-popup">
-        <div class="popup-header ${headerClass}">
-          <span class="category-chip">${categoryText}</span>
-          <span class="activity-type-badge">${type}</span>
+      <div class="modern-activity-popup">
+        <h3 class="popup-title">${title}</h3>
+        
+        <div class="popup-location">
+          <i class="material-icons">location_on</i>
+          <span>${address}</span>
         </div>
-        <div class="popup-body">
-          <h3 class="popup-title">${title}</h3>
-          <div class="popup-info">
-            <div class="info-row">
-              <i class="material-icons">event</i>
-              <span>${dateText}</span>
-            </div>
-            <div class="info-row">
-              <i class="material-icons">people</i>
-              <span>${count} participant${count > 1 ? 's' : ''}</span>
-            </div>
-            ${act.activityType === 'TRIP' ? `
-              <div class="info-row" style="color: #f97316; font-weight: 500;">
-                <i class="material-icons" style="color: #f97316;">navigation</i>
-                <span>${tripLabel}</span>
-              </div>
-            ` : ''}
-          </div>
+        
+        <div class="popup-info-row">
+          <i class="material-icons">category</i>
+          <span class="popup-type-badge">${activityType}</span>
         </div>
-        <div class="popup-actions">
-          <button class="popup-btn" onclick="document.dispatchEvent(new CustomEvent('joinActivity', {detail: ${act.id}}))">
-            View Details <i class="material-icons">arrow_forward</i>
-          </button>
+        
+        <div class="popup-info-row">
+          <i class="material-icons">event</i>
+          <span>${dateText}</span>
         </div>
+        
+        <div class="popup-info-row">
+          <i class="material-icons">people</i>
+          <span>${participantDisplay} participant${count > 1 ? 's' : ''}</span>
+        </div>
+        
+        <button class="popup-view-btn" onclick="document.dispatchEvent(new CustomEvent('joinActivity', {detail: ${act.id}}))">
+          View Details
+          <i class="material-icons">arrow_forward</i>
+        </button>
       </div>
     `;
   }

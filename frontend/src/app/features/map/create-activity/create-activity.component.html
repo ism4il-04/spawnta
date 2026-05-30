@@ -77,7 +77,7 @@
           </div>
         </div>
 
-        <!-- Date and Max Participants Row -->
+        <!-- Date and Time Row -->
         <div class="form-row">
           <div class="modern-form-field">
             <label class="form-label" for="scheduledAt">Date</label>
@@ -93,18 +93,20 @@
           </div>
 
           <div class="modern-form-field">
-            <label class="form-label" for="maxParticipants">Max Participants</label>
-            <input 
-              id="maxParticipants"
-              class="form-input"
-              formControlName="maxParticipants"
-              type="number"
-              placeholder="120"
-              min="1">
+            <label class="form-label" for="scheduledTime">Heure</label>
+            <div class="time-input-wrapper">
+              <input 
+                id="scheduledTime"
+                class="form-input"
+                formControlName="scheduledTime"
+                type="time"
+                placeholder="HH:MM">
+              <i class="material-icons time-icon">access_time</i>
+            </div>
           </div>
         </div>
 
-        <!-- Duration and Participation Mode Row -->
+        <!-- Duration and Max Participants Row -->
         <div class="form-row">
           <div class="modern-form-field">
             <label class="form-label" for="durationMinutes">Durée (minutes)</label>
@@ -117,6 +119,20 @@
               min="15">
           </div>
 
+          <div class="modern-form-field">
+            <label class="form-label" for="maxParticipants">Max Participants</label>
+            <input 
+              id="maxParticipants"
+              class="form-input"
+              formControlName="maxParticipants"
+              type="number"
+              placeholder="120"
+              min="1">
+          </div>
+        </div>
+
+        <!-- Participation Mode Row -->
+        <div class="form-row">
           <div class="modern-form-field">
             <label class="form-label" for="participationMode">Mode de participation</label>
             <div class="select-wrapper">

@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
   standalone: true,
   imports: [CommonModule, RouterModule, MatCardModule, MatButtonModule, MatIconModule],
   templateUrl: './signup-success.component.html',
-  styleUrl: './signup-success.component.scss'
+  styleUrls: ['./signup-success.component.scss']
 })
 export class SignupSuccessComponent {
   email = '';

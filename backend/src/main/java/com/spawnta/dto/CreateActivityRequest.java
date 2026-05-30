@@ -2,7 +2,7 @@ package com.spawnta.dto;
 
 import com.spawnta.entity.ActivityType;
 import com.spawnta.entity.ParticipationMode;
-import jakarta.validation.constraints.Future;
+import com.spawnta.validation.FutureWithMargin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -22,7 +22,7 @@ public record CreateActivityRequest(
 
     Integer maxParticipants,
 
-    @NotNull @Future
+    @NotNull @FutureWithMargin(marginMinutes = 5, message = "La date de l'activité doit être dans le futur")
     LocalDateTime scheduledAt,
 
     Integer durationMinutes,

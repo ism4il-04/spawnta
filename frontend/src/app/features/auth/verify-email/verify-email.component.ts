@@ -14,7 +14,7 @@ type VerifyStatus = 'loading' | 'success' | 'error';
   standalone: true,
   imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './verify-email.component.html',
-  styleUrl: './verify-email.component.scss'
+  styleUrls: ['./verify-email.component.scss']
 })
 export class VerifyEmailComponent implements OnInit {
   status: VerifyStatus = 'loading';
