@@ -1,7 +1,10 @@
 package com.spawnta.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ActivityStatsDto {
     private Double averageRating;
+    @JsonProperty("totalReviews")
     private Long reviewCount;
 
     public ActivityStatsDto() {}

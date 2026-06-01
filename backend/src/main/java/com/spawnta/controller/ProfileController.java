@@ -79,4 +79,9 @@ public class ProfileController {
     public ResponseEntity<Map<String, String>> handleIoError(IOException ex) {
         return ResponseEntity.internalServerError().body(Map.of("error", "File upload failed: " + ex.getMessage()));
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
+        return ResponseEntity.status(500).body(Map.of("error", "Server Error: " + ex.getMessage()));
+    }
 }

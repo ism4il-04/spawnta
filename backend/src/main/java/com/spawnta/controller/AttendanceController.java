@@ -1,5 +1,6 @@
 package com.spawnta.controller;
 
+import com.spawnta.dto.ActivityParticipationStatusDto;
 import com.spawnta.dto.AttendanceCheckInDto;
 import com.spawnta.dto.AttendanceEvidenceDto;
 import com.spawnta.dto.CheckInInitiateRequest;
@@ -9,6 +10,7 @@ import com.spawnta.entity.User;
 import com.spawnta.repository.UserRepository;
 import com.spawnta.service.AttendanceService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +29,15 @@ public class AttendanceController {
         this.userRepository = userRepository;
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ActivityParticipationStatusDto> getMyStatus(
+            @PathVariable Long activityId,
+            @AuthenticationPrincipal String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return ResponseEntity.ok(attendanceService.getMyParticipationStatus(activityId, user.getId()));
+    }
+
     @PostMapping("/check-in/initiate")
     public ResponseEntity<AttendanceCheckInDto> initiateCheckIn(
             @PathVariable Long activityId,
@@ -36,14 +47,12 @@ public class AttendanceController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        AttendanceCheckInDto checkInDto = attendanceService.initiateCheckIn(
+        return ResponseEntity.ok(attendanceService.initiateCheckIn(
                 activityId,
                 user.getId(),
                 request.getLatitude(),
                 request.getLongitude()
-        );
-
-        return ResponseEntity.ok(checkInDto);
+        ));
     }
 
     @PostMapping("/check-in/confirm")
@@ -52,21 +61,19 @@ public class AttendanceController {
             @AuthenticationPrincipal String email,
             @Valid @RequestBody AttendanceEvidenceDto request) {
 
-        // Note: activityId is in path for consistency, but we query attendanceId inside the DTO if needed.
-        // Wait, the AttendanceService.confirmCheckIn takes attendanceId directly. Let's find the attendanceId
-        // by looking up the user ID and activity ID first!
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         ActivityAttendance attendance = attendanceService.confirmCheckIn(
-                attendanceService.initiateCheckIn(activityId, user.getId(), request.getLatitude(), request.getLongitude()).getAttendanceId(),
+                activityId,
+                user.getId(),
                 request.getPhotoUrl(),
                 request.getLatitude(),
                 request.getLongitude()
         );
 
         return ResponseEntity.ok(Map.of(
-                "message", "Check-in completed successfully. Awaiting host confirmation.",
+                "message", "Check-in recorded. Waiting for host confirmation.",
                 "attendanceId", attendance.getId(),
                 "status", attendance.getStatus().name()
         ));
@@ -79,7 +86,7 @@ public class AttendanceController {
             @RequestBody HostConfirmRequest request) {
 
         User host = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Host user not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         attendanceService.hostConfirmAttendance(
                 activityId,
@@ -87,6 +94,16 @@ public class AttendanceController {
                 request.getParticipantIds()
         );
 
-        return ResponseEntity.ok(Map.of("message", "Attendance confirmed successfully for participants."));
+        return ResponseEntity.ok(Map.of("message", "Attendance confirmed for selected participants."));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleForbidden(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
     }
 }

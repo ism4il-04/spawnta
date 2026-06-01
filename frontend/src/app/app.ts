@@ -3,10 +3,11 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
+import { NotificationsDropdownComponent } from './features/notifications/notifications-dropdown/notifications-dropdown';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, NotificationsDropdownComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

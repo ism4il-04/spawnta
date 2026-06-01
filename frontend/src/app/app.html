@@ -7,10 +7,13 @@
       <a routerLink="/map" routerLinkActive="active">Carte</a>
       <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active" class="nav-msg-link">
         Messagerie
-        <span class="unread-badge" *ngIf="(chatService.unreadCount$ | async) as count">
-          {{ count > 9 ? '9+' : count }}
-        </span>
+        <ng-container *ngIf="chatService.unreadCount$ | async as count">
+          <span class="unread-badge" *ngIf="count > 0">
+            {{ count > 9 ? '9+' : count }}
+          </span>
+        </ng-container>
       </a>
+      <app-notifications-dropdown *ngIf="authService.isLoggedIn()"></app-notifications-dropdown>
       <a routerLink="/profile" routerLinkActive="active">Profil</a>
       <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active">Connexion</a>
       <a *ngIf="!authService.isLoggedIn()" routerLink="/signup" routerLinkActive="active">Inscription</a>

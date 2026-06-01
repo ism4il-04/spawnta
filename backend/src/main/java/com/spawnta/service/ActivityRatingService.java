@@ -1,5 +1,6 @@
 package com.spawnta.service;
 
+import com.spawnta.dto.ActivityRatingViewDto;
 import com.spawnta.dto.ActivityStatsDto;
 import com.spawnta.entity.*;
 import com.spawnta.repository.ActivityAttendanceRepository;
@@ -36,20 +37,25 @@ public class ActivityRatingService {
     @Transactional
     public ActivityRating rateActivity(Long activityId, Long userId, Integer score, String comment) {
         Activity activity = activityRepository.findById(activityId)
-                .orElseThrow(() -> new IllegalArgumentException("Activity not found with ID: " + activityId));
+                .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // Integrity check: Only confirmed attendees can rate
-        ActivityAttendance attendance = attendanceRepository.findByActivityIdAndParticipantId(activityId, userId)
-                .orElse(null);
-
-        if (attendance == null || attendance.getStatus() != AttendanceStatus.CONFIRMED) {
-            throw new IllegalStateException("Only confirmed activity attendees can rate or review this activity.");
+        if (activity.getHost().getId().equals(userId)) {
+            throw new IllegalStateException("The host cannot rate their own activity.");
         }
 
-        log.info("User {} is rating activity {} with score: {}", user.getEmail(), activityId, score);
+        ActivityAttendance attendance = attendanceRepository.findByActivityIdAndParticipantId(activityId, userId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Only participants with confirmed attendance can leave a review."));
+
+        if (attendance.getStatus() != AttendanceStatus.CONFIRMED) {
+            throw new IllegalStateException(
+                    "Your attendance must be confirmed by the host before you can rate this activity.");
+        }
+
+        log.info("User {} rating activity {} with score {}", user.getEmail(), activityId, score);
 
         ActivityRating rating = ratingRepository.findByActivityIdAndRaterId(activityId, userId)
                 .orElseGet(() -> {
@@ -66,6 +72,10 @@ public class ActivityRatingService {
 
     @Transactional(readOnly = true)
     public ActivityStatsDto getActivityStats(Long activityId) {
+        if (!activityRepository.existsById(activityId)) {
+            throw new IllegalArgumentException("Activity not found");
+        }
+
         List<ActivityRating> ratings = ratingRepository.findByActivityId(activityId);
 
         if (ratings.isEmpty()) {
@@ -77,19 +87,30 @@ public class ActivityRatingService {
                 .average()
                 .orElse(0.0);
 
-        // Format to one decimal place
         averageRating = Math.round(averageRating * 10.0) / 10.0;
-
         return new ActivityStatsDto(averageRating, (long) ratings.size());
     }
 
     @Transactional(readOnly = true)
-    public List<ActivityRating> getUserRatings(Long userId) {
-        return ratingRepository.findByRaterId(userId);
+    public List<ActivityRatingViewDto> getActivityRatingViews(Long activityId) {
+        if (!activityRepository.existsById(activityId)) {
+            throw new IllegalArgumentException("Activity not found");
+        }
+
+        return ratingRepository.findByActivityIdWithRater(activityId).stream()
+                .map(r -> new ActivityRatingViewDto(
+                        r.getId(),
+                        r.getRatingScore(),
+                        r.getComment() != null ? r.getComment() : "",
+                        r.getRater().getFirstName() + " " + r.getRater().getLastName(),
+                        r.getRater().getAvatarUrl() != null ? r.getRater().getAvatarUrl() : "",
+                        r.getCreatedAt().toString()
+                ))
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<ActivityRating> getActivityRatings(Long activityId) {
-        return ratingRepository.findByActivityId(activityId);
+    public boolean hasUserRated(Long activityId, Long userId) {
+        return ratingRepository.findByActivityIdAndRaterId(activityId, userId).isPresent();
     }
 }

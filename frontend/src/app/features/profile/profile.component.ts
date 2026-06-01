@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { forkJoin, finalize } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -14,6 +15,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { ProfileService, UserProfile } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
+import { GamificationService, GamificationProfile, Badge, LeaderboardEntry } from '../../core/services/gamification.service';
 
 export const ALL_INTERESTS = [
   'HIKING', 'CYCLING', 'RUNNING', 'SWIMMING', 'YOGA',
@@ -52,10 +54,18 @@ export class ProfileComponent implements OnInit {
   loading = false;
   savingInterests = false;
 
+  // Gamification Fields
+  gProfile: GamificationProfile | null = null;
+  allBadges: Badge[] = [];
+  leaderboard: LeaderboardEntry[] = [];
+  gamificationLoading = false;
+  gamificationError = false;
+
   constructor(
     private fb: FormBuilder,
     private profileService: ProfileService,
     private authService: AuthService,
+    private gamificationService: GamificationService,
     private router: Router,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
@@ -83,6 +93,7 @@ export class ProfileComponent implements OnInit {
           whatsapp: p.whatsapp ?? '',
           profilePublic: p.profilePublic
         });
+        this.loadGamificationData();
         this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
@@ -97,6 +108,49 @@ export class ProfileComponent implements OnInit {
         }
       }
     });
+  }
+
+  loadGamificationData(): void {
+    this.gamificationLoading = true;
+    this.gamificationError = false;
+
+    forkJoin({
+      profile: this.gamificationService.getGamificationProfile(),
+      badges: this.gamificationService.getBadges(),
+      leaderboard: this.gamificationService.getLeaderboard()
+    }).pipe(
+      finalize(() => {
+        this.gamificationLoading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: ({ profile, badges, leaderboard }) => {
+        this.gProfile = profile;
+        this.allBadges = badges;
+        this.leaderboard = leaderboard;
+        this.cdr.detectChanges();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.gamificationError = true;
+        console.error('Gamification API error', err);
+        if (err.status === 401 || err.status === 403) {
+          this.authService.logout();
+          this.router.navigate(['/login']);
+          return;
+        }
+        this.snackBar.open(
+          'Could not load XP, badges or leaderboard. Restart the backend and try again.',
+          'Close',
+          { duration: 5000 }
+        );
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  hasBadge(badgeId: number): boolean {
+    if (!this.gProfile) return false;
+    return this.gProfile.achievements.some(a => a.id === badgeId);
   }
 
   toggleInterest(interest: string): void {
@@ -126,14 +180,17 @@ export class ProfileComponent implements OnInit {
       whatsapp: formVal.whatsapp || null,
       visitedCountries: this.profile?.visitedCountries ?? [],
       profilePublic: formVal.profilePublic
-    }).subscribe({
+    }).pipe(
+      finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: (p: UserProfile) => {
         this.profile = p;
-        this.loading = false;
         this.snackBar.open('Profile updated!', 'Close', { duration: 3000 });
       },
       error: () => {
-        this.loading = false;
         this.snackBar.open('Failed to update profile', 'Close', { duration: 3000 });
       }
     });

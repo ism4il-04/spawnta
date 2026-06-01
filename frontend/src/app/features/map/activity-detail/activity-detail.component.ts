@@ -10,7 +10,10 @@ import { FormsModule } from '@angular/forms';
 import { ActivityParticipantResponse, ActivityResponse, ActivityService } from '../../../core/services/activity.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ChatService } from '../../../core/services/chat.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { ActivityRatingComponent } from '../../activities/activity-rating/activity-rating';
+import { AttendanceService, ParticipationStatus } from '../../../core/services/attendance.service';
+import { qrCodeImageSrc } from '../../../core/utils/qr-code.util';
 
 @Component({
   selector: 'app-activity-detail',
@@ -23,7 +26,9 @@ import { Router } from '@angular/router';
     MatInputModule,
     MatSnackBarModule,
     MatTooltipModule,
-    FormsModule
+    FormsModule,
+    RouterLink,
+    ActivityRatingComponent
   ],
   providers: [DatePipe],
   templateUrl: './activity-detail.component.html',
@@ -39,11 +44,16 @@ export class ActivityDetailComponent implements OnChanges {
   
   // Custom intro message state
   introMessage = '';
+  hostQrCode: string | null = null;
+  hostQrImageSrc: string | null = null;
+  loadingHostQr = false;
+  participation: ParticipationStatus | null = null;
 
   constructor(
     private activityService: ActivityService,
     private authService: AuthService,
     private chatService: ChatService,
+    private attendanceService: AttendanceService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
@@ -51,11 +61,23 @@ export class ActivityDetailComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['activity']?.currentValue) {
       this.pendingParticipants = [];
-      this.introMessage = ''; // Reset input field on activity switch
+      this.introMessage = '';
+      this.participation = null;
+      this.hostQrCode = null;
+      this.hostQrImageSrc = null;
       if (this.isHost) {
         this.loadPendingParticipants();
       }
+      this.loadParticipationStatus();
     }
+  }
+
+  private loadParticipationStatus(): void {
+    if (!this.activity?.id) return;
+    this.attendanceService.getMyParticipationStatus(this.activity.id).subscribe({
+      next: (status) => this.participation = status,
+      error: () => this.participation = null
+    });
   }
 
   get isHost(): boolean {
@@ -121,6 +143,33 @@ export class ActivityDetailComponent implements OnChanges {
   openGroupChat() {
     this.router.navigate(['/chat'], { queryParams: { activityId: this.activity.id } });
     this.snackBar.open('Redirection vers la messagerie...', 'OK', { duration: 2000 });
+  }
+
+  showHostQrCode(): void {
+    this.loadingHostQr = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.attendanceService.initiateCheckIn(
+          this.activity.id,
+          pos.coords.latitude,
+          pos.coords.longitude
+        ).subscribe({
+          next: (res) => {
+            this.hostQrCode = res.qrCode;
+            this.hostQrImageSrc = qrCodeImageSrc(res.qrCode);
+            this.loadingHostQr = false;
+          },
+          error: (err) => {
+            this.loadingHostQr = false;
+            this.snackBar.open(err.error?.error || 'Impossible de générer le QR', 'Fermer', { duration: 4000 });
+          }
+        });
+      },
+      () => {
+        this.loadingHostQr = false;
+        this.snackBar.open('Autorisez la géolocalisation pour afficher le QR', 'Fermer', { duration: 3000 });
+      }
+    );
   }
 
   contactUser(userId: number) {

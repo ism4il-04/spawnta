@@ -45,3 +45,8 @@
     </p>
   </div>
 </section>
+
+<!-- Feed Section -->
+<section class="feed-section" *ngIf="authService.isLoggedIn()">
+  <app-recommendations-feed></app-recommendations-feed>
+</section>

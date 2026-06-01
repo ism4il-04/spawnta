@@ -3,10 +3,12 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
+import { RecommendationsFeedComponent } from '../recommendations/recommendations-feed/recommendations-feed';
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RecommendationsFeedComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })

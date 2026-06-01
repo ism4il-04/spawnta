@@ -1,0 +1,147 @@
+.rating-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.host-hint {
+  padding: 12px;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.success-hint {
+  color: #2e7d32;
+}
+
+.stats-card {
+  text-align: center;
+  
+  .stats-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 0;
+  }
+
+  .avg-score {
+    .score {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #ffc107;
+    }
+    .out-of {
+      font-size: 1.2rem;
+      color: #666;
+    }
+  }
+
+  .total-reviews {
+    color: #888;
+    font-size: 0.9rem;
+  }
+}
+
+.form-card {
+  h3 { margin-top: 0; }
+  
+  .stars-selector {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    
+    mat-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      color: #e0e0e0;
+      transition: transform 0.1s, color 0.2s;
+      
+      &.filled {
+        color: #ffc107;
+      }
+      
+      &:hover {
+        transform: scale(1.15);
+      }
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+  
+  button {
+    width: 100%;
+  }
+}
+
+.reviews-card {
+  h3 { margin-top: 0; margin-bottom: 16px; }
+  
+  .review-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0f0;
+    
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+  
+  .reviewer-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .details {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      
+      .name { font-weight: 600; font-size: 0.9rem; }
+      .date { font-size: 0.75rem; color: #888; }
+    }
+    
+    .stars-display {
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #e0e0e0;
+        
+        &.active {
+          color: #ffc107;
+        }
+      }
+    }
+  }
+  
+  .comment-text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #444;
+    line-height: 1.4;
+  }
+}

@@ -88,6 +88,18 @@
             <version>1.36.0</version>
         </dependency>
 
+        <!-- QR codes (attendance check-in) -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
         <!-- Hibernate Spatial (PostGIS support) -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
