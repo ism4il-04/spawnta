@@ -258,20 +258,30 @@ public class ChatService {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
 
+        if (chat.getType() == ChatType.PRIVATE) {
+            throw new IllegalStateException("Vous ne pouvez pas quitter une conversation privée.");
+        }
+
         ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Vous ne participez pas à ce chat."));
 
-        if (chat.getType() == ChatType.GROUP) {
-            // Cannot leave group chat directly if they are still participant in the activity.
-            // But they can be removed when leaving activity. Let's delete participant object.
-            chatParticipantRepository.delete(participant);
-        } else {
-            // Private chats: just delete participant relationship or block
-            chatParticipantRepository.delete(participant);
-        }
+        participant.setStatus(ChatParticipantStatus.LEFT);
+        chatParticipantRepository.save(participant);
 
         User user = userRepository.findById(userId).orElseThrow();
         createParticipantOutboxEvent(chatId, user, "LEAVE");
+    }
+
+    @Transactional
+    public void deleteConversation(Long chatId, Long userId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
+
+        ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Vous ne participez pas à ce chat."));
+
+        participant.setStatus(ChatParticipantStatus.DELETED);
+        chatParticipantRepository.save(participant);
     }
 
     @Transactional
@@ -439,6 +449,12 @@ public class ChatService {
                     .findFirst()
                     .orElse(true);
 
+            String participantStatus = chat.getParticipants().stream()
+                    .filter(cp -> cp.getUser().getId().equals(user.getId()))
+                    .map(cp -> cp.getStatus().name())
+                    .findFirst()
+                    .orElse("ACTIVE");
+
             responses.add(new com.spawnta.dto.ChatResponse(
                 chat.getId(),
                 chat.getType().name(),
@@ -452,7 +468,8 @@ public class ChatService {
                 lastMessageTime,
                 lastMessageSender,
                 notificationsEnabled,
-                chat.getBlockedByUserId()
+                chat.getBlockedByUserId(),
+                participantStatus
             ));
         }
         return responses;
@@ -532,6 +549,13 @@ public class ChatService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         leaveChat(chatId, user.getId());
+    }
+
+    @Transactional
+    public void deleteConversation(Long chatId, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        deleteConversation(chatId, user.getId());
     }
 
     @Transactional

@@ -11,7 +11,7 @@ import { MessageFormatterPipe } from '../../core/pipes/message-formatter.pipe';
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MessageFormatterPipe],
+  imports: [CommonModule, FormsModule, MessageFormatterPipe],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss'
 })
@@ -371,13 +371,33 @@ export class ChatComponent implements OnInit, OnDestroy {
     const activeChat = this.selectedChat();
     if (!activeChat) return;
 
-    if (confirm('Voulez-vous quitter cette discussion ?')) {
+    if (activeChat.type === 'PRIVATE') {
+      alert('Vous ne pouvez pas quitter une conversation privée.');
+      return;
+    }
+
+    if (confirm('Voulez-vous quitter ce groupe ?')) {
       this.chatService.leaveChat(activeChat.id).subscribe({
+        next: () => {
+          activeChat.participantStatus = 'LEFT';
+          this.chats.update(chats => [...chats]); // Trigger view update
+        },
+        error: (err) => alert(err.error?.error || 'Erreur')
+      });
+    }
+  }
+
+  protected deleteConversation(): void {
+    const activeChat = this.selectedChat();
+    if (!activeChat) return;
+
+    if (confirm('Voulez-vous supprimer cette conversation ? Elle sera retirée de votre liste.')) {
+      this.chatService.deleteConversation(activeChat.id).subscribe({
         next: () => {
           this.selectedChat.set(null);
           this.loadChats();
         },
-        error: (err) => alert(err.error?.error || 'Erreur')
+        error: (err) => alert(err.error?.error || 'Erreur lors de la suppression')
       });
     }
   }

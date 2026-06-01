@@ -14,7 +14,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     Optional<Chat> findByActivityId(Long activityId);
 
-    @Query("SELECT cp.chat FROM ChatParticipant cp WHERE cp.user.id = :userId AND cp.status = com.spawnta.entity.ChatParticipantStatus.ACTIVE ORDER BY cp.chat.id DESC")
+    @Query("SELECT cp.chat FROM ChatParticipant cp WHERE cp.user.id = :userId AND cp.status IN (com.spawnta.entity.ChatParticipantStatus.ACTIVE, com.spawnta.entity.ChatParticipantStatus.MUTED, com.spawnta.entity.ChatParticipantStatus.LEFT) ORDER BY cp.chat.id DESC")
     List<Chat> findAllActiveChatsByUserId(@Param("userId") Long userId);
 
     @Query("SELECT c FROM Chat c " +
