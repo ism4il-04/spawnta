@@ -11,12 +11,13 @@
   justify-content: center;
   z-index: 3000;
   padding: 2rem;
-  pointer-events: none;
+  pointer-events: auto; /* L'overlay capture les clics pour cacher le formulaire */
+  cursor: pointer;
 }
 
 .modern-modal {
   position: relative;
-  pointer-events: auto;
+  pointer-events: auto; /* Le formulaire lui-même capture les clics */
   background: #f7faff;
   border-radius: 30px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
@@ -26,6 +27,7 @@
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
   border: 1px solid rgba(100, 168, 229, 0.22);
+  cursor: default; /* Curseur normal sur le formulaire */
 }
 
 @keyframes modalSlideIn {

@@ -3,21 +3,14 @@
   <mat-sidenav #sidenav mode="over" position="end" class="side-panel">
     <div class="panel-header-bar">
       <div class="panel-title-area">
-        <mat-icon class="panel-title-icon">{{ panelMode === 'CREATE' ? 'add_location_alt' : 'info' }}</mat-icon>
-        <h2>{{ panelMode === 'CREATE' ? 'Host an Activity' : 'Activity details' }}</h2>
+        <mat-icon class="panel-title-icon">info</mat-icon>
+        <h2>Activity details</h2>
       </div>
       <button mat-icon-button (click)="closePanel()">
         <mat-icon>close</mat-icon>
       </button>
     </div>
     <div class="panel-content">
-      <app-create-activity 
-        #createCmp
-        *ngIf="panelMode === 'CREATE'"
-        (created)="onActivityCreated($event)"
-        (cancel)="closePanel()">
-      </app-create-activity>
-
       <app-activity-detail
         *ngIf="panelMode === 'DETAIL' && selectedActivity"
         [activity]="selectedActivity"
@@ -140,10 +133,20 @@
       <button mat-mini-fab color="accent" class="fab-locate" (click)="locateUser()" title="Find my location">
         <mat-icon>my_location</mat-icon>
       </button>
-      <button mat-fab color="primary" class="fab-create" (click)="openCreate()" title="Host new activity">
+      <button mat-fab color="primary" class="fab-create" (click)="panelMode === 'CREATE' ? showCreateForm() : openCreate()" title="Host new activity">
         <mat-icon>add</mat-icon>
       </button>
     </div>
+
+    <!-- Create Activity Modal (centered on screen) -->
+    <app-create-activity 
+      #createCmp
+      *ngIf="panelMode === 'CREATE'"
+      [hidden]="!isFormVisible"
+      (created)="onActivityCreated($event)"
+      (cancel)="closePanel()"
+      (hide)="hideCreateForm()">
+    </app-create-activity>
   </mat-sidenav-content>
 
 </mat-sidenav-container>

@@ -77,6 +77,7 @@ export class MapComponent implements OnInit, OnDestroy {
   panelMode: 'CREATE' | 'DETAIL' | 'NONE' = 'NONE';
   selectedActivity: ActivityResponse | null = null;
   tempMarker: L.Marker | null = null;
+  isFormVisible = true; // Nouveau: contrôle la visibilité du formulaire
   
   // Toggle states
   isSearchPanelCollapsed = false;
@@ -438,7 +439,8 @@ export class MapComponent implements OnInit, OnDestroy {
 
   openCreate() {
     this.panelMode = 'CREATE';
-    this.sidenav.open();
+    this.isFormVisible = true; // Afficher le formulaire
+    // Ne pas ouvrir le sidenav - le formulaire s'affichera au centre
     if (this.map) {
       this.map.getContainer().style.cursor = 'crosshair';
     }
@@ -456,9 +458,12 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   closePanel() {
-    this.sidenav.close();
+    if (this.panelMode === 'DETAIL') {
+      this.sidenav.close();
+    }
     this.panelMode = 'NONE';
     this.selectedActivity = null;
+    this.isFormVisible = true; // Réinitialiser la visibilité
     
     if (this.tempMarker && this.map) {
       this.map.removeLayer(this.tempMarker);
@@ -466,6 +471,17 @@ export class MapComponent implements OnInit, OnDestroy {
     }
     if (this.map) {
       this.map.getContainer().style.cursor = '';
+    }
+  }
+
+  hideCreateForm() {
+    this.isFormVisible = false;
+    this.snackBar.open('Click on the map to select location, then click + to show form again.', 'OK', { duration: 3000 });
+  }
+
+  showCreateForm() {
+    if (this.panelMode === 'CREATE') {
+      this.isFormVisible = true;
     }
   }
 

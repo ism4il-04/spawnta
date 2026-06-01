@@ -34,6 +34,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class CreateActivityComponent {
   @Output() created = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
+  @Output() hide = new EventEmitter<void>(); // Nouveau: pour cacher le formulaire
 
   activityForm: FormGroup;
   loading = false;
@@ -79,6 +80,17 @@ export class CreateActivityComponent {
         this.snackBar.open('🏁 Trip destination set!', 'OK', { duration: 2500 });
       }
     }
+  }
+
+  // Permet de cliquer en dehors du formulaire sans le fermer
+  onOverlayClick(event: MouseEvent) {
+    // Ne rien faire - les clics passent à travers vers la carte
+    // Le formulaire reste ouvert pour voir les coordonnées sélectionnées
+  }
+
+  // Cache le formulaire temporairement pour sélectionner sur la carte
+  hideForm() {
+    this.hide.emit();
   }
 
   onSubmit() {
