@@ -60,13 +60,13 @@ Statut : Termine
 - [x] UI redimensionnee et harmonisee avec le theme principal
 
 ### Phase 3 - Social temps reel et pipeline evenementiel
-Statut : A venir
+Statut : Termine
 
-- Chat de groupe
-- Chat prive
-- WebSocket securise
-- Topics Kafka metier
-- notifications temps reel
+- [x] Chat de groupe
+- [x] Chat prive
+- [x] WebSocket securise
+- [x] Topics Kafka metier
+- [x] notifications temps reel
 
 ### Phase 4 - Post-sortie, gamification et IA
 Statut : En cours (15 commits planifiés)
