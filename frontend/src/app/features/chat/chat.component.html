@@ -69,11 +69,39 @@
           </div>
           <div class="header-info">
             <span class="header-title">{{ chat.title }}</span>
-            <span class="header-sub">Conversation privée</span>
+            <span class="header-sub">{{ chat.type === 'GROUP' ? 'Discussion de groupe' : 'Conversation privée' }}</span>
           </div>
         </div>
 
         <div class="chat-header-actions">
+          <!-- Block / Unblock private chat -->
+          <button
+            class="icon-btn"
+            *ngIf="chat.type === 'PRIVATE' && chat.status !== 'BLOCKED'"
+            (click)="blockConversation()"
+            title="Bloquer la conversation"
+          >
+            <span class="material-icons">block</span>
+          </button>
+          <button
+            class="icon-btn"
+            *ngIf="chat.type === 'PRIVATE' && chat.status === 'BLOCKED'"
+            (click)="unblockConversation()"
+            title="Débloquer la conversation"
+          >
+            <span class="material-icons">lock_open</span>
+          </button>
+
+          <!-- Leave group chat -->
+          <button
+            class="icon-btn"
+            *ngIf="chat.type === 'GROUP' && chat.participantStatus !== 'LEFT'"
+            (click)="leaveConversation()"
+            title="Quitter le groupe"
+          >
+            <span class="material-icons">exit_to_app</span>
+          </button>
+
           <!-- Notifications toggle -->
           <button
             class="icon-btn"
