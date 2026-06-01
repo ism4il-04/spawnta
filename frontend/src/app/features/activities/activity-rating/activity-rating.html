@@ -1,0 +1,75 @@
+<div class="rating-container">
+  <mat-card class="stats-card" *ngIf="stats && !loadError">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>star</mat-icon> Avis des participants
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="stats-content">
+      <div class="avg-score" *ngIf="stats.totalReviews > 0">
+        <span class="score">{{ stats.averageRating | number:'1.1-1' }}</span>
+        <span class="out-of">/ 5</span>
+      </div>
+      <div class="total-reviews">
+        {{ stats.totalReviews > 0 ? ('Basé sur ' + stats.totalReviews + ' avis') : 'Aucun avis pour le moment' }}
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <p class="hint host-hint" *ngIf="isHost">
+    En tant qu'hôte, vous consultez les avis laissés par les participants. Vous ne pouvez pas noter votre propre activité.
+  </p>
+
+  <p class="hint" *ngIf="!isHost && !canRate && !hasRated">
+    Rejoignez l'activité, validez votre présence, puis attendez la confirmation de l'hôte pour laisser un avis.
+  </p>
+
+  <mat-card class="form-card" *ngIf="canRate && !hasRated">
+    <mat-card-content>
+      <h3>Laissez votre avis</h3>
+      <form [formGroup]="ratingForm" (ngSubmit)="submitRating()">
+        <div class="stars-selector" (mouseleave)="setHover(0)">
+          <mat-icon
+            *ngFor="let star of [1,2,3,4,5]"
+            (mouseenter)="setHover(star)"
+            (click)="setRating(star)"
+            [class.filled]="star <= (hoverScore || currentScore)">
+            {{ star <= (hoverScore || currentScore) ? 'star' : 'star_border' }}
+          </mat-icon>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Commentaire (optionnel)</mat-label>
+          <textarea matInput formControlName="comment" rows="3" placeholder="Qu'avez-vous pensé de cette activité ?"></textarea>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="submitting || ratingForm.invalid">
+          {{ submitting ? 'Envoi...' : 'Envoyer mon avis' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <p class="hint success-hint" *ngIf="hasRated">
+    Vous avez déjà laissé un avis pour cette activité.
+  </p>
+
+  <mat-card class="reviews-card" *ngIf="ratings.length">
+    <mat-card-content>
+      <h3>Derniers avis</h3>
+      <div class="review-item" *ngFor="let r of ratings">
+        <div class="reviewer-info">
+          <img [src]="r.raterAvatarUrl || 'assets/default-avatar.svg'" class="avatar" alt="avatar" />
+          <div class="details">
+            <span class="name">{{ r.raterName }}</span>
+            <span class="date">{{ r.createdAt | date:'shortDate' }}</span>
+          </div>
+          <div class="stars-display">
+            <mat-icon *ngFor="let s of [1,2,3,4,5]" [class.active]="s <= r.ratingScore">star</mat-icon>
+          </div>
+        </div>
+        <p class="comment-text" *ngIf="r.comment">{{ r.comment }}</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

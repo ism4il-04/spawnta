@@ -90,11 +90,84 @@
     </div>
   </div>
 
-  <div class="group-chat-actions">
+  <!-- Already Joined Banner -->
+  <div *ngIf="!isHost && participation?.joined" class="host-status-banner joined-banner">
+    <mat-icon>check_circle</mat-icon>
+    <span>Vous avez rejoint cette activité !</span>
+  </div>
+
+  <!-- Pending Request Banner -->
+  <div *ngIf="!isHost && participation?.pendingRequest" class="host-status-banner pending-banner">
+    <mat-icon>hourglass_empty</mat-icon>
+    <span>Votre demande est en attente d'approbation par l'hôte.</span>
+  </div>
+
+  <!-- Participation Section for Guests (only when NOT joined and NOT pending) -->
+  <div class="join-actions" *ngIf="!isHost && participation && !participation.joined && !participation.pendingRequest">
+    <div class="approval-form-wrapper" *ngIf="activity.participationMode === 'APPROVAL'">
+      <div class="section-title">
+        <mat-icon>chat_bubble_outline</mat-icon>
+        <span>Introduce yourself to host</span>
+      </div>
+      <mat-form-field appearance="outline" class="intro-field">
+        <mat-label>Why would you like to join?</mat-label>
+        <textarea matInput [(ngModel)]="introMessage" placeholder="Tell the host a bit about yourself..." maxlength="150" rows="3"></textarea>
+        <mat-hint align="end">{{ introMessage.length || 0 }}/150</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <button mat-flat-button color="primary" class="join-btn" (click)="joinActivity()">
+      <mat-icon>{{ activity.participationMode === 'DIRECT' ? 'bolt' : 'send' }}</mat-icon>
+      <span>{{ activity.participationMode === 'DIRECT' ? 'Join Instantly' : 'Submit Join Request' }}</span>
+    </button>
+  </div>
+
+  <div *ngIf="isHost" class="host-status-banner">
+    <mat-icon>workspace_premium</mat-icon>
+    <span>You are hosting this activity.</span>
+  </div>
+
+  <div class="group-chat-actions" style="margin-top: 1rem; text-align: center;">
     <button mat-stroked-button color="primary" (click)="openGroupChat()">
       <mat-icon>forum</mat-icon>
       Accéder au chat du groupe
     </button>
+  </div>
+
+  <!-- Phase 4: attendance & ratings -->
+  <div class="phase4-section">
+    <div class="section-title">
+      <mat-icon>qr_code_scanner</mat-icon>
+      <span>Présence</span>
+    </div>
+
+    <div class="phase4-actions" *ngIf="participation?.canCheckIn">
+      <a mat-stroked-button color="accent" [routerLink]="['/check-in', activity.id]">
+        <mat-icon>my_location</mat-icon>
+        Valider ma présence
+      </a>
+    </div>
+    <p class="phase4-hint" *ngIf="!isHost && participation && !participation.joined">
+      Rejoignez l'activité pour pouvoir valider votre présence.
+    </p>
+
+    <div *ngIf="isHost" class="host-qr-block">
+      <button mat-stroked-button color="accent" (click)="showHostQrCode()" [disabled]="loadingHostQr">
+        <mat-icon>qr_code_2</mat-icon>
+        {{ loadingHostQr ? 'Génération…' : 'Afficher le QR de l\'activité' }}
+      </button>
+      <div class="host-qr-preview" *ngIf="hostQrImageSrc">
+        <img [src]="hostQrImageSrc" alt="QR code check-in" />
+        <p>Les participants peuvent scanner ce QR ou utiliser « Valider ma présence ».</p>
+      </div>
+    </div>
+
+    <app-activity-rating
+      [activityId]="activity.id"
+      [isHost]="isHost"
+      [canRate]="participation?.canRate ?? false"
+      [hasRated]="participation?.hasRated ?? false">
+    </app-activity-rating>
   </div>
 
   <!-- Pending requests box for Host -->

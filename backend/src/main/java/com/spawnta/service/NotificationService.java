@@ -1,17 +1,17 @@
 package com.spawnta.service;
 
-import com.spawnta.entity.Chat;
-import com.spawnta.entity.ChatParticipant;
-import com.spawnta.entity.ChatParticipantStatus;
-import com.spawnta.entity.User;
-import com.spawnta.repository.ChatParticipantRepository;
+import com.spawnta.entity.*;
+import com.spawnta.repository.*;
 import com.spawnta.security.ConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -25,17 +25,30 @@ public class NotificationService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ConnectionManager connectionManager;
     private final ChatParticipantRepository participantRepository;
+    
+    private final UserNotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final ActivityRepository activityRepository;
 
     public NotificationService(StringRedisTemplate redisTemplate,
                                SimpMessagingTemplate messagingTemplate,
                                ConnectionManager connectionManager,
-                               ChatParticipantRepository participantRepository) {
+                               ChatParticipantRepository participantRepository,
+                               UserNotificationRepository notificationRepository,
+                               UserRepository userRepository,
+                               ActivityRepository activityRepository) {
         this.redisTemplate = redisTemplate;
         this.messagingTemplate = messagingTemplate;
         this.connectionManager = connectionManager;
         this.participantRepository = participantRepository;
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+        this.activityRepository = activityRepository;
     }
 
+    /**
+     * Dispatch new message notifications over STOMP WebSocket secure queues.
+     */
     public void sendNewMessageNotification(Chat chat, User sender, String content) {
         Long chatId = chat.getId();
         String chatTitle = chat.getType() == com.spawnta.entity.ChatType.GROUP 
@@ -98,5 +111,67 @@ public class NotificationService {
                 log.error("Failed to send notification to user {}: {}", recipient.getEmail(), e.getMessage());
             }
         }
+    }
+
+    /**
+     * Send real-time gamification / system alert notifications to users.
+     */
+    @Transactional
+    public UserNotification sendNotification(Long userId, NotificationType type, String title, String message,
+                                             Long relatedActivityId, Long relatedUserId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        log.info("Sending notification of type {} to user {}: {}", type, user.getEmail(), title);
+
+        UserNotification notification = new UserNotification(user, type, title, message);
+
+        if (relatedActivityId != null) {
+            activityRepository.findById(relatedActivityId).ifPresent(notification::setRelatedActivity);
+        }
+
+        if (relatedUserId != null) {
+            userRepository.findById(relatedUserId).ifPresent(notification::setRelatedUser);
+        }
+
+        notification = notificationRepository.save(notification);
+
+        // Send over STOMP WebSocket
+        try {
+            messagingTemplate.convertAndSend("/topic/notifications/" + userId, (Object) Map.of(
+                    "id", notification.getId(),
+                    "type", type.name(),
+                    "title", title,
+                    "message", message != null ? message : "",
+                    "isRead", false,
+                    "createdAt", notification.getCreatedAt().toString()
+            ));
+        } catch (Exception e) {
+            log.error("Failed to broadcast notification over WebSocket to user ID: {}", userId, e);
+        }
+
+        return notification;
+    }
+
+    @Transactional
+    public void markAsRead(Long notificationId) {
+        UserNotification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found with ID: " + notificationId));
+
+        if (!notification.isRead()) {
+            notification.setRead(true);
+            notification.setReadAt(LocalDateTime.now());
+            notificationRepository.save(notification);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserNotification> getUserNotifications(Long userId) {
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public long getUnreadCount(Long userId) {
+        return notificationRepository.countByUserIdAndIsReadFalse(userId);
     }
 }

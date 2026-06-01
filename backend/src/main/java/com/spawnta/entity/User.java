@@ -72,6 +72,20 @@ public class User {
     @Column(length = 50)
     private String whatsapp;
 
+    // ── Gamification ──────────────────────────────────────────────────────────
+
+    @Column(nullable = false)
+    private Integer xp = 0;
+
+    @Column(nullable = false)
+    private Integer level = 1;
+
+    @Column(name = "total_xp_earned", nullable = false)
+    private Integer totalXpEarned = 0;
+
+    @Column(name = "current_level_xp_required", nullable = false)
+    private Integer currentLevelXpRequired = 1000;
+
     // ── Privacy ───────────────────────────────────────────────────────────────
 
     /** When false, bio/gallery/social links are hidden from other users. */
@@ -154,5 +168,19 @@ public class User {
     public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
 
     public boolean isPremium() { return false; /* TODO: implement premium logic */ }
+
+    // ── Gamification Getters / Setters ────────────────────
+
+    public Integer getXp() { return xp; }
+    public void setXp(Integer xp) { this.xp = xp; }
+
+    public Integer getLevel() { return level; }
+    public void setLevel(Integer level) { this.level = level; }
+
+    public Integer getTotalXpEarned() { return totalXpEarned; }
+    public void setTotalXpEarned(Integer totalXpEarned) { this.totalXpEarned = totalXpEarned; }
+
+    public Integer getCurrentLevelXpRequired() { return currentLevelXpRequired; }
+    public void setCurrentLevelXpRequired(Integer currentLevelXpRequired) { this.currentLevelXpRequired = currentLevelXpRequired; }
 }
 

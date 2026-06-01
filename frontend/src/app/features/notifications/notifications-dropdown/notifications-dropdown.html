@@ -1,0 +1,42 @@
+<button mat-icon-button [matMenuTriggerFor]="notifMenu" class="notif-btn">
+  <mat-icon [matBadge]="unreadCount" [matBadgeHidden]="unreadCount === 0" matBadgeColor="warn">
+    notifications
+  </mat-icon>
+</button>
+
+<mat-menu #notifMenu="matMenu" class="notif-menu" xPosition="before">
+  <div class="notif-header">
+    <h3>Notifications</h3>
+    <span class="unread-count" *ngIf="unreadCount > 0">{{ unreadCount }} nouvelles</span>
+  </div>
+  
+  <mat-divider></mat-divider>
+  
+  <div class="notif-list" *ngIf="notifications.length; else noNotifs">
+    <div 
+      class="notif-item" 
+      *ngFor="let n of notifications" 
+      [class.unread]="!n.isRead"
+      (click)="$event.stopPropagation(); markAsRead(n.id)">
+      
+      <div class="notif-icon-wrapper" [ngClass]="n.type">
+        <mat-icon>{{ getIcon(n.type) }}</mat-icon>
+      </div>
+      
+      <div class="notif-content">
+        <h4>{{ n.title }}</h4>
+        <p>{{ n.message }}</p>
+        <span class="time">{{ n.createdAt | date:'shortTime' }}</span>
+      </div>
+      
+      <div class="unread-dot" *ngIf="!n.isRead"></div>
+    </div>
+  </div>
+  
+  <ng-template #noNotifs>
+    <div class="empty-state">
+      <mat-icon>notifications_paused</mat-icon>
+      <p>Aucune notification</p>
+    </div>
+  </ng-template>
+</mat-menu>

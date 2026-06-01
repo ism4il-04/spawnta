@@ -1,0 +1,109 @@
+.qr-state {
+  text-align: center;
+
+  .qr-image {
+    max-width: 220px;
+    margin: 16px auto;
+    display: block;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .deadline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: #666;
+    font-size: 0.9rem;
+  }
+}
+
+.check-in-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  min-height: calc(100vh - 100px);
+}
+
+.check-in-card {
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+}
+
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+  color: #666;
+}
+
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0;
+
+  .success-icon {
+    font-size: 4rem;
+    width: 4rem;
+    height: 4rem;
+    color: #4caf50;
+  }
+
+  h2 {
+    margin: 0;
+    color: #4caf50;
+  }
+}
+
+.action-state {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px 0;
+
+  p {
+    color: #555;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  button {
+    padding: 8px 16px;
+  }
+
+  .status-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    align-self: center;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  &.pending-state {
+    align-items: center;
+    text-align: center;
+
+    .pending-icon { color: #d97706; }
+    h3 { color: #b45309; }
+  }
+
+  &.confirmed-state {
+    align-items: center;
+    text-align: center;
+
+    .confirmed-icon { color: #16a34a; }
+    h3 { color: #15803d; }
+  }
+}

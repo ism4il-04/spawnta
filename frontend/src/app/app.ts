@@ -3,6 +3,7 @@ import { Component, HostListener, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
+import { NotificationsDropdownComponent } from './features/notifications/notifications-dropdown/notifications-dropdown';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({

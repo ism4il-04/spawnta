@@ -5,7 +5,7 @@
     <button mat-stroked-button color="warn" (click)="logout()">Logout</button>
   </div>
 
-  <div class="profile-grid" *ngIf="profile; else loading">
+  <div class="profile-grid" *ngIf="profile; else loadingProfileTemplate">
 
     <!-- Avatar Section -->
     <mat-card class="avatar-card">
@@ -16,15 +16,35 @@
             alt="Avatar"
             class="avatar-img"
           />
-          <label class="avatar-upload-btn" mat-flat-button color="primary">
+          <div class="avatar-upload-btn" (click)="avatarInput.click()">
             <mat-icon>photo_camera</mat-icon>
-            <input type="file" hidden accept="image/*" (change)="onAvatarChange($event)" />
-          </label>
+            <input #avatarInput type="file" hidden accept="image/*" (change)="onAvatarChange($event)" />
+          </div>
         </div>
         <div class="user-info">
           <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
           <p class="email">{{ profile.email }}</p>
           <span class="role-badge">{{ profile.role }}</span>
+        </div>
+        <div class="gamification-summary">
+          <mat-divider style="margin: 15px 0;"></mat-divider>
+          <p class="gamification-loading" *ngIf="gamificationLoading">Loading XP &amp; badges…</p>
+          <p class="gamification-error" *ngIf="gamificationError && !gamificationLoading">
+            XP &amp; badges unavailable — check that the backend is running.
+          </p>
+          <ng-container *ngIf="gProfile && !gamificationLoading">
+            <div class="level-indicator">
+              <mat-icon class="level-icon">stars</mat-icon>
+              <span class="level-title">Niveau {{ gProfile.level }}</span>
+            </div>
+            <div class="xp-bar-container">
+              <div class="xp-bar-fill" [style.width.%]="(gProfile.xp / gProfile.currentLevelXpRequired) * 100"></div>
+            </div>
+            <div class="xp-sub-text">
+              <span>{{ gProfile.xp }} / {{ gProfile.currentLevelXpRequired }} XP</span>
+              <span class="total-xp-label">Total: {{ gProfile.totalXpEarned }} XP</span>
+            </div>
+          </ng-container>
         </div>
       </mat-card-content>
     </mat-card>
@@ -116,18 +136,71 @@
         <ng-template #emptyGallery>
           <p class="empty-text">No photos yet. Add your first one!</p>
         </ng-template>
-        <label class="add-photo-btn">
-          <button mat-stroked-button color="primary" type="button">
+        <div class="add-photo-btn">
+          <button mat-stroked-button color="primary" type="button" (click)="galleryInput.click()">
             <mat-icon>add_photo_alternate</mat-icon> Add Photo
           </button>
-          <input type="file" hidden accept="image/*" (change)="onGalleryAdd($event)" />
-        </label>
+          <input #galleryInput type="file" hidden accept="image/*" (change)="onGalleryAdd($event)" />
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Badges Section (Phase 4) -->
+    <mat-card class="badges-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>emoji_events</mat-icon> Badges
+          <span class="counter" *ngIf="gProfile && allBadges.length">({{ gProfile.achievements.length }}/{{ allBadges.length }})</span>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="empty-text" *ngIf="gamificationLoading">Loading badges…</p>
+        <p class="empty-text" *ngIf="gamificationError && !gamificationLoading">Could not load badges.</p>
+        <p class="empty-text" *ngIf="!gamificationLoading && !gamificationError && !allBadges.length">No badges in catalog yet.</p>
+        <div class="badges-grid" *ngIf="allBadges.length">
+          <div
+            class="badge-item"
+            *ngFor="let badge of allBadges"
+            [class.earned]="hasBadge(badge.id)"
+            [class.locked]="!hasBadge(badge.id)"
+          >
+            <mat-icon class="badge-icon">{{ hasBadge(badge.id) ? 'verified' : 'lock' }}</mat-icon>
+            <span class="badge-name">{{ badge.name }}</span>
+            <span class="badge-desc">{{ badge.description }}</span>
+            <span class="badge-xp">+{{ badge.xpReward }} XP</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Leaderboard Section (Phase 4) -->
+    <mat-card class="leaderboard-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>leaderboard</mat-icon> Classement
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="empty-text" *ngIf="gamificationLoading">Loading leaderboard…</p>
+        <p class="empty-text" *ngIf="gamificationError && !gamificationLoading">Could not load leaderboard.</p>
+        <p class="empty-text" *ngIf="!gamificationLoading && !gamificationError && !leaderboard.length">No players on the leaderboard yet.</p>
+        <div class="leaderboard-list" *ngIf="leaderboard.length">
+          <div class="leaderboard-row" *ngFor="let entry of leaderboard; let i = index">
+            <span class="rank" [class.top3]="i < 3">{{ i + 1 }}</span>
+            <img class="lb-avatar" [src]="entry.avatarUrl || 'assets/default-avatar.svg'" alt="avatar" />
+            <div class="lb-info">
+              <span class="lb-name">{{ entry.name }}</span>
+              <span class="lb-level">Niveau {{ entry.level }}</span>
+            </div>
+            <span class="lb-xp">{{ entry.totalXpEarned }} XP</span>
+          </div>
+        </div>
       </mat-card-content>
     </mat-card>
 
   </div>
 
-  <ng-template #loading>
+  <ng-template #loadingProfileTemplate>
     <div class="loading-container" *ngIf="loadingProfile && !profileLoadError">
       <p>Loading profile...</p>
     </div>

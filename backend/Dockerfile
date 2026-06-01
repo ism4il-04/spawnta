@@ -26,8 +26,7 @@ COPY --from=builder /app/target/*.jar app.jar
 # Expose Spring Boot default port
 EXPOSE 8080
  
-# Run with production profile
+# Profile comes from SPRING_PROFILES_ACTIVE (docker-compose: dev or prod)
 ENTRYPOINT ["java", \
-  "-Dspring.profiles.active=prod", \
   "-Djava.security.egd=file:/dev/./urandom", \
   "-jar", "app.jar"]

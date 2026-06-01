@@ -1,0 +1,72 @@
+<div class="check-in-container">
+  <mat-card class="check-in-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>location_on</mat-icon> Validation de présence
+      </mat-card-title>
+      <mat-card-subtitle *ngIf="activityName">{{ activityName }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="loading" class="spinner-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Vérification en cours…</p>
+      </div>
+
+      <div *ngIf="success" class="success-state">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+        <h2>Check-in réussi !</h2>
+        <p>Votre présence a été enregistrée. L'hôte peut la confirmer.</p>
+        <a mat-stroked-button routerLink="/map">Retour à la carte</a>
+      </div>
+
+      <div *ngIf="!loading && !success && qrImageSrc" class="qr-state">
+        <p>Présentez ce QR à l'hôte ou confirmez votre position sur place :</p>
+        <img class="qr-image" [src]="qrImageSrc" alt="QR code de présence" />
+        <p class="deadline" *ngIf="checkInDeadline">
+          <mat-icon>schedule</mat-icon>
+          Limite : {{ checkInDeadline | date:'short' }}
+        </p>
+        <button mat-raised-button color="primary" (click)="confirmCheckIn()">
+          <mat-icon>my_location</mat-icon>
+          Confirmer ma position
+        </button>
+      </div>
+
+      <!-- Already checked in: PENDING host confirmation -->
+      <div *ngIf="!loading && !success && blocked && attendanceStatus === 'PENDING'" class="action-state pending-state">
+        <mat-icon class="status-icon pending-icon">hourglass_empty</mat-icon>
+        <h3>Présence enregistrée</h3>
+        <p>Votre présence a été enregistrée et est en attente de confirmation par l'hôte.</p>
+        <a mat-stroked-button routerLink="/map">Retour à la carte</a>
+      </div>
+
+      <!-- Already checked in: CONFIRMED by host -->
+      <div *ngIf="!loading && !success && blocked && attendanceStatus === 'CONFIRMED'" class="action-state confirmed-state">
+        <mat-icon class="status-icon confirmed-icon">verified</mat-icon>
+        <h3>Présence confirmée !</h3>
+        <p>Votre présence a été confirmée par l'hôte. Merci d'avoir participé !</p>
+        <a mat-stroked-button routerLink="/map">Retour à la carte</a>
+      </div>
+
+      <!-- Generic blocked state (host, not joined, etc.) -->
+      <div *ngIf="blocked && !loading && !attendanceStatus" class="action-state blocked-state">
+        <mat-icon>info</mat-icon>
+        <p>{{ blockMessage }}</p>
+        <a mat-stroked-button routerLink="/map">Retour à la carte</a>
+      </div>
+
+      <div *ngIf="!loading && !success && !blocked && !qrImageSrc" class="action-state">
+        <p>
+          Pour valider votre présence, vous devez être à moins de 200 m du lieu
+          et pendant la fenêtre horaire de l'activité.
+        </p>
+        <button mat-raised-button color="primary" (click)="startCheckIn()">
+          <mat-icon>qr_code_scanner</mat-icon>
+          Démarrer le check-in
+        </button>
+        <a mat-button routerLink="/map">Annuler</a>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+

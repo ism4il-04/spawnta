@@ -171,7 +171,7 @@ export class MapComponent implements OnInit, OnDestroy {
           const lng = position.coords.longitude;
           this.userLocation = L.latLng(lat, lng);
           
-          if (this.map) {
+          if (this.map && this.map.getPane('mapPane')) {
             this.map.setView([lat, lng], 13);
           } else {
             this.options.center = L.latLng(lat, lng);
@@ -396,7 +396,9 @@ export class MapComponent implements OnInit, OnDestroy {
   selectResult(res: GeocodingResult) {
     const lat = parseFloat(res.lat);
     const lon = parseFloat(res.lon);
-    this.map.setView([lat, lon], 14);
+    if (this.map && this.map.getPane('mapPane')) {
+      this.map.setView([lat, lon], 14);
+    }
     this.searchResults = [];
     this.searchQuery = res.display_name;
   }
