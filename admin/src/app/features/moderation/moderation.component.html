@@ -1,0 +1,79 @@
+<section class="admin-page">
+  <header class="page-header">
+    <div>
+      <span class="kicker">Admin</span>
+      <h1>Moderation</h1>
+      <p>Traitez les signalements utilisateurs et activites avec un historique audit.</p>
+    </div>
+
+    <button type="button" class="primary-action" (click)="loadReports()" [disabled]="loading">
+      <span class="material-symbol">refresh</span>
+      Actualiser
+    </button>
+  </header>
+
+  <section class="filters-panel">
+    <label>
+      <span>Statut</span>
+      <select [(ngModel)]="status" (change)="loadReports()">
+        <option value="all">Tous</option>
+        <option value="OPEN">Ouverts</option>
+        <option value="INVESTIGATING">Investigation</option>
+        <option value="RESOLVED">Resolus</option>
+        <option value="DISMISSED">Rejetes</option>
+      </select>
+    </label>
+  </section>
+
+  <div class="status-panel" *ngIf="loading">Chargement des signalements...</div>
+  <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <ng-container *ngIf="data && !loading">
+    <div class="summary-grid">
+      <article class="summary-card warning"><span>Users ouverts</span><strong>{{ data.openUserReports }}</strong></article>
+      <article class="summary-card warning"><span>Activites ouvertes</span><strong>{{ data.openActivityReports }}</strong></article>
+      <article class="summary-card"><span>Users resolus</span><strong>{{ data.resolvedUserReports }}</strong></article>
+      <article class="summary-card"><span>Activites resolues</span><strong>{{ data.resolvedActivityReports }}</strong></article>
+    </div>
+
+    <section class="reports-grid">
+      <article class="report-panel">
+        <h2>Signalements utilisateurs</h2>
+        <div class="report-card" *ngFor="let report of data.userReports">
+          <div class="report-head">
+            <span class="pill">{{ report.status }}</span>
+            <small>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+          </div>
+          <h3>{{ report.reportedUserName }}</h3>
+          <p>{{ report.reason }} - {{ report.description }}</p>
+          <small>Par {{ report.reporterEmail }} contre {{ report.reportedUserEmail }}</small>
+          <div class="actions">
+            <button type="button" (click)="updateUserReport(report, 'investigate')" [disabled]="actionId === 'user-' + report.id">Investiguer</button>
+            <button type="button" (click)="updateUserReport(report, 'resolve')" [disabled]="actionId === 'user-' + report.id">Resoudre</button>
+            <button type="button" class="danger" (click)="updateUserReport(report, 'dismiss')" [disabled]="actionId === 'user-' + report.id">Rejeter</button>
+          </div>
+        </div>
+        <p class="empty" *ngIf="!data.userReports.length">Aucun signalement utilisateur.</p>
+      </article>
+
+      <article class="report-panel">
+        <h2>Signalements activites</h2>
+        <div class="report-card" *ngFor="let report of data.activityReports">
+          <div class="report-head">
+            <span class="pill">{{ report.status }}</span>
+            <small>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+          </div>
+          <h3>{{ report.activityTitle }}</h3>
+          <p>{{ report.reason }} - {{ report.description }}</p>
+          <small>Par {{ report.reporterEmail }} - host {{ report.hostEmail }}</small>
+          <div class="actions">
+            <button type="button" (click)="updateActivityReport(report, 'investigate')" [disabled]="actionId === 'activity-' + report.id">Investiguer</button>
+            <button type="button" (click)="updateActivityReport(report, 'resolve')" [disabled]="actionId === 'activity-' + report.id">Resoudre</button>
+            <button type="button" class="danger" (click)="updateActivityReport(report, 'dismiss')" [disabled]="actionId === 'activity-' + report.id">Rejeter</button>
+          </div>
+        </div>
+        <p class="empty" *ngIf="!data.activityReports.length">Aucun signalement activite.</p>
+      </article>
+    </section>
+  </ng-container>
+</section>

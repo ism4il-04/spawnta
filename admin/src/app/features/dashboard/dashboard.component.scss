@@ -1,0 +1,74 @@
+@use '../users/users.component.scss';
+
+.split-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+}
+
+.panel {
+  border: 1px solid rgba(#a8dadc, 0.75);
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 8px 22px rgba(#374785, 0.07);
+
+  h2 {
+    margin: 0 0 0.9rem;
+    color: #24305e;
+    font-size: 1.1rem;
+    letter-spacing: 0;
+  }
+}
+
+dl {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid rgba(#a8dadc, 0.45);
+  }
+
+  dt {
+    color: #6b8fa1;
+    font-weight: 800;
+  }
+
+  dd {
+    margin: 0;
+    color: #24305e;
+    font-weight: 900;
+  }
+}
+
+.audit-row {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgba(#a8dadc, 0.45);
+
+  span {
+    color: #24305e;
+    font-weight: 900;
+  }
+
+  small {
+    color: #6b8fa1;
+  }
+}
+
+.empty {
+  margin: 0;
+  color: #6b8fa1;
+}
+
+@media (max-width: 900px) {
+  .split-grid {
+    grid-template-columns: 1fr;
+  }
+}

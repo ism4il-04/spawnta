@@ -8,6 +8,7 @@ import { ProfileComponent } from './features/profile/profile.component';
 import { MapComponent } from './features/map/map.component';
 import { ChatComponent } from './features/chat/chat.component';
 import { CheckInComponent } from './features/activities/check-in/check-in';
+import { SubscriptionComponent } from './features/subscription/subscription.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -19,5 +20,6 @@ export const routes: Routes = [
   { path: 'profile',        component: ProfileComponent, canActivate: [authGuard] },
   { path: 'map',            component: MapComponent, canActivate: [authGuard] },
   { path: 'chat',           component: ChatComponent, canActivate: [authGuard] },
+  { path: 'subscription',   component: SubscriptionComponent },
   { path: 'check-in/:id',   component: CheckInComponent, canActivate: [authGuard] }
 ];

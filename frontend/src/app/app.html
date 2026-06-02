@@ -40,6 +40,12 @@
         <span class="nav-label">Profil</span>
       </a>
 
+      <a routerLink="/subscription" routerLinkActive="active"
+         class="nav-item" id="nav-abonnement">
+        <mat-icon class="nav-icon">workspace_premium</mat-icon>
+        <span class="nav-label">Abonnement</span>
+      </a>
+
       <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active"
          class="nav-item" id="nav-connexion">
         <mat-icon class="nav-icon">login</mat-icon>
@@ -103,6 +109,10 @@
             <button class="dropdown-item" role="menuitem"
                     (click)="navigateToProfile()" id="menu-profil">
               <mat-icon>person</mat-icon> Mon profil
+            </button>
+            <button class="dropdown-item" role="menuitem"
+                    (click)="navigateToSubscription()" id="menu-abonnement">
+              <mat-icon>workspace_premium</mat-icon> Abonnement
             </button>
             <button class="dropdown-item logout-item" role="menuitem"
                     (click)="logout()" id="menu-deconnexion">

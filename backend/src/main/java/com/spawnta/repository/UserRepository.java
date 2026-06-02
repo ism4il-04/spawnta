@@ -13,5 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByVerificationToken(String token);
 
+    Optional<User> findByStripeCustomerId(String stripeCustomerId);
+
     java.util.List<User> findTop50ByOrderByLevelDescTotalXpEarnedDesc();
 }

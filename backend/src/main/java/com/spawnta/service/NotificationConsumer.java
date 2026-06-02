@@ -41,7 +41,7 @@ public class NotificationConsumer {
     @KafkaListener(topics = "user.level_up", groupId = "spawnta-notifications-group")
     public void consumeLevelUpEvent(String payload) {
         try {
-            Map<String, Object> eventData = objectMapper.readValue(payload, Map.class);
+            Map<String, Object> eventData = objectMapper.readValue(payload, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
             String eventId = (String) eventData.get("eventId");
             Long userId = ((Number) eventData.get("userId")).longValue();
             int newLevel = ((Number) eventData.get("newLevel")).intValue();
@@ -69,7 +69,7 @@ public class NotificationConsumer {
     @KafkaListener(topics = "attendance.confirmed", groupId = "spawnta-notifications-group")
     public void consumeAttendanceConfirmedEvent(String payload) {
         try {
-            Map<String, Object> eventData = objectMapper.readValue(payload, Map.class);
+            Map<String, Object> eventData = objectMapper.readValue(payload, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
             String eventId = (String) eventData.get("eventId");
             Long participantId = ((Number) eventData.get("participantId")).longValue();
             Long activityId = ((Number) eventData.get("activityId")).longValue();

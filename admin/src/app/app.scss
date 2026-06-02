@@ -1,0 +1,256 @@
+$primary: #374785;
+$page-bg: #f1faee;
+$border: #a8dadc;
+$text-dark: #24305e;
+$text-muted: #6b8fa1;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: $page-bg;
+  color: $text-dark;
+}
+
+.admin-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 218px minmax(0, 1fr);
+}
+
+.sidebar {
+  background: #fff;
+  border-right: 1px solid $border;
+  padding: 1rem 0.75rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.65rem 1rem;
+  border-bottom: 1px solid rgba($border, 0.6);
+  margin-bottom: 0.75rem;
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 0.5rem;
+    background: $primary;
+    color: #fff;
+    font-weight: 900;
+  }
+
+  strong,
+  small {
+    display: block;
+  }
+
+  small {
+    color: $text-muted;
+    font-weight: 700;
+  }
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 42px;
+    border-radius: 0.5rem;
+    padding: 0 0.75rem;
+    color: $text-muted;
+    text-decoration: none;
+    font-weight: 800;
+
+    &.active,
+    &:hover {
+      background: $page-bg;
+      color: $primary;
+    }
+  }
+}
+
+.material-symbol {
+  font-family: "Material Icons";
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.content {
+  min-width: 0;
+  background: $page-bg;
+}
+
+.admin-session {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-top: 1px solid rgba($border, 0.6);
+
+  span,
+  small {
+    display: block;
+  }
+
+  span {
+    font-weight: 900;
+  }
+
+  small {
+    color: $text-muted;
+    word-break: break-word;
+  }
+
+  button {
+    width: 100%;
+    min-height: 38px;
+    margin-top: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: 1px solid rgba($border, 0.8);
+    border-radius: 0.5rem;
+    background: $page-bg;
+    color: $primary;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+  }
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: $page-bg;
+}
+
+.login-panel {
+  width: min(100%, 440px);
+  border: 1px solid rgba($border, 0.75);
+  border-radius: 0.5rem;
+  background: #fff;
+  box-shadow: 0 14px 32px rgba($primary, 0.12);
+  overflow: hidden;
+
+  .login-brand {
+    margin: 0;
+    padding: 1rem;
+  }
+
+  form {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1.25rem;
+  }
+
+  h1 {
+    margin: 0;
+    color: $text-dark;
+    font-size: 2rem;
+    letter-spacing: 0;
+  }
+
+  p {
+    margin: -0.25rem 0 0;
+    color: $text-muted;
+  }
+
+  label {
+    display: grid;
+    gap: 0.35rem;
+    color: $text-muted;
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  input {
+    min-height: 42px;
+    border: 1px solid rgba($border, 0.9);
+    border-radius: 0.5rem;
+    background: $page-bg;
+    color: $text-dark;
+    padding: 0 0.8rem;
+    font: inherit;
+    outline: none;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.08);
+    }
+  }
+
+  button {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: $primary;
+    color: #fff;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+  }
+}
+
+.kicker {
+  justify-self: start;
+  display: inline-flex;
+  border: 1px solid rgba($border, 0.75);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  background: rgba($border, 0.32);
+  color: $primary;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.login-error {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  background: #fff5f5;
+  color: #991b1b;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    border-right: none;
+    border-bottom: 1px solid $border;
+  }
+
+  nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .admin-session {
+    margin-top: 0.75rem;
+  }
+}

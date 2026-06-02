@@ -1,0 +1,78 @@
+<section class="subscription-page">
+  <header class="subscription-header">
+    <div>
+      <span class="section-kicker">Abonnement</span>
+      <h1>Choisissez votre plan Spawnta</h1>
+      <p>Des options simples pour passer de la decouverte a une experience premium.</p>
+    </div>
+
+    <div class="current-plan" *ngIf="isLoggedIn">
+      <span>Plan actuel</span>
+      <strong>{{ currentTier }}</strong>
+    </div>
+  </header>
+
+  <div class="status-panel" *ngIf="loadingPlans">
+    <mat-icon>hourglass_empty</mat-icon>
+    <span>Chargement des plans...</span>
+  </div>
+
+  <div class="status-panel error" *ngIf="plansError && !loadingPlans">
+    <mat-icon>error_outline</mat-icon>
+    <span>Les plans ne sont pas disponibles.</span>
+    <button type="button" class="text-button" (click)="loadPlans()">Reessayer</button>
+  </div>
+
+  <div class="status-panel empty" *ngIf="!loadingPlans && !plansError && !plans.length">
+    <mat-icon>inventory_2</mat-icon>
+    <span>Aucun plan n'est encore charge en base.</span>
+  </div>
+
+  <div class="plans-grid" *ngIf="!loadingPlans && plans.length">
+    <article
+      class="plan-card"
+      *ngFor="let plan of plans"
+      [class.featured]="plan.tier === 'STARTER'"
+      [class.current]="isCurrentPlan(plan)"
+    >
+      <div class="plan-top">
+        <div class="plan-icon">
+          <mat-icon>{{ plan.tier === 'PROFESSIONAL' ? 'workspace_premium' : plan.tier === 'STARTER' ? 'bolt' : 'explore' }}</mat-icon>
+        </div>
+        <span class="plan-badge" *ngIf="plan.tier === 'STARTER'">Populaire</span>
+        <span class="plan-badge current-badge" *ngIf="isCurrentPlan(plan)">Actuel</span>
+      </div>
+
+      <h2>{{ plan.name }}</h2>
+      <p class="description">{{ plan.description }}</p>
+
+      <div class="price-row">
+        <strong>{{ monthlyPrice(plan) }} EUR</strong>
+        <span>/ mois</span>
+      </div>
+
+      <ul class="features-list">
+        <li *ngFor="let feature of plan.features">
+          <mat-icon>check_circle</mat-icon>
+          <span>{{ feature }}</span>
+        </li>
+      </ul>
+
+      <button
+        type="button"
+        class="plan-action"
+        [class.secondary]="plan.tier === 'FREE' || isCurrentPlan(plan)"
+        [disabled]="plan.tier === 'FREE' || isCurrentPlan(plan) || upgradeTier === plan.tier"
+        (click)="selectPlan(plan)"
+      >
+        <mat-icon>{{ isCurrentPlan(plan) ? 'verified' : 'arrow_forward' }}</mat-icon>
+        <span>{{ actionLabel(plan) }}</span>
+      </button>
+    </article>
+  </div>
+
+  <footer class="subscription-footer">
+    <a routerLink="/profile" *ngIf="isLoggedIn">Voir mon profil</a>
+    <a routerLink="/login" *ngIf="!isLoggedIn">Connexion</a>
+  </footer>
+</section>

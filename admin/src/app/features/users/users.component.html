@@ -1,0 +1,123 @@
+<section class="users-page">
+  <header class="page-header">
+    <div>
+      <span class="kicker">Admin</span>
+      <h1>Gestion des utilisateurs</h1>
+      <p>Suivez les comptes, les roles, les abonnements et les actions de moderation.</p>
+    </div>
+
+    <button type="button" class="primary-action" (click)="loadUsers()" [disabled]="loading">
+      <span class="material-symbol">refresh</span>
+      Actualiser
+    </button>
+  </header>
+
+  <div class="summary-grid" *ngIf="summary">
+    <article class="summary-card">
+      <span>Total</span>
+      <strong>{{ summary.totalUsers }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Premium</span>
+      <strong>{{ summary.premiumUsers }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Admins</span>
+      <strong>{{ summary.admins }}</strong>
+    </article>
+    <article class="summary-card warning">
+      <span>Suspendus</span>
+      <strong>{{ summary.suspendedUsers }}</strong>
+    </article>
+    <article class="summary-card danger">
+      <span>Bannis</span>
+      <strong>{{ summary.bannedUsers }}</strong>
+    </article>
+  </div>
+
+  <section class="filters-panel">
+    <label class="search-field">
+      <span>Recherche</span>
+      <input type="search" [(ngModel)]="search" (keyup.enter)="loadUsers()" placeholder="Email, nom, prenom">
+    </label>
+
+    <label>
+      <span>Statut</span>
+      <select [(ngModel)]="status" (change)="loadUsers()">
+        <option value="all">Tous</option>
+        <option value="active">Actifs</option>
+        <option value="suspended">Suspendus</option>
+        <option value="banned">Bannis</option>
+        <option value="unverified">Non verifies</option>
+        <option value="admin">Admins</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Plan</span>
+      <select [(ngModel)]="tier" (change)="loadUsers()">
+        <option value="all">Tous</option>
+        <option value="free">Free</option>
+        <option value="starter">Starter</option>
+        <option value="professional">Professional</option>
+      </select>
+    </label>
+
+    <button type="button" class="secondary-action" (click)="loadUsers()">Filtrer</button>
+  </section>
+
+  <div class="status-panel error" *ngIf="errorMessage">
+    {{ errorMessage }}
+    <button type="button" (click)="loadUsers()">Reessayer</button>
+  </div>
+
+  <section class="table-shell">
+    <div class="table-loading" *ngIf="loading">Chargement des utilisateurs...</div>
+
+    <table *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>Utilisateur</th>
+          <th>Role</th>
+          <th>Plan</th>
+          <th>Statut</th>
+          <th>Niveau</th>
+          <th>Creation</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users; trackBy: trackById">
+          <td>
+            <div class="user-cell">
+              <span class="avatar">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+              <div>
+                <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+                <small>{{ user.email }}</small>
+              </div>
+            </div>
+          </td>
+          <td><span class="pill role">{{ user.role }}</span></td>
+          <td><span class="pill tier">{{ user.subscriptionTier || 'FREE' }}</span></td>
+          <td><span class="pill" [class]="statusClass(user)">{{ statusLabel(user) }}</span></td>
+          <td>{{ user.level }} / {{ user.xp }} XP</td>
+          <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
+          <td class="actions">
+            <button type="button" (click)="suspend(user)" [disabled]="actionUserId === user.id || user.role === 'ADMIN'">
+              Suspendre
+            </button>
+            <button type="button" class="danger" (click)="ban(user)" [disabled]="actionUserId === user.id || user.role === 'ADMIN'">
+              Bannir
+            </button>
+            <button type="button" (click)="restore(user)" [disabled]="actionUserId === user.id || (!user.banned && !isSuspended(user))">
+              Restaurer
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!users.length">
+          <td colspan="7" class="empty-row">Aucun utilisateur pour ces filtres.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

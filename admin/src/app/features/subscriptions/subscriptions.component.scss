@@ -1,0 +1,55 @@
+@use '../users/users.component.scss';
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.plan-card {
+  border: 1px solid rgba(#a8dadc, 0.75);
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 8px 22px rgba(#374785, 0.07);
+
+  h2 {
+    margin: 0.55rem 0 0;
+    color: #24305e;
+    font-size: 1.25rem;
+    letter-spacing: 0;
+  }
+
+  strong {
+    display: block;
+    margin: 0.8rem 0;
+    color: #374785;
+    font-size: 1.5rem;
+  }
+
+  p,
+  li {
+    color: #6b8fa1;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+}
+
+td strong,
+td small {
+  display: block;
+}
+
+td small {
+  color: #6b8fa1;
+}
+
+@media (max-width: 1000px) {
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
+}

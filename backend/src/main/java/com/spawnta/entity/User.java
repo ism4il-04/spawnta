@@ -100,6 +100,23 @@ public class User {
     @Column(name = "verification_token")
     private String verificationToken;
 
+    // ── Stripe Integration ───────────────────────────────────────────────────
+
+    @Column(name = "stripe_customer_id")
+    private String stripeCustomerId;
+
+    @Column(name = "subscription_tier", nullable = false)
+    private String subscriptionTier = "FREE";
+
+    @Column(name = "suspended_until")
+    private LocalDateTime suspendedUntil;
+
+    @Column(name = "suspension_reason")
+    private String suspensionReason;
+
+    @Column(name = "is_banned", nullable = false)
+    private boolean isBanned = false;
+
     // ── Constructors ──────────────────────────────────────────────────────────
 
     public User() {}
@@ -167,7 +184,24 @@ public class User {
     public String getVerificationToken() { return verificationToken; }
     public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
 
-    public boolean isPremium() { return false; /* TODO: implement premium logic */ }
+    public boolean isPremium() {
+        return "STARTER".equalsIgnoreCase(subscriptionTier) || "PROFESSIONAL".equalsIgnoreCase(subscriptionTier);
+    }
+
+    public String getSubscriptionTier() { return subscriptionTier; }
+    public void setSubscriptionTier(String subscriptionTier) { this.subscriptionTier = subscriptionTier; }
+
+    public LocalDateTime getSuspendedUntil() { return suspendedUntil; }
+    public void setSuspendedUntil(LocalDateTime suspendedUntil) { this.suspendedUntil = suspendedUntil; }
+
+    public String getSuspensionReason() { return suspensionReason; }
+    public void setSuspensionReason(String suspensionReason) { this.suspensionReason = suspensionReason; }
+
+    public boolean isBanned() { return isBanned; }
+    public void setBanned(boolean banned) { this.isBanned = banned; }
+
+    public String getStripeCustomerId() { return stripeCustomerId; }
+    public void setStripeCustomerId(String stripeCustomerId) { this.stripeCustomerId = stripeCustomerId; }
 
     // ── Gamification Getters / Setters ────────────────────
 

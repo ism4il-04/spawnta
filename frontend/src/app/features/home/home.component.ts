@@ -40,6 +40,14 @@ export class HomeComponent {
       description: 'Créez un compte, vérifiez votre email et accédez à toutes les fonctionnalités protégées de la plateforme.',
       cta: 'Créer un compte',
       link: '/signup'
+    },
+    {
+      id: 'subscription',
+      icon: 'workspace_premium',
+      title: 'Abonnement',
+      description: 'Comparez les plans disponibles et lancez le checkout Stripe depuis votre compte.',
+      cta: 'Voir les plans',
+      link: '/subscription'
     }
   ];
 }

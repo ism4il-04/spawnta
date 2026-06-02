@@ -1,0 +1,51 @@
+<section class="admin-page">
+  <header class="page-header">
+    <div>
+      <span class="kicker">Admin</span>
+      <h1>Dashboard</h1>
+      <p>Vue rapide sur les comptes, activites, abonnements et alertes moderation.</p>
+    </div>
+
+    <button type="button" class="primary-action" (click)="loadDashboard()" [disabled]="loading">
+      <span class="material-symbol">refresh</span>
+      Actualiser
+    </button>
+  </header>
+
+  <div class="status-panel" *ngIf="loading">Chargement du dashboard...</div>
+  <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <ng-container *ngIf="dashboard && !loading">
+    <div class="summary-grid">
+      <article class="summary-card"><span>Utilisateurs</span><strong>{{ dashboard.totalUsers }}</strong></article>
+      <article class="summary-card"><span>Premium</span><strong>{{ dashboard.premiumUsers }}</strong></article>
+      <article class="summary-card"><span>Activites</span><strong>{{ dashboard.totalActivities }}</strong></article>
+      <article class="summary-card"><span>A venir</span><strong>{{ dashboard.upcomingActivities }}</strong></article>
+      <article class="summary-card warning"><span>Signalements</span><strong>{{ dashboard.openUserReports + dashboard.openActivityReports }}</strong></article>
+      <article class="summary-card danger"><span>Bannis</span><strong>{{ dashboard.bannedUsers }}</strong></article>
+    </div>
+
+    <section class="split-grid">
+      <article class="panel">
+        <h2>Etat plateforme</h2>
+        <dl>
+          <div><dt>Admins</dt><dd>{{ dashboard.admins }}</dd></div>
+          <div><dt>Emails non verifies</dt><dd>{{ dashboard.unverifiedUsers }}</dd></div>
+          <div><dt>Utilisateurs suspendus</dt><dd>{{ dashboard.suspendedUsers }}</dd></div>
+          <div><dt>Plans abonnement</dt><dd>{{ dashboard.subscriptionPlans }}</dd></div>
+          <div><dt>Abonnements actifs</dt><dd>{{ dashboard.activeSubscriptions }}</dd></div>
+          <div><dt>Paiements reussis</dt><dd>{{ dashboard.successfulPayments | number:'1.0-2' }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="panel">
+        <h2>Audit recent</h2>
+        <div class="audit-row" *ngFor="let log of dashboard.recentAuditLogs">
+          <span>{{ log.action }}</span>
+          <small>{{ log.adminEmail }} - {{ log.createdAt | date:'dd/MM HH:mm' }}</small>
+        </div>
+        <p class="empty" *ngIf="!dashboard.recentAuditLogs.length">Aucune action admin pour le moment.</p>
+      </article>
+    </section>
+  </ng-container>
+</section>

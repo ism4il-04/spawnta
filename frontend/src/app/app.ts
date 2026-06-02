@@ -46,6 +46,11 @@ export class App {
     this.router.navigate(['/profile']);
   }
 
+  navigateToSubscription(): void {
+    this.userMenuOpen = false;
+    this.router.navigate(['/subscription']);
+  }
+
   logout(): void {
     this.authService.logout();
     this.userMenuOpen = false;

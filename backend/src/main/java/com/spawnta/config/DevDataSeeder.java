@@ -60,6 +60,8 @@ public class DevDataSeeder implements CommandLineRunner {
 
         List<Badge> starterBadges = ensureBadges();
 
+        upsertDevAdmin("admin@spawnta.com", "Admin", "Spawnta");
+
         User demo = upsertDevUser("demo@spawnta.com", "Ayman", "Demo", u -> {
             u.setXp(750);
             u.setLevel(3);
@@ -165,6 +167,25 @@ public class DevDataSeeder implements CommandLineRunner {
         extras.accept(u);
         User saved = userRepository.save(u);
         log.info("Dev user {} — {}", email, created ? "created" : "updated (password reset)");
+        return saved;
+    }
+
+    private User upsertDevAdmin(String email, String firstName, String lastName) {
+        User u = userRepository.findByEmail(email).orElseGet(User::new);
+        boolean created = u.getId() == null;
+        u.setEmail(email);
+        u.setPassword(passwordEncoder.encode(DEV_PASSWORD));
+        u.setFirstName(firstName);
+        u.setLastName(lastName);
+        u.setRole(Role.ADMIN);
+        u.setEmailVerified(true);
+        u.setVerificationToken(null);
+        u.setSubscriptionTier("PROFESSIONAL");
+        u.setBanned(false);
+        u.setSuspendedUntil(null);
+        u.setSuspensionReason(null);
+        User saved = userRepository.save(u);
+        log.info("Dev admin {} - {}", email, created ? "created" : "updated (password reset)");
         return saved;
     }
 

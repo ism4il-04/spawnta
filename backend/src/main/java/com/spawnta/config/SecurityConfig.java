@@ -47,6 +47,7 @@ public class SecurityConfig {
                     "/error"
                 ).permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/activities", "/api/activities/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/subscription/plans").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
