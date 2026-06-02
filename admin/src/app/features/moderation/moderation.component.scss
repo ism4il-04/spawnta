@@ -10,6 +10,82 @@
   gap: 1rem;
 }
 
+.detail-panel {
+  margin-top: 1rem;
+  border: 1px solid rgba(#a8dadc, 0.75);
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 8px 22px rgba(#374785, 0.07);
+}
+
+.detail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0.35rem 0 0;
+    color: #24305e;
+    letter-spacing: 0;
+  }
+}
+
+.detail-panel dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+
+  div {
+    border: 1px solid rgba(#a8dadc, 0.55);
+    border-radius: 0.5rem;
+    background: #f8fffd;
+    padding: 0.8rem;
+  }
+
+  dt {
+    color: #6b8fa1;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0.2rem 0 0;
+    color: #24305e;
+  }
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.pill.open {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pill.investigating {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.pill.resolved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pill.dismissed {
+  background: #e5e7eb;
+  color: #374151;
+}
+
 .report-panel,
 .report-card {
   border: 1px solid rgba(#a8dadc, 0.75);
@@ -66,6 +142,10 @@
 
 @media (max-width: 1000px) {
   .reports-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-panel dl {
     grid-template-columns: 1fr;
   }
 }

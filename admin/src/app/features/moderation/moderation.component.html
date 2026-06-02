@@ -41,13 +41,14 @@
         <h2>Signalements utilisateurs</h2>
         <div class="report-card" *ngFor="let report of data.userReports">
           <div class="report-head">
-            <span class="pill">{{ report.status }}</span>
+            <span class="pill" [class]="statusClass(report.status)">{{ report.status }}</span>
             <small>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
           </div>
           <h3>{{ report.reportedUserName }}</h3>
           <p>{{ report.reason }} - {{ report.description }}</p>
           <small>Par {{ report.reporterEmail }} contre {{ report.reportedUserEmail }}</small>
           <div class="actions">
+            <button type="button" (click)="selectUserReport(report)">Details</button>
             <button type="button" (click)="updateUserReport(report, 'investigate')" [disabled]="actionId === 'user-' + report.id">Investiguer</button>
             <button type="button" (click)="updateUserReport(report, 'resolve')" [disabled]="actionId === 'user-' + report.id">Resoudre</button>
             <button type="button" class="danger" (click)="updateUserReport(report, 'dismiss')" [disabled]="actionId === 'user-' + report.id">Rejeter</button>
@@ -60,13 +61,14 @@
         <h2>Signalements activites</h2>
         <div class="report-card" *ngFor="let report of data.activityReports">
           <div class="report-head">
-            <span class="pill">{{ report.status }}</span>
+            <span class="pill" [class]="statusClass(report.status)">{{ report.status }}</span>
             <small>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
           </div>
           <h3>{{ report.activityTitle }}</h3>
           <p>{{ report.reason }} - {{ report.description }}</p>
           <small>Par {{ report.reporterEmail }} - host {{ report.hostEmail }}</small>
           <div class="actions">
+            <button type="button" (click)="selectActivityReport(report)">Details</button>
             <button type="button" (click)="updateActivityReport(report, 'investigate')" [disabled]="actionId === 'activity-' + report.id">Investiguer</button>
             <button type="button" (click)="updateActivityReport(report, 'resolve')" [disabled]="actionId === 'activity-' + report.id">Resoudre</button>
             <button type="button" class="danger" (click)="updateActivityReport(report, 'dismiss')" [disabled]="actionId === 'activity-' + report.id">Rejeter</button>
@@ -75,5 +77,47 @@
         <p class="empty" *ngIf="!data.activityReports.length">Aucun signalement activite.</p>
       </article>
     </section>
+
+    <aside class="detail-panel" *ngIf="selectedReport">
+      <div class="detail-head">
+        <div>
+          <span class="kicker">{{ selectedKind === 'user' ? 'Utilisateur' : 'Activite' }}</span>
+          <h2>Detail du signalement</h2>
+        </div>
+        <span class="pill" [class]="statusClass(selectedReport.status)">{{ selectedReport.status }}</span>
+      </div>
+
+      <ng-container *ngIf="isUserReport(selectedReport)">
+        <dl>
+          <div><dt>Cible</dt><dd>{{ selectedReport.reportedUserName }}</dd></div>
+          <div><dt>Email cible</dt><dd>{{ selectedReport.reportedUserEmail }}</dd></div>
+          <div><dt>Reporter</dt><dd>{{ selectedReport.reporterEmail }}</dd></div>
+          <div><dt>Motif</dt><dd>{{ selectedReport.reason }}</dd></div>
+          <div><dt>Description</dt><dd>{{ selectedReport.description }}</dd></div>
+          <div><dt>Notes</dt><dd>{{ selectedReport.resolutionNotes || '-' }}</dd></div>
+        </dl>
+        <div class="detail-actions">
+          <button type="button" (click)="updateUserReport(selectedReport, 'investigate')">Investiguer</button>
+          <button type="button" (click)="updateUserReport(selectedReport, 'resolve')">Resoudre</button>
+          <button type="button" class="danger" (click)="updateUserReport(selectedReport, 'dismiss')">Rejeter</button>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="isActivityReport(selectedReport)">
+        <dl>
+          <div><dt>Activite</dt><dd>{{ selectedReport.activityTitle }}</dd></div>
+          <div><dt>Host</dt><dd>{{ selectedReport.hostEmail }}</dd></div>
+          <div><dt>Reporter</dt><dd>{{ selectedReport.reporterEmail }}</dd></div>
+          <div><dt>Motif</dt><dd>{{ selectedReport.reason }}</dd></div>
+          <div><dt>Description</dt><dd>{{ selectedReport.description }}</dd></div>
+          <div><dt>Notes</dt><dd>{{ selectedReport.resolutionNotes || '-' }}</dd></div>
+        </dl>
+        <div class="detail-actions">
+          <button type="button" (click)="updateActivityReport(selectedReport, 'investigate')">Investiguer</button>
+          <button type="button" (click)="updateActivityReport(selectedReport, 'resolve')">Resoudre</button>
+          <button type="button" class="danger" (click)="updateActivityReport(selectedReport, 'dismiss')">Rejeter</button>
+        </div>
+      </ng-container>
+    </aside>
   </ng-container>
 </section>

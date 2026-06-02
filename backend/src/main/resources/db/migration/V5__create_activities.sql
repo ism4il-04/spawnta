@@ -4,7 +4,7 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Activities table
-CREATE TABLE activities (
+CREATE TABLE IF NOT EXISTS activities (
     id                  BIGSERIAL PRIMARY KEY,
     title               VARCHAR(150) NOT NULL,
     description         TEXT,
@@ -27,11 +27,11 @@ CREATE TABLE activities (
 );
 
 -- Spatial indexes for proximity queries
-CREATE INDEX idx_activities_location ON activities USING GIST (location);
-CREATE INDEX idx_activities_start_location ON activities USING GIST (start_location);
+CREATE INDEX IF NOT EXISTS idx_activities_location ON activities USING GIST (location);
+CREATE INDEX IF NOT EXISTS idx_activities_start_location ON activities USING GIST (start_location);
 
 -- Participation join table
-CREATE TABLE activity_participants (
+CREATE TABLE IF NOT EXISTS activity_participants (
     id              BIGSERIAL PRIMARY KEY,
     activity_id     BIGINT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
     user_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

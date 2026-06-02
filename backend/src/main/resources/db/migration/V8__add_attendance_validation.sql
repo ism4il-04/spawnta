@@ -2,7 +2,7 @@
 -- V8: Add Activity Attendance & Validation
 -- =============================================
 
-CREATE TABLE activity_attendance (
+CREATE TABLE IF NOT EXISTS activity_attendance (
     id SERIAL PRIMARY KEY,
     activity_id BIGINT NOT NULL,
     participant_id BIGINT NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE activity_attendance (
     FOREIGN KEY (participant_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE attendance_evidence (
+CREATE TABLE IF NOT EXISTS attendance_evidence (
     id SERIAL PRIMARY KEY,
     attendance_id BIGINT NOT NULL,
     photo_url VARCHAR(500),
@@ -26,7 +26,7 @@ CREATE TABLE attendance_evidence (
     FOREIGN KEY (attendance_id) REFERENCES activity_attendance(id) ON DELETE CASCADE
 );
 
-CREATE TABLE activity_ratings (
+CREATE TABLE IF NOT EXISTS activity_ratings (
     id SERIAL PRIMARY KEY,
     activity_id BIGINT NOT NULL,
     rater_id BIGINT NOT NULL,
@@ -38,6 +38,6 @@ CREATE TABLE activity_ratings (
     FOREIGN KEY (rater_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_activity_attendance_activity ON activity_attendance(activity_id);
-CREATE INDEX idx_activity_attendance_participant ON activity_attendance(participant_id);
-CREATE INDEX idx_activity_ratings_activity ON activity_ratings(activity_id);
+CREATE INDEX IF NOT EXISTS idx_activity_attendance_activity ON activity_attendance(activity_id);
+CREATE INDEX IF NOT EXISTS idx_activity_attendance_participant ON activity_attendance(participant_id);
+CREATE INDEX IF NOT EXISTS idx_activity_ratings_activity ON activity_ratings(activity_id);

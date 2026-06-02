@@ -154,7 +154,7 @@ public class AdminModerationService {
             .admin(admin)
             .action(action)
             .targetType(targetType)
-            .targetId(Math.toIntExact(targetId))
+            .targetId(targetId)
             .details(details)
             .build());
     }

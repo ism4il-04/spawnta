@@ -2,7 +2,7 @@
 -- V9: Add Recommendations & Notifications Schema
 -- =============================================
 
-CREATE TABLE activity_recommendations (
+CREATE TABLE IF NOT EXISTS activity_recommendations (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     activity_id BIGINT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE activity_recommendations (
     FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE
 );
 
-CREATE TABLE user_notifications (
+CREATE TABLE IF NOT EXISTS user_notifications (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     type VARCHAR(30) NOT NULL,
@@ -32,5 +32,5 @@ CREATE TABLE user_notifications (
     FOREIGN KEY (related_user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_notifications_user_unread ON user_notifications(user_id, is_read);
-CREATE INDEX idx_recommendations_user ON activity_recommendations(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON user_notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_recommendations_user ON activity_recommendations(user_id);

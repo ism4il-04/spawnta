@@ -31,7 +31,7 @@ public class AdminAuditLog {
     @Column(nullable = false)
     private String targetType; // USER, ACTIVITY, REPORT, etc.
     
-    private Integer targetId;
+    private Long targetId;
     
     @Column(columnDefinition = "TEXT")
     private String details;

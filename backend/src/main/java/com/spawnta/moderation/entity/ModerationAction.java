@@ -29,7 +29,7 @@ public class ModerationAction {
     private String targetType; // USER, ACTIVITY
     
     @Column(nullable = false)
-    private Integer targetId;
+    private Long targetId;
     
     @Column(nullable = false)
     private String reason;
