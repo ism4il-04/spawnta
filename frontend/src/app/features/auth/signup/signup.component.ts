@@ -37,6 +37,7 @@ export class SignupComponent {
   signupForm: FormGroup;
   loading = false;
   showPassword = false;
+  backendError: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -97,10 +98,35 @@ export class SignupComponent {
     }
   }
 
+  private formatSignupError(err: any): string {
+    if (!err) {
+      return 'Une erreur inconnue est survenue.';
+    }
+
+    if (err.status === 0) {
+      return 'Impossible de joindre le backend. Vérifiez que http://localhost:8080 est en cours d’exécution.';
+    }
+
+    if (err.error?.error) {
+      return err.error.error;
+    }
+
+    if (err.error?.message) {
+      return err.error.message;
+    }
+
+    if (err.status && err.statusText) {
+      return `Erreur ${err.status} : ${err.statusText}`;
+    }
+
+    return 'Registration failed';
+  }
+
   onSubmit() {
     if (this.signupForm.invalid) return;
 
     this.loading = true;
+    this.backendError = null;
     const { email, password, firstName, lastName } = this.signupForm.value;
     this.authService.signup({ email, password, firstName, lastName }).subscribe({
       next: () => {
@@ -108,7 +134,9 @@ export class SignupComponent {
       },
       error: (err: any) => {
         this.loading = false;
-        this.snackBar.open(err.error?.error || 'Registration failed', 'Close', { duration: 3000 });
+        const message = this.formatSignupError(err);
+        this.backendError = message;
+        this.snackBar.open(message, 'Close', { duration: 5000 });
       }
     });
   }

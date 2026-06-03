@@ -1,8 +1,8 @@
--- Insert subscription plans with Stripe IDs
+-- Insert subscription plans with REAL Stripe IDs
 INSERT INTO subscription_plans (tier, name, description, monthly_price, stripe_product_id, stripe_price_id, created_at, updated_at) VALUES
-('FREE', 'Free Plan', 'Basic features for exploring Spawnta', 0.00, 'prod_free_dummy', 'price_free_dummy', NOW(), NOW()),
-('STARTER', 'Starter Plan', 'For active users and community leaders', 9.99, 'prod_starter_dummy', 'price_starter_dummy', NOW(), NOW()),
-('PROFESSIONAL', 'Professional Plan', 'For businesses and organizations', 24.99, 'prod_professional_dummy', 'price_professional_dummy', NOW(), NOW())
+('FREE', 'Free Plan', 'Basic features for exploring Spawnta', 0.00, 'prod_UdWyFRQBgaWzel', 'price_1TeFuCRTAe1LMgiGjne6mu3k', NOW(), NOW()),
+('STARTER', 'Starter Plan', 'For active users and community leaders', 9.99, 'prod_UdX0F4DNhIaK8E', 'price_1TeFw4RTAe1LMgiGtK0lJ7J3', NOW(), NOW()),
+('PROFESSIONAL', 'Professional Plan', 'For businesses and organizations', 24.99, 'prod_UdX1m1eieookQS', 'price_1TeFx3RTAe1LMgiGHeNLGHUb', NOW(), NOW())
 ON CONFLICT (tier) DO NOTHING;
 
 -- Insert plan features

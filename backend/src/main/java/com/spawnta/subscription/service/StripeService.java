@@ -71,8 +71,10 @@ public class StripeService {
      * Initialize Stripe with API key
      * Called on bean creation
      */
+    @jakarta.annotation.PostConstruct
     public void initializeStripe() {
         Stripe.apiKey = stripeSecretKey;
+        logger.info("Stripe API initialized with key: {}...", stripeSecretKey.substring(0, 20));
     }
     
     /**
@@ -121,7 +123,9 @@ public class StripeService {
     ) throws StripeException {
         logger.info("Creating checkout session for user: {} to tier: {}", user.getId(), tier);
         
-        SubscriptionPlan plan = subscriptionPlanRepository.findByTier(SubscriptionTier.valueOf(tier))
+        // Use fromString to handle both enum names and IDs (e.g., "pro" -> PROFESSIONAL, "starter" -> STARTER)
+        SubscriptionTier subscriptionTier = SubscriptionTier.fromString(tier);
+        SubscriptionPlan plan = subscriptionPlanRepository.findByTier(subscriptionTier)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid subscription tier: " + tier));
         
         // Create or get Stripe customer
