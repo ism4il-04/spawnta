@@ -1,5 +1,7 @@
 package com.spawnta.service;
 
+import com.spawnta.entity.User;
+import com.spawnta.subscription.entity.SubscriptionPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,6 +115,104 @@ public class EmailService {
             e.printStackTrace();
             log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
             log.info("=== [FALLBACK] Verification link for {}: {} ===", toEmail, link);
+        }
+    }
+
+    /**
+     * Send subscription confirmation email after successful payment
+     */
+    public void sendSubscriptionConfirmation(User user, SubscriptionPlan plan) {
+        if (mailSender == null || mailHost.isBlank()) {
+            log.info("=== [DEV MODE] Subscription confirmation for {}: Plan {} activated ===", 
+                user.getEmail(), plan.getName());
+            return;
+        }
+
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromEmail);
+            msg.setTo(user.getEmail());
+            msg.setSubject("Welcome to " + plan.getName() + "!");
+            msg.setText(
+                "Hi!\n\n" +
+                "Your subscription to " + plan.getName() + " is now active!\n\n" +
+                "Plan details:\n" +
+                "- " + plan.getName() + "\n" +
+                "- " + plan.getMonthlyPrice() + " EUR/month\n\n" +
+                "You now have access to all premium features.\n\n" +
+                "Manage your subscription: " + frontendUrl + "/subscription\n\n" +
+                "Thank you for choosing Spawnta!\n\n" +
+                "The Spawnta Team"
+            );
+            
+            mailSender.send(msg);
+            log.info("Subscription confirmation email sent to {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send subscription confirmation to {}: {}", user.getEmail(), e.getMessage());
+        }
+    }
+
+    /**
+     * Send payment failed notification
+     */
+    public void sendPaymentFailedNotification(User user) {
+        if (mailSender == null || mailHost.isBlank()) {
+            log.info("=== [DEV MODE] Payment failed notification for {} ===", user.getEmail());
+            return;
+        }
+
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromEmail);
+            msg.setTo(user.getEmail());
+            msg.setSubject("Payment Failed - Action Required");
+            msg.setText(
+                "Hi,\n\n" +
+                "We were unable to process your subscription payment.\n\n" +
+                "Please update your payment method to continue enjoying premium features:\n" +
+                frontendUrl + "/subscription\n\n" +
+                "If you have any questions, please contact our support team.\n\n" +
+                "Best regards,\n" +
+                "The Spawnta Team"
+            );
+            
+            mailSender.send(msg);
+            log.info("Payment failed notification sent to {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send payment failed notification to {}: {}", user.getEmail(), e.getMessage());
+        }
+    }
+
+    /**
+     * Send subscription cancellation confirmation
+     */
+    public void sendSubscriptionCancellation(User user) {
+        if (mailSender == null || mailHost.isBlank()) {
+            log.info("=== [DEV MODE] Subscription cancellation for {} ===", user.getEmail());
+            return;
+        }
+
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromEmail);
+            msg.setTo(user.getEmail());
+            msg.setSubject("Your Subscription Has Been Cancelled");
+            msg.setText(
+                "Hi,\n\n" +
+                "Your premium subscription has been cancelled.\n\n" +
+                "You've been downgraded to the FREE plan and still have access to:\n" +
+                "- Basic profile\n" +
+                "- 5 activities per week\n" +
+                "- Standard search\n\n" +
+                "You can resubscribe anytime at: " + frontendUrl + "/subscription\n\n" +
+                "We hope to see you back soon!\n\n" +
+                "The Spawnta Team"
+            );
+            
+            mailSender.send(msg);
+            log.info("Subscription cancellation email sent to {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send cancellation email to {}: {}", user.getEmail(), e.getMessage());
         }
     }
 }

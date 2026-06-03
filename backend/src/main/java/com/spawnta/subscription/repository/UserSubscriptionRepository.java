@@ -13,6 +13,7 @@ import java.util.Optional;
 @Repository
 public interface UserSubscriptionRepository extends JpaRepository<UserSubscription, Long> {
     Optional<UserSubscription> findByUserId(Long userId);
+    Optional<UserSubscription> findByUserIdAndStatus(Long userId, SubscriptionStatus status);
     Optional<UserSubscription> findByStripeCustomerId(String stripeCustomerId);
     Optional<UserSubscription> findByStripeSubscriptionId(String stripeSubscriptionId);
     
