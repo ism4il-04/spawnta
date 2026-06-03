@@ -19,6 +19,8 @@ export class ModerationComponent implements OnInit {
   actionId = '';
   errorMessage = '';
   status = 'all';
+  selectedReport: UserReportAdmin | ActivityReportAdmin | null = null;
+  selectedKind: 'user' | 'activity' | null = null;
 
   ngOnInit(): void {
     this.loadReports();
@@ -30,7 +32,13 @@ export class ModerationComponent implements OnInit {
     this.moderationService.getReports(this.status).pipe(
       finalize(() => this.loading = false)
     ).subscribe({
-      next: data => this.data = data,
+      next: data => {
+        this.data = data;
+        if (!this.selectedReport) {
+          this.selectedReport = data.userReports[0] ?? data.activityReports[0] ?? null;
+          this.selectedKind = data.userReports[0] ? 'user' : data.activityReports[0] ? 'activity' : null;
+        }
+      },
       error: error => this.errorMessage = error?.error?.error ?? 'Impossible de charger la moderation.'
     });
   }
@@ -57,5 +65,27 @@ export class ModerationComponent implements OnInit {
       next: () => this.loadReports(),
       error: error => this.errorMessage = error?.error?.error ?? 'Action impossible.'
     });
+  }
+
+  selectUserReport(report: UserReportAdmin): void {
+    this.selectedReport = report;
+    this.selectedKind = 'user';
+  }
+
+  selectActivityReport(report: ActivityReportAdmin): void {
+    this.selectedReport = report;
+    this.selectedKind = 'activity';
+  }
+
+  statusClass(status: string): string {
+    return status.toLowerCase();
+  }
+
+  isUserReport(report: UserReportAdmin | ActivityReportAdmin | null): report is UserReportAdmin {
+    return this.selectedKind === 'user' && !!report;
+  }
+
+  isActivityReport(report: UserReportAdmin | ActivityReportAdmin | null): report is ActivityReportAdmin {
+    return this.selectedKind === 'activity' && !!report;
   }
 }

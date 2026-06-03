@@ -46,6 +46,7 @@ public class SecurityConfig {
                     "/ws/**",
                     "/error"
                 ).permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/activities", "/api/activities/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/subscription/plans").permitAll()
                 .anyRequest().authenticated()

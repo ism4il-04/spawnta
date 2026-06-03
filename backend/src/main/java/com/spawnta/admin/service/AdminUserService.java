@@ -179,7 +179,7 @@ public class AdminUserService {
                 .admin(admin)
                 .action(action)
                 .targetType("USER")
-                .targetId(Math.toIntExact(target.getId()))
+                .targetId(target.getId())
                 .details(details)
                 .build());
     }

@@ -1,0 +1,104 @@
+<section class="activities-page">
+  <header class="page-header">
+    <div>
+      <span class="kicker">Admin</span>
+      <h1>Gestion des activites</h1>
+      <p>Surveillez les evenements, les hôtes, les participations et les suppressions de moderation.</p>
+    </div>
+
+    <button type="button" class="primary-action" (click)="loadActivities()" [disabled]="loading">
+      <span class="material-symbol">refresh</span>
+      Actualiser
+    </button>
+  </header>
+
+  <div class="summary-grid" *ngIf="summary">
+    <article class="summary-card">
+      <span>Total</span>
+      <strong>{{ summary.totalActivities }}</strong>
+    </article>
+    <article class="summary-card success">
+      <span>A venir</span>
+      <strong>{{ summary.upcomingActivities }}</strong>
+    </article>
+    <article class="summary-card muted">
+      <span>Passees</span>
+      <strong>{{ summary.pastActivities }}</strong>
+    </article>
+  </div>
+
+  <section class="filters-panel">
+    <label class="search-field">
+      <span>Recherche</span>
+      <input type="search" [(ngModel)]="search" (keyup.enter)="loadActivities()" placeholder="Titre, categorie, hote">
+    </label>
+
+    <label>
+      <span>Statut</span>
+      <select [(ngModel)]="status" (change)="loadActivities()">
+        <option value="all">Tous</option>
+        <option value="upcoming">A venir</option>
+        <option value="past">Passees</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Categorie</span>
+      <input type="text" [(ngModel)]="category" (keyup.enter)="loadActivities()" placeholder="all">
+    </label>
+
+    <button type="button" class="secondary-action" (click)="loadActivities()">Filtrer</button>
+  </section>
+
+  <div class="status-panel error" *ngIf="errorMessage">
+    {{ errorMessage }}
+    <button type="button" (click)="loadActivities()">Reessayer</button>
+  </div>
+
+  <section class="table-shell">
+    <div class="table-loading" *ngIf="loading">Chargement des activites...</div>
+
+    <table *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>Activite</th>
+          <th>Type</th>
+          <th>Hote</th>
+          <th>Participants</th>
+          <th>Date</th>
+          <th>Statut</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let activity of activities; trackBy: trackById">
+          <td>
+            <div class="activity-cell">
+              <span class="activity-mark">{{ activity.title.charAt(0) }}</span>
+              <div>
+                <strong>{{ activity.title }}</strong>
+                <small>{{ activity.category || 'Sans categorie' }}</small>
+              </div>
+            </div>
+          </td>
+          <td><span class="pill type">{{ typeLabel(activity) }}</span></td>
+          <td>
+            <strong>{{ activity.hostName }}</strong>
+            <small class="block">{{ activity.hostEmail }}</small>
+          </td>
+          <td>{{ activity.participantCount }} / {{ activity.maxParticipants || '∞' }}</td>
+          <td>{{ activity.scheduledAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td><span class="pill" [class]="statusClass(activity)">{{ statusLabel(activity) }}</span></td>
+          <td class="actions">
+            <button type="button" class="danger" (click)="deleteActivity(activity)" [disabled]="actionActivityId === activity.id">
+              Supprimer
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!activities.length">
+          <td colspan="7" class="empty-row">Aucune activite pour ces filtres.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>

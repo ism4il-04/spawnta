@@ -31,4 +31,13 @@ export class DashboardComponent implements OnInit {
       error: error => this.errorMessage = error?.error?.error ?? 'Impossible de charger le dashboard.'
     });
   }
+
+  ratio(value: number, total: number): number {
+    return total === 0 ? 0 : Math.min(100, Math.round((value / total) * 100));
+  }
+
+  moderationTotal(): number {
+    if (!this.dashboard) return 0;
+    return this.dashboard.openUserReports + this.dashboard.openActivityReports;
+  }
 }

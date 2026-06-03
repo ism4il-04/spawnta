@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface ModerationActionRepository extends JpaRepository<ModerationAction, Long> {
     List<ModerationAction> findByActionType(ActionType actionType);
-    List<ModerationAction> findByTargetId(Integer targetId);
+    List<ModerationAction> findByTargetId(Long targetId);
     List<ModerationAction> findByInitiatedById(Long initiatedById);
     List<ModerationAction> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<ModerationAction> findByInitiatedByIdAndCreatedAtBetween(Long initiatedById, LocalDateTime startDate, LocalDateTime endDate);

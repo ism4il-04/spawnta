@@ -39,10 +39,30 @@
       </article>
 
       <article class="panel">
+        <h2>Tendances rapides</h2>
+        <div class="trend-row">
+          <span>Premium</span>
+          <div><i [style.width.%]="ratio(dashboard.premiumUsers, dashboard.totalUsers)"></i></div>
+          <strong>{{ ratio(dashboard.premiumUsers, dashboard.totalUsers) }}%</strong>
+        </div>
+        <div class="trend-row activity">
+          <span>Activites a venir</span>
+          <div><i [style.width.%]="ratio(dashboard.upcomingActivities, dashboard.totalActivities)"></i></div>
+          <strong>{{ ratio(dashboard.upcomingActivities, dashboard.totalActivities) }}%</strong>
+        </div>
+        <div class="trend-row alert">
+          <span>Moderation ouverte</span>
+          <div><i [style.width.%]="ratio(moderationTotal(), dashboard.totalUsers + dashboard.totalActivities)"></i></div>
+          <strong>{{ moderationTotal() }}</strong>
+        </div>
+      </article>
+
+      <article class="panel">
         <h2>Audit recent</h2>
         <div class="audit-row" *ngFor="let log of dashboard.recentAuditLogs">
           <span>{{ log.action }}</span>
-          <small>{{ log.adminEmail }} - {{ log.createdAt | date:'dd/MM HH:mm' }}</small>
+          <small>{{ log.adminEmail }} - {{ log.targetType }} #{{ log.targetId || '-' }} - {{ log.createdAt | date:'dd/MM HH:mm' }}</small>
+          <em *ngIf="log.details">{{ log.details }}</em>
         </div>
         <p class="empty" *ngIf="!dashboard.recentAuditLogs.length">Aucune action admin pour le moment.</p>
       </article>

@@ -1,7 +1,7 @@
 -- V6: Real-Time Chat System Tables
 
 -- Chats table
-CREATE TABLE chats (
+CREATE TABLE IF NOT EXISTS chats (
     id          BIGSERIAL PRIMARY KEY,
     type        VARCHAR(20) NOT NULL,              -- GROUP or PRIVATE
     activity_id BIGINT REFERENCES activities(id) ON DELETE SET NULL, -- for GROUP chat
@@ -10,10 +10,10 @@ CREATE TABLE chats (
 );
 
 -- Index for quickly loading chats by activity
-CREATE INDEX idx_chats_activity_id ON chats(activity_id);
+CREATE INDEX IF NOT EXISTS idx_chats_activity_id ON chats(activity_id);
 
 -- Chat Participants table
-CREATE TABLE chat_participants (
+CREATE TABLE IF NOT EXISTS chat_participants (
     id                     BIGSERIAL PRIMARY KEY,
     chat_id                BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
     user_id                BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -23,10 +23,10 @@ CREATE TABLE chat_participants (
     UNIQUE (chat_id, user_id)
 );
 
-CREATE INDEX idx_chat_participants_user_id ON chat_participants(user_id);
+CREATE INDEX IF NOT EXISTS idx_chat_participants_user_id ON chat_participants(user_id);
 
 -- Messages table
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     id           BIGSERIAL PRIMARY KEY,
     chat_id      BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
     sender_id    BIGINT REFERENCES users(id) ON DELETE SET NULL, -- Anonymize if user deleted
@@ -36,11 +36,11 @@ CREATE TABLE messages (
     created_at   TIMESTAMP NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_messages_chat_id ON messages(chat_id);
-CREATE INDEX idx_messages_created_at ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON messages(chat_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 
 -- Transactional Outbox table for Kafka events
-CREATE TABLE outbox_events (
+CREATE TABLE IF NOT EXISTS outbox_events (
     id          BIGSERIAL PRIMARY KEY,
     topic       VARCHAR(100) NOT NULL,
     payload     TEXT NOT NULL,
@@ -49,10 +49,10 @@ CREATE TABLE outbox_events (
     created_at  TIMESTAMP NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_outbox_events_status ON outbox_events(status);
+CREATE INDEX IF NOT EXISTS idx_outbox_events_status ON outbox_events(status);
 
 -- Chat Moderation Audit Logs
-CREATE TABLE chat_audit_logs (
+CREATE TABLE IF NOT EXISTS chat_audit_logs (
     id             BIGSERIAL PRIMARY KEY,
     moderator_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     chat_id        BIGINT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,

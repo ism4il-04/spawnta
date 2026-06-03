@@ -25,7 +25,7 @@ public record AdminDashboardDTO(
         String adminEmail,
         String action,
         String targetType,
-        Integer targetId,
+        Long targetId,
         String details,
         LocalDateTime createdAt
     ) {}
