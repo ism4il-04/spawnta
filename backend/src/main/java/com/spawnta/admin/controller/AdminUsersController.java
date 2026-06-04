@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.spawnta.entity.Role;
 import com.spawnta.admin.dto.AdminUserDTO;
 import com.spawnta.admin.dto.AdminUsersResponseDTO;
 import com.spawnta.admin.dto.ModerateUserRequest;
@@ -36,6 +37,15 @@ public class AdminUsersController {
             @RequestParam(required = false) String tier
     ) {
         return ResponseEntity.ok(adminUserService.listUsers(search, status, tier));
+    }
+
+    @PatchMapping("/{id}/role")
+    public ResponseEntity<AdminUserDTO> updateRole(
+            @PathVariable Long id,
+            @RequestParam Role role,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(adminUserService.updateRole(id, role, authentication.getName()));
     }
 
     @PatchMapping("/{id}/ban")

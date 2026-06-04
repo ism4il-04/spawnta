@@ -83,6 +83,11 @@ public class AdminDashboardService {
     @Transactional(readOnly = true)
     public AdminSubscriptionsDTO getSubscriptions() {
         List<UserSubscription> subscriptions = userSubscriptionRepository.findAll();
+        BigDecimal mrr = subscriptions.stream()
+            .filter(s -> SubscriptionStatus.ACTIVE.equals(s.getStatus()))
+            .map(s -> s.getPlan().getMonthlyPrice())
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         return new AdminSubscriptionsDTO(
             subscriptionPlanRepository.count(),
             subscriptions.stream().filter(subscription -> SubscriptionStatus.ACTIVE.equals(subscription.getStatus())).count(),
@@ -90,6 +95,7 @@ public class AdminDashboardService {
             subscriptions.stream().filter(subscription -> SubscriptionStatus.PAST_DUE.equals(subscription.getStatus())).count(),
             subscriptions.stream().filter(subscription -> SubscriptionStatus.CANCELLED.equals(subscription.getStatus())).count(),
             successfulPaymentsTotal(),
+            mrr,
             subscriptionPlanRepository.findAll().stream()
                 .sorted(Comparator.comparing(plan -> plan.getTier().name()))
                 .map(plan -> new AdminSubscriptionsDTO.PlanDTO(
@@ -118,8 +124,25 @@ public class AdminDashboardService {
                         subscription.getEndDate()
                     );
                 })
-                .toList()
+                .toList(),
+            recentTransactions()
         );
+    }
+
+    private List<AdminSubscriptionsDTO.TransactionDTO> recentTransactions() {
+        return paymentTransactionRepository.findAll().stream()
+            .sorted(Comparator.comparing(com.spawnta.subscription.entity.PaymentTransaction::getCreatedAt).reversed())
+            .limit(20)
+            .map(t -> new AdminSubscriptionsDTO.TransactionDTO(
+                t.getId(),
+                t.getUser().getEmail(),
+                t.getAmount(),
+                t.getCurrency(),
+                t.getStatus().name(),
+                t.getCreatedAt(),
+                t.getStripePaymentIntentId()
+            ))
+            .toList();
     }
 
     private BigDecimal successfulPaymentsTotal() {

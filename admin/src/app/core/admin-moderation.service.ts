@@ -25,6 +25,7 @@ export interface ActivityReportAdmin {
   reporterEmail: string;
   activityId: number;
   activityTitle: string;
+  activityDescription: string;
   hostEmail: string;
   resolutionNotes: string | null;
   resolvedByEmail: string | null;

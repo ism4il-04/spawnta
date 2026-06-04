@@ -38,6 +38,7 @@ public record AdminModerationDTO(
         String reporterEmail,
         Long activityId,
         String activityTitle,
+        String activityDescription,
         String hostEmail,
         String resolutionNotes,
         String resolvedByEmail,

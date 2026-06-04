@@ -66,4 +66,9 @@ export class AdminUsersService {
   restoreUser(id: number): Observable<AdminUser> {
     return this.http.patch<AdminUser>(`${this.apiUrl}/${id}/restore`, {});
   }
+
+  updateRole(id: number, role: string): Observable<AdminUser> {
+    let params = new HttpParams().set('role', role);
+    return this.http.patch<AdminUser>(`${this.apiUrl}/${id}/role`, {}, { params });
+  }
 }

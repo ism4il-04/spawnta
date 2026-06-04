@@ -35,7 +35,7 @@
     <app-stat-card 
       label="Revenue" 
       [value]="(dashboard.successfulPayments | currency:'EUR':'symbol':'1.0-0') || '0 €'" 
-      [icon]="DollarSign" 
+      [icon]="Euro" 
       iconColor="#10b981"
       iconBgColor="#ecfdf5">
     </app-stat-card>
@@ -105,6 +105,41 @@
           <div class="empty-state" *ngIf="!dashboard.recentActivities.length">
             Aucune activité récente.
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audit Logs -->
+    <div class="card audit-card full-width">
+      <div class="card-header">
+        <h2 class="card-title">Audit Logs (Actions Admin)</h2>
+        <span class="view-all">Dernières actions</span>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th>Admin</th>
+                <th>Action</th>
+                <th>Cible</th>
+                <th>Détails</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let log of dashboard.recentAuditLogs">
+                <td><strong>{{ log.adminEmail }}</strong></td>
+                <td><span class="pill action">{{ log.action }}</span></td>
+                <td>{{ log.targetType }} #{{ log.targetId }}</td>
+                <td class="details" [title]="log.details">{{ log.details }}</td>
+                <td>{{ log.createdAt | date:'short' }}</td>
+              </tr>
+              <tr *ngIf="!dashboard.recentAuditLogs.length">
+                <td colspan="5" class="empty-row">Aucun log d'audit disponible.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

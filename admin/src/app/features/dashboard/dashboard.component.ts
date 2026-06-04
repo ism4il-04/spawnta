@@ -4,7 +4,7 @@ import { finalize } from 'rxjs';
 import { AdminDashboard, AdminDashboardService } from '../../core/admin-dashboard.service';
 import { StatCardComponent } from '../../shared/components/ui/stat-card/stat-card.component';
 import { PageHeaderComponent } from '../../shared/components/ui/page-header/page-header.component';
-import { LucideAngularModule, Users, Shield, Calendar, DollarSign, Activity, ArrowRight, RefreshCw } from 'lucide-angular';
+import { LucideAngularModule, Users, Shield, Calendar, Euro, Activity, ArrowRight, RefreshCw } from 'lucide-angular';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -25,7 +25,7 @@ export class DashboardComponent implements OnInit {
   readonly Users = Users;
   readonly Shield = Shield;
   readonly Calendar = Calendar;
-  readonly DollarSign = DollarSign;
+  readonly Euro = Euro;
   readonly Activity = Activity;
   readonly ArrowRight = ArrowRight;
   readonly RefreshCw = RefreshCw;

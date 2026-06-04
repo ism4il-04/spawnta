@@ -76,12 +76,15 @@
               </div>
             </div>
           </td>
-          <td><span class="pill role">{{ user.role }}</span></td>
+          <td><span class="pill role" [ngClass]="roleClass(user.role)">{{ user.role }}</span></td>
           <td><span class="pill tier">{{ user.subscriptionTier || 'FREE' }}</span></td>
           <td><span class="pill" [class]="statusClass(user)">{{ statusLabel(user) }}</span></td>
           <td>{{ user.level }} / {{ user.xp }} XP</td>
           <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
           <td class="actions">
+            <button type="button" class="secondary" (click)="changeRole(user, user.role === 'ADMIN' ? 'USER' : 'ADMIN')" [disabled]="actionUserId === user.id">
+              {{ user.role === 'ADMIN' ? 'Démouvoir' : 'Promouvoir' }}
+            </button>
             <button type="button" (click)="suspend(user)" [disabled]="actionUserId === user.id || user.role === 'ADMIN'">
               Suspendre
             </button>
