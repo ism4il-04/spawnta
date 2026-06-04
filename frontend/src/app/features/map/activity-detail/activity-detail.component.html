@@ -1,5 +1,5 @@
 <div class="detail-container">
-  
+
   <div class="header-section">
     <h2 class="activity-title">{{ activity.title }}</h2>
     <p class="activity-location" *ngIf="activity.address">
@@ -20,24 +20,25 @@
 
   <div class="section-title">
     <mat-icon>info</mat-icon>
-    <span>ACTIVITY DETAILS</span>
+    <span>DÉTAILS DE L'ACTIVITÉ</span>
   </div>
 
   <div class="info-cards">
     <div class="info-card">
       <mat-icon class="card-icon">event</mat-icon>
       <div class="card-content">
-        <label>SCHEDULED AT</label>
-        <span>{{ activity.scheduledAt | date:'EEE, MMM d, y · h:mm a' }}</span>
+        <label>PROGRAMMÉE LE</label>
+        <span>{{ activity.scheduledAt | date:'EEE d MMM y · HH:mm' }}</span>
       </div>
     </div>
-    
+
     <div class="info-card">
       <mat-icon class="card-icon">schedule</mat-icon>
       <div class="card-content">
-        <label>STATUS</label>
+        <label>STATUT</label>
         <span [ngClass]="activityTimeStatus.cssClass">
-          <strong>{{ activityTimeStatus.status }}</strong>
+          <strong>{{ activityTimeStatus.status === 'Open' ? 'Ouvert' : (activityTimeStatus.status === 'Ongoing' ? 'En
+            cours' : activityTimeStatus.status) }}</strong>
           <span *ngIf="activityTimeStatus.detail"> ({{ activityTimeStatus.detail }})</span>
         </span>
       </div>
@@ -47,7 +48,7 @@
       <mat-icon class="card-icon">group</mat-icon>
       <div class="card-content">
         <label>PARTICIPANTS</label>
-        <span>{{ activity.participantCount }}/{{ activity.maxParticipants || '∞' }} joined</span>
+        <span>{{ activity.participantCount }}/{{ activity.maxParticipants || '∞' }} inscrits</span>
       </div>
     </div>
   </div>
@@ -55,9 +56,9 @@
   <!-- Host Details Section -->
   <div class="section-title" style="margin-top: 24px;">
     <mat-icon>account_circle</mat-icon>
-    <span>HOST INFORMATION</span>
+    <span>INFORMATIONS DE L'HÔTE</span>
   </div>
-  
+
   <div class="host-card">
     <div class="host-avatar">
       {{ activity.hostFirstName ? activity.hostFirstName[0].toUpperCase() : 'H' }}
@@ -74,81 +75,90 @@
   </div>
 
   <!-- Already Joined Banner -->
-  <div *ngIf="!isHost && participation?.joined" class="host-status-banner joined-banner">
+  <div *ngIf="authService.isLoggedIn() && !isHost && participation?.joined" class="host-status-banner joined-banner">
     <mat-icon>check_circle</mat-icon>
-    <span>You have joined this activity!</span>
+    <span>Vous avez rejoint cette activité !</span>
   </div>
 
   <!-- Pending Request Banner -->
-  <div *ngIf="!isHost && participation?.pendingRequest" class="host-status-banner pending-banner">
+  <div *ngIf="authService.isLoggedIn() && !isHost && participation?.pendingRequest"
+    class="host-status-banner pending-banner">
     <mat-icon>hourglass_empty</mat-icon>
-    <span>Your request is awaiting host approval.</span>
+    <span>Votre demande est en attente d'approbation.</span>
   </div>
 
   <!-- Participation Section for Guests (only when NOT joined and NOT pending) -->
-  <div class="join-actions" *ngIf="!isHost && participation && !participation.joined && !participation.pendingRequest">
+  <div class="join-actions"
+    *ngIf="authService.isLoggedIn() && !isHost && (!participation || (!participation.joined && !participation.pendingRequest))">
     <div class="approval-form-wrapper" *ngIf="activity.participationMode === 'APPROVAL'">
       <div class="section-title">
         <mat-icon>chat_bubble_outline</mat-icon>
-        <span>Introduce yourself to host</span>
+        <span>Présentez-vous à l'hôte</span>
       </div>
       <mat-form-field appearance="outline" class="intro-field">
-        <mat-label>Why would you like to join?</mat-label>
-        <textarea matInput [(ngModel)]="introMessage" placeholder="Tell the host a bit about yourself..." maxlength="150" rows="3"></textarea>
+        <mat-label>Pourquoi voulez-vous rejoindre ?</mat-label>
+        <textarea matInput [(ngModel)]="introMessage" placeholder="Dites quelques mots à l'hôte..." maxlength="150"
+          rows="3"></textarea>
         <mat-hint align="end">{{ introMessage.length || 0 }}/150</mat-hint>
       </mat-form-field>
     </div>
 
     <button mat-flat-button color="primary" class="join-btn-modern" (click)="joinActivity()">
       <mat-icon>{{ activity.participationMode === 'DIRECT' ? 'bolt' : 'send' }}</mat-icon>
-      <span>{{ activity.participationMode === 'DIRECT' ? 'Join Instantly' : 'Submit Join Request' }}</span>
+      <span>{{ activity.participationMode === 'DIRECT' ? 'Rejoindre instantanément' : 'Envoyer une demande' }}</span>
     </button>
   </div>
 
-  <div *ngIf="isHost" class="host-status-banner">
-    <mat-icon>workspace_premium</mat-icon>
-    <span>You are hosting this activity.</span>
+  <!-- Non-logged in users -->
+  <div class="join-actions" *ngIf="!authService.isLoggedIn()">
+    <button mat-flat-button color="primary" class="join-btn-modern" routerLink="/login">
+      <mat-icon>login</mat-icon>
+      <span>Connectez-vous pour rejoindre</span>
+    </button>
   </div>
 
-  <div *ngIf="isHost || participation?.joined" class="group-chat-actions" style="margin-top: 1rem; text-align: center;">
+  <div *ngIf="authService.isLoggedIn() && isHost" class="host-status-banner">
+    <mat-icon>workspace_premium</mat-icon>
+    <span>Vous organisez cette activité.</span>
+  </div>
+
+  <div *ngIf="authService.isLoggedIn() && (isHost || participation?.joined)" class="group-chat-actions"
+    style="margin-top: 1rem; text-align: center;">
     <button mat-stroked-button color="primary" (click)="openGroupChat()">
       <mat-icon>forum</mat-icon>
-      Access group chat
+      Accéder au chat de groupe
     </button>
   </div>
 
   <!-- Phase 4: attendance & ratings -->
-  <div class="phase4-section">
+  <div class="phase4-section" *ngIf="authService.isLoggedIn()">
     <div class="section-title">
       <mat-icon>qr_code_scanner</mat-icon>
-      <span>ATTENDANCE & CHECK-IN</span>
+      <span>PRÉSENCE & VALIDATION</span>
     </div>
 
     <div class="phase4-actions" *ngIf="participation?.canCheckIn">
       <a mat-stroked-button color="accent" [routerLink]="['/check-in', activity.id]">
         <mat-icon>my_location</mat-icon>
-        Check-In / Validate Presence
+        Valider ma présence
       </a>
     </div>
     <p class="phase4-hint" *ngIf="!isHost && participation && !participation.joined">
-      Join the activity to check-in and validate your presence.
+      Rejoignez l'activité pour valider votre présence.
     </p>
 
     <div *ngIf="isHost" class="host-qr-block">
       <button mat-stroked-button color="accent" (click)="showHostQrCode()" [disabled]="loadingHostQr">
         <mat-icon>qr_code_2</mat-icon>
-        {{ loadingHostQr ? 'Generating...' : 'Show Activity QR Code' }}
+        {{ loadingHostQr ? 'Génération...' : 'Afficher le QR Code' }}
       </button>
       <div class="host-qr-preview" *ngIf="hostQrImageSrc">
         <img [src]="hostQrImageSrc" alt="QR code check-in" />
-        <p>Participants can scan this QR or click "Check-In / Validate Presence".</p>
+        <p>Les participants peuvent scanner ce QR code ou cliquer sur "Valider ma présence".</p>
       </div>
     </div>
 
-    <app-activity-rating
-      [activityId]="activity.id"
-      [isHost]="isHost"
-      [canRate]="participation?.canRate ?? false"
+    <app-activity-rating [activityId]="activity.id" [isHost]="isHost" [canRate]="participation?.canRate ?? false"
       [hasRated]="participation?.hasRated ?? false">
     </app-activity-rating>
   </div>
@@ -157,12 +167,12 @@
   <div *ngIf="isHost" class="pending-section">
     <div class="section-title">
       <mat-icon>how_to_reg</mat-icon>
-      <span>PENDING CHECK-INS (GPS REQUESTS)</span>
+      <span>VALIDATIONS EN ATTENTE (GPS)</span>
     </div>
-    
-    <p *ngIf="loadingAttendances" class="pending-state">Loading pending check-ins...</p>
+
+    <p *ngIf="loadingAttendances" class="pending-state">Chargement...</p>
     <p *ngIf="!loadingAttendances && pendingAttendances.length === 0" class="pending-state no-pending">
-      No pending check-in requests at this time.
+      Aucune validation en attente.
     </p>
 
     <div class="pending-list" *ngIf="!loadingAttendances && pendingAttendances.length > 0">
@@ -175,20 +185,17 @@
             <span class="participant-name">{{ attendance.firstName }} {{ attendance.lastName }}</span>
             <span class="participant-email">{{ attendance.email }}</span>
             <span class="checkin-time" style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: block;">
-              Checked in at: {{ attendance.checkInTime | date:'shortTime' }}
+              Validé à : {{ attendance.checkInTime | date:'HH:mm' }}
             </span>
           </div>
         </div>
 
         <div class="pending-actions">
-          <button
-            mat-flat-button
-            color="primary"
-            class="approve-btn"
-            [disabled]="confirmingAttendanceId === attendance.attendanceId"
-            (click)="confirmAttendance(attendance)">
+          <button mat-flat-button color="primary" class="approve-btn"
+            [disabled]="confirmingAttendanceId === attendance.attendanceId" (click)="confirmAttendance(attendance)">
             <mat-icon *ngIf="confirmingAttendanceId !== attendance.attendanceId">check</mat-icon>
-            <span>{{ confirmingAttendanceId === attendance.attendanceId ? 'Confirming...' : 'Confirm Presence' }}</span>
+            <span>{{ confirmingAttendanceId === attendance.attendanceId ? 'Confirmation...' : 'Confirmer la présence'
+              }}</span>
           </button>
         </div>
       </div>
@@ -199,12 +206,12 @@
   <div *ngIf="isHost && activity.participationMode === 'APPROVAL'" class="pending-section">
     <div class="section-title">
       <mat-icon>hourglass_empty</mat-icon>
-      <span>PENDING JOIN REQUESTS</span>
+      <span>DEMANDES DE PARTICIPATION</span>
     </div>
-    
-    <p *ngIf="loadingPending" class="pending-state">Loading pending participants...</p>
+
+    <p *ngIf="loadingPending" class="pending-state">Chargement...</p>
     <p *ngIf="!loadingPending && pendingParticipants.length === 0" class="pending-state no-pending">
-      No pending join requests at this time.
+      Aucune demande en attente.
     </p>
 
     <div class="pending-list" *ngIf="!loadingPending && pendingParticipants.length > 0">
@@ -218,24 +225,20 @@
             <span class="participant-email">{{ participant.email }}</span>
           </div>
         </div>
-        
+
         <div class="pending-message" *ngIf="participant.introMessage">
           <mat-icon class="quote-icon">format_quote</mat-icon>
           <p class="message-text">"{{ participant.introMessage }}"</p>
         </div>
 
         <div class="pending-actions">
-          <button mat-icon-button color="primary" matTooltip="Contact" (click)="contactUser(participant.userId)">
+          <button mat-icon-button color="primary" matTooltip="Contacter" (click)="contactUser(participant.userId)">
             <mat-icon>chat</mat-icon>
           </button>
-          <button
-            mat-flat-button
-            color="primary"
-            class="approve-btn"
-            [disabled]="approvingId === participant.id"
+          <button mat-flat-button color="primary" class="approve-btn" [disabled]="approvingId === participant.id"
             (click)="approveParticipant(participant)">
             <mat-icon *ngIf="approvingId !== participant.id">check</mat-icon>
-            <span>{{ approvingId === participant.id ? 'Approving...' : 'Approve Request' }}</span>
+            <span>{{ approvingId === participant.id ? 'Approbation...' : 'Approuver' }}</span>
           </button>
         </div>
       </div>

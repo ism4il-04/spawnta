@@ -14,36 +14,24 @@
     <div class="nav-search" *ngIf="showSearch">
       <div class="search-wrapper">
         <i class="material-icons search-icon">search</i>
-        <input 
-          type="text" 
-          class="search-input" 
-          placeholder="Search..."
-          [(ngModel)]="searchQuery"
+        <input type="text" class="search-input" placeholder="Search..." [(ngModel)]="searchQuery"
           (input)="onSearch($event)">
       </div>
     </div>
 
     <!-- Navigation Links -->
     <div class="nav-links">
-      <a routerLink="/" 
-         routerLinkActive="active" 
-         [routerLinkActiveOptions]="{ exact: true }"
-         class="nav-link">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
         <i class="material-icons">home</i>
-        <span>Home</span>
+        <span>Accueil</span>
       </a>
-      
-      <a routerLink="/map" 
-         routerLinkActive="active"
-         class="nav-link">
+
+      <a routerLink="/map" routerLinkActive="active" class="nav-link">
         <i class="material-icons">map</i>
-        <span>Map</span>
+        <span>Carte</span>
       </a>
-      
-      <a *ngIf="authService.isLoggedIn()" 
-         routerLink="/chat" 
-         routerLinkActive="active"
-         class="nav-link nav-msg-link">
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active" class="nav-link nav-msg-link">
         <div class="icon-wrapper">
           <i class="material-icons">chat</i>
           <span class="unread-badge" *ngIf="(chatService.unreadCount$ | async) as count">
@@ -52,13 +40,10 @@
         </div>
         <span>Messages</span>
       </a>
-      
-      <a *ngIf="authService.isLoggedIn()" 
-         routerLink="/profile" 
-         routerLinkActive="active"
-         class="nav-link">
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/profile" routerLinkActive="active" class="nav-link">
         <i class="material-icons">person</i>
-        <span>Profile</span>
+        <span>Profil</span>
       </a>
     </div>
 
@@ -70,17 +55,15 @@
       <!-- User Menu -->
       <div *ngIf="authService.isLoggedIn()" class="user-menu" [class.open]="userMenuOpen">
         <button class="user-avatar" (click)="toggleUserMenu()">
-          <img *ngIf="currentUser?.avatarUrl; else defaultAvatar" 
-               [src]="currentUser?.avatarUrl" 
-               [alt]="(currentUser?.firstName || '') + ' ' + (currentUser?.lastName || '')"
-               class="avatar-img">
+          <img *ngIf="currentUser?.avatarUrl; else defaultAvatar" [src]="currentUser?.avatarUrl"
+            [alt]="(currentUser?.firstName || '') + ' ' + (currentUser?.lastName || '')" class="avatar-img">
           <ng-template #defaultAvatar>
             <div class="avatar-placeholder">
               {{ getInitials() }}
             </div>
           </ng-template>
         </button>
-        
+
         <div class="user-dropdown" *ngIf="userMenuOpen">
           <div class="user-info">
             <div class="user-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</div>
@@ -89,31 +72,29 @@
           <div class="dropdown-divider"></div>
           <a routerLink="/profile" class="dropdown-item" (click)="closeUserMenu()">
             <i class="material-icons">person</i>
-            <span>My Profile</span>
+            <span>Mon Profil</span>
           </a>
           <a routerLink="/settings" class="dropdown-item" (click)="closeUserMenu()">
             <i class="material-icons">settings</i>
-            <span>Settings</span>
+            <span>Paramètres</span>
           </a>
           <div class="dropdown-divider"></div>
           <button class="dropdown-item logout-item" (click)="logout()">
             <i class="material-icons">logout</i>
-            <span>Log out</span>
+            <span>Déconnexion</span>
           </button>
         </div>
       </div>
 
       <!-- Auth Buttons -->
       <div *ngIf="!authService.isLoggedIn()" class="auth-buttons">
-        <a routerLink="/login" class="btn btn-ghost">Log in</a>
-        <a routerLink="/signup" class="btn btn-primary">Sign up</a>
+        <a routerLink="/login" class="btn btn-ghost">Connexion</a>
+        <a routerLink="/signup" class="btn btn-primary">Inscription</a>
       </div>
     </div>
 
     <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" 
-            [class.active]="mobileMenuOpen"
-            (click)="toggleMobileMenu()">
+    <button class="mobile-menu-toggle" [class.active]="mobileMenuOpen" (click)="toggleMobileMenu()">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
@@ -125,38 +106,25 @@
     <div class="mobile-search">
       <div class="search-wrapper">
         <i class="material-icons search-icon">search</i>
-        <input 
-          type="text" 
-          class="search-input" 
-          placeholder="Rechercher..."
-          [(ngModel)]="searchQuery"
+        <input type="text" class="search-input" placeholder="Rechercher..." [(ngModel)]="searchQuery"
           (input)="onSearch($event)">
       </div>
     </div>
-    
+
     <div class="mobile-nav-links">
-      <a routerLink="/" 
-         routerLinkActive="active" 
-         [routerLinkActiveOptions]="{ exact: true }"
-         class="mobile-nav-link"
-         (click)="closeMobileMenu()">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="mobile-nav-link"
+        (click)="closeMobileMenu()">
         <i class="material-icons">home</i>
         <span>Accueil</span>
       </a>
-      
-      <a routerLink="/map" 
-         routerLinkActive="active"
-         class="mobile-nav-link"
-         (click)="closeMobileMenu()">
+
+      <a routerLink="/map" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
         <i class="material-icons">map</i>
-        <span>Map</span>
+        <span>Carte</span>
       </a>
-      
-      <a *ngIf="authService.isLoggedIn()" 
-         routerLink="/chat" 
-         routerLinkActive="active"
-         class="mobile-nav-link"
-         (click)="closeMobileMenu()">
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active" class="mobile-nav-link"
+        (click)="closeMobileMenu()">
         <div class="icon-wrapper">
           <i class="material-icons">chat</i>
           <span class="unread-badge" *ngIf="(chatService.unreadCount$ | async) as count">
@@ -165,32 +133,25 @@
         </div>
         <span>Messages</span>
       </a>
-      
-      <a *ngIf="authService.isLoggedIn()" 
-         routerLink="/profile" 
-         routerLinkActive="active"
-         class="mobile-nav-link"
-         (click)="closeMobileMenu()">
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/profile" routerLinkActive="active" class="mobile-nav-link"
+        (click)="closeMobileMenu()">
         <i class="material-icons">person</i>
-        <span>Profile</span>
+        <span>Profil</span>
       </a>
-      
+
       <div *ngIf="!authService.isLoggedIn()" class="mobile-auth-buttons">
-        <a routerLink="/login" class="btn btn-outline btn-full" (click)="closeMobileMenu()">Log in</a>
-        <a routerLink="/signup" class="btn btn-primary btn-full" (click)="closeMobileMenu()">Sign up</a>
+        <a routerLink="/login" class="btn btn-outline btn-full" (click)="closeMobileMenu()">Connexion</a>
+        <a routerLink="/signup" class="btn btn-primary btn-full" (click)="closeMobileMenu()">Inscription</a>
       </div>
-      
-      <button *ngIf="authService.isLoggedIn()" 
-              class="mobile-nav-link logout-link" 
-              (click)="logout()">
+
+      <button *ngIf="authService.isLoggedIn()" class="mobile-nav-link logout-link" (click)="logout()">
         <i class="material-icons">logout</i>
-        <span>Log out</span>
+        <span>Déconnexion</span>
       </button>
     </div>
   </div>
 </nav>
 
 <!-- Backdrop for mobile menu -->
-<div class="mobile-backdrop" 
-     [class.active]="mobileMenuOpen" 
-     (click)="closeMobileMenu()"></div>
+<div class="mobile-backdrop" [class.active]="mobileMenuOpen" (click)="closeMobileMenu()"></div>

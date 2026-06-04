@@ -11,17 +11,18 @@ import { CheckInComponent } from './features/activities/check-in/check-in';
 import { MyActivitiesComponent } from './features/activities/my-activities/my-activities.component';
 import { SubscriptionComponent } from './features/subscription/subscription.component';
 import { authGuard } from './core/guards/auth.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
-  { path: '',               component: HomeComponent },
-  { path: 'login',          component: LoginComponent },
-  { path: 'signup',         component: SignupComponent },
+  { path: '', component: HomeComponent },
+  { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
+  { path: 'signup', component: SignupComponent, canActivate: [guestGuard] },
   { path: 'signup-success', component: SignupSuccessComponent },
-  { path: 'verify-email',   component: VerifyEmailComponent },
-  { path: 'profile',        component: ProfileComponent, canActivate: [authGuard] },
-  { path: 'map',            component: MapComponent, canActivate: [authGuard] },
-  { path: 'chat',           component: ChatComponent, canActivate: [authGuard] },
-  { path: 'subscription',   component: SubscriptionComponent },
-  { path: 'my-activities',  component: MyActivitiesComponent, canActivate: [authGuard] },
-  { path: 'check-in/:id',   component: CheckInComponent, canActivate: [authGuard] }
+  { path: 'verify-email', component: VerifyEmailComponent },
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { path: 'map', component: MapComponent },
+  { path: 'chat', component: ChatComponent, canActivate: [authGuard] },
+  { path: 'subscription', component: SubscriptionComponent },
+  { path: 'my-activities', component: MyActivitiesComponent, canActivate: [authGuard] },
+  { path: 'check-in/:id', component: CheckInComponent, canActivate: [authGuard] }
 ];

@@ -1,19 +1,17 @@
 <mat-sidenav-container class="map-container">
-  
+
   <mat-sidenav #sidenav mode="over" position="end" class="side-panel">
     <div class="panel-header-bar">
       <div class="panel-title-area">
         <mat-icon class="panel-title-icon">info</mat-icon>
-        <h2>Activity details</h2>
+        <h2>Détails de l'activité</h2>
       </div>
       <button mat-icon-button (click)="closePanel()">
         <mat-icon>close</mat-icon>
       </button>
     </div>
     <div class="panel-content">
-      <app-activity-detail
-        *ngIf="panelMode === 'DETAIL' && selectedActivity"
-        [activity]="selectedActivity"
+      <app-activity-detail *ngIf="panelMode === 'DETAIL' && selectedActivity" [activity]="selectedActivity"
         (closePanel)="closePanel()">
       </app-activity-detail>
     </div>
@@ -26,12 +24,13 @@
         <div class="search-card-header-bar">
           <div class="logo-area">
             <mat-icon class="logo-icon">explore</mat-icon>
-            <span class="logo-text">Discover</span>
+            <span class="logo-text">Découvrir</span>
             <span class="activities-count-badge" *ngIf="activities.length >= 0">
-              {{ activities.length }} visible
+              {{ activities.length }} visibles
             </span>
           </div>
-          <button mat-icon-button class="toggle-collapse-btn" (click)="toggleSearchPanel()" title="Toggle filters">
+          <button mat-icon-button class="toggle-collapse-btn" (click)="toggleSearchPanel()"
+            title="Afficher/Masquer les filtres">
             <mat-icon>{{ isSearchPanelCollapsed ? 'expand_more' : 'expand_less' }}</mat-icon>
           </button>
         </div>
@@ -39,7 +38,7 @@
         <!-- Collapsible Content -->
         <div class="collapsible-content" *ngIf="!isSearchPanelCollapsed">
           <mat-form-field appearance="outline" class="search-field">
-            <mat-label>Search location...</mat-label>
+            <mat-label>Rechercher un lieu...</mat-label>
             <input matInput [(ngModel)]="searchQuery" (keyup.enter)="searchLocation()">
             <button matSuffix mat-icon-button (click)="searchLocation()">
               <mat-icon>search</mat-icon>
@@ -51,49 +50,45 @@
               <mat-expansion-panel-header>
                 <mat-panel-title>
                   <mat-icon class="panel-icon">filter_list</mat-icon>
-                  <span>Filters & Radius</span>
+                  <span>Filtres & Rayon</span>
                 </mat-panel-title>
               </mat-expansion-panel-header>
 
               <!-- Radius Slider Section -->
               <div class="radius-section">
                 <div class="radius-header">
-                  <label>Search Radius</label>
+                  <label>Rayon de recherche</label>
                   <span class="radius-value">{{ filters.radiusKm }} km</span>
                 </div>
-                <mat-slider 
-                  min="10" 
-                  max="100" 
-                  step="5"
-                  class="radius-slider">
+                <mat-slider min="10" max="100" step="5" class="radius-slider">
                   <input matSliderThumb [(ngModel)]="filters.radiusKm" (ngModelChange)="onRadiusChange($event)">
                 </mat-slider>
               </div>
 
               <div class="filters-grid">
                 <mat-form-field appearance="outline">
-                  <mat-label>Category</mat-label>
+                  <mat-label>Catégorie</mat-label>
                   <mat-select [(ngModel)]="filters.category" (selectionChange)="applyFilters()">
-                    <mat-option value="">All Categories</mat-option>
+                    <mat-option value="">Toutes les catégories</mat-option>
                     <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
                   </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Activity type</mat-label>
+                  <mat-label>Type d'activité</mat-label>
                   <mat-select [(ngModel)]="filters.activityType" (selectionChange)="applyFilters()">
-                    <mat-option value="">All Types</mat-option>
+                    <mat-option value="">Tous les types</mat-option>
                     <mat-option value="MEETUP">Meetup</mat-option>
-                    <mat-option value="TRIP">Trip</mat-option>
+                    <mat-option value="TRIP">Sortie</mat-option>
                   </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Join mode</mat-label>
+                  <mat-label>Mode de participation</mat-label>
                   <mat-select [(ngModel)]="filters.participationMode" (selectionChange)="applyFilters()">
-                    <mat-option value="">All Modes</mat-option>
+                    <mat-option value="">Tous les modes</mat-option>
                     <mat-option value="DIRECT">Direct</mat-option>
-                    <mat-option value="APPROVAL">Approval</mat-option>
+                    <mat-option value="APPROVAL">Sur approbation</mat-option>
                   </mat-select>
                 </mat-form-field>
 
@@ -110,7 +105,7 @@
           </mat-accordion>
         </div>
       </div>
-      
+
       <!-- Search Results Dropdown -->
       <div class="search-results" *ngIf="searchResults.length > 0 && !isSearchPanelCollapsed">
         <div class="result-item" *ngFor="let res of searchResults" (click)="selectResult(res)">
@@ -121,31 +116,24 @@
     </div>
 
     <!-- The Map Viewport -->
-    <div class="map-wrapper"
-         leaflet
-         [leafletOptions]="options"
-         [leafletLayers]="layers"
-         (leafletMapReady)="onMapReady($event)">
+    <div class="map-wrapper" leaflet [leafletOptions]="options" [leafletLayers]="layers"
+      (leafletMapReady)="onMapReady($event)">
     </div>
 
     <!-- Floating Action Buttons -->
     <div class="floating-actions">
-      <button mat-mini-fab color="accent" class="fab-locate" (click)="locateUser()" title="Find my location">
+      <button mat-mini-fab color="accent" class="fab-locate" (click)="locateUser()" title="Trouver ma position">
         <mat-icon>my_location</mat-icon>
       </button>
-      <button mat-fab color="primary" class="fab-create" (click)="panelMode === 'CREATE' ? showCreateForm() : openCreate()" title="Host new activity">
+      <button *ngIf="authService.isLoggedIn()" mat-fab color="primary" class="fab-create"
+        (click)="panelMode === 'CREATE' ? showCreateForm() : openCreate()" title="Organiser une activité">
         <mat-icon>add</mat-icon>
       </button>
     </div>
 
     <!-- Create Activity Modal (centered on screen) -->
-    <app-create-activity 
-      #createCmp
-      *ngIf="panelMode === 'CREATE'"
-      [hidden]="!isFormVisible"
-      (created)="onActivityCreated($event)"
-      (cancel)="closePanel()"
-      (hide)="hideCreateForm()">
+    <app-create-activity #createCmp *ngIf="panelMode === 'CREATE'" [hidden]="!isFormVisible"
+      (created)="onActivityCreated($event)" (cancel)="closePanel()" (hide)="hideCreateForm()">
     </app-create-activity>
   </mat-sidenav-content>
 
