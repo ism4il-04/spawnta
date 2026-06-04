@@ -12,8 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.Event;
-import com.stripe.net.Webhook;
 
 import com.spawnta.entity.User;
 import com.spawnta.repository.UserRepository;
@@ -25,7 +23,6 @@ import com.spawnta.subscription.service.StripeService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 /**
@@ -42,9 +39,6 @@ public class SubscriptionController {
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final UserRepository userRepository;
-    
-    @org.springframework.beans.factory.annotation.Value("${stripe.api.secretKey}")
-    private String stripeSecretKey;
     
     public SubscriptionController(
             StripeService stripeService,
@@ -168,28 +162,6 @@ public class SubscriptionController {
         
         List<InvoiceDTO> invoices = stripeService.getUserInvoices(user);
         return ResponseEntity.ok(invoices);
-    }
-    
-    /**
-     * Stripe webhook endpoint for handling Stripe events
-     */
-    @PostMapping("/webhook")
-    @Operation(summary = "Stripe webhook receiver")
-    public ResponseEntity<?> handleStripeWebhook(HttpServletRequest request) {
-        try {
-            String body = new String(request.getInputStream().readAllBytes());
-            String sigHeader = request.getHeader("Stripe-Signature");
-            
-            Event event = Webhook.constructEvent(body, sigHeader, stripeSecretKey);
-            
-            stripeService.handleWebhookEvent(event);
-            
-            return ResponseEntity.ok(Map.of("message", "Webhook processed"));
-        } catch (Exception e) {
-            logger.error("Error processing Stripe webhook: ", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Invalid webhook signature"));
-        }
     }
     
     /**
