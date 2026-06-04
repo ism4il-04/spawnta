@@ -1,7 +1,23 @@
 <div class="auth-container">
+  <section class="auth-hero">
+    <p class="eyebrow">Join Spawnta</p>
+    <h1>Créez votre base pour explorer, rencontrer et partager.</h1>
+    <p class="hero-text">
+      L'inscription vous ouvre l'acces a la carte, au profil voyageur, a la creation
+      d'activites et a toute l'experience communautaire de Spawnta.
+    </p>
+
+    <div class="hero-points">
+      <span>Profil personnalise</span>
+      <span>Rencontres locales</span>
+      <span>Trips collaboratifs</span>
+    </div>
+  </section>
+
   <mat-card class="auth-card">
     <mat-card-header>
-      <mat-card-title>Create an Account</mat-card-title>
+      <p class="card-kicker">Inscription</p>
+      <mat-card-title>Create your account</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
@@ -31,6 +47,13 @@
           <input matInput formControlName="password" type="password">
           <mat-error *ngIf="signupForm.get('password')?.hasError('required')">Password is required</mat-error>
           <mat-error *ngIf="signupForm.get('password')?.hasError('minlength')">Min 6 characters</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <input matInput formControlName="confirmPassword" type="password">
+          <mat-error *ngIf="signupForm.get('confirmPassword')?.hasError('required')">Please confirm your password</mat-error>
+          <mat-error *ngIf="passwordMismatch">Passwords do not match</mat-error>
         </mat-form-field>
 
         <div class="actions">

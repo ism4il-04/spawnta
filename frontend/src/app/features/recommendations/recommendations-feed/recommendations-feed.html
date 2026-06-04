@@ -1,0 +1,29 @@
+<div class="feed-container">
+  <h2><mat-icon>auto_awesome</mat-icon> Pour vous</h2>
+  
+  <div *ngIf="feedError && !loading" class="empty-state">
+    Erreur lors du chargement. <button mat-button color="primary" (click)="refresh()">Réessayer</button>
+  </div>
+
+  <div *ngIf="!loading && !feedError && !feed.length" class="empty-state">
+    Aucune recommandation pour le moment.
+    <button mat-button color="primary" (click)="refresh()">Actualiser</button>
+  </div>
+
+  <div class="feed-grid" *ngIf="!loading && feed.length">
+    <mat-card *ngFor="let item of feed" class="feed-card">
+      <mat-card-header>
+        <img mat-card-avatar [src]="item.hostAvatarUrl || 'assets/default-avatar.svg'" alt="Host">
+        <mat-card-title>{{ item.title }}</mat-card-title>
+        <mat-card-subtitle>{{ item.hostName }} • {{ item.category }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>{{ item.description }}</p>
+        <p class="date"><mat-icon>event</mat-icon> {{ item.scheduledAt | date:'medium' }}</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-button color="primary" routerLink="/map">Voir sur la carte</a>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

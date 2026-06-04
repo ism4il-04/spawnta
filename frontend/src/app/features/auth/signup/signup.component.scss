@@ -1,47 +1,25 @@
 .auth-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  // Styles handled in global styles.scss
 }
 
-.auth-card {
-  width: 100%;
-  max-width: 500px;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+.modern-form-field {
+  // Styles handled in global styles.scss
 }
 
-.name-row {
-  display: flex;
-  gap: 16px;
-  mat-form-field {
-    flex: 1;
-  }
+.btn {
+  // Styles handled in global styles.scss
 }
 
-.full-width {
-  width: 100%;
-  margin-bottom: 16px;
+.modern-card {
+  // Styles handled in global styles.scss
 }
 
-.actions {
-  margin-top: 16px;
-  button {
-    width: 100%;
-    padding: 12px;
-    font-size: 1.1rem;
-  }
-}
-
-mat-card-footer {
-  text-align: center;
-  padding: 16px;
-  p {
-    margin: 0;
-    color: #666;
+// Component-specific overrides
+.password-strength {
+  .strength-text {
+    &.weak { color: var(--error-500); }
+    &.medium { color: var(--warning-500); }
+    &.strong { color: var(--lime-400); }
+    &.very-strong { color: var(--success-500); }
   }
 }

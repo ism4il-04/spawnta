@@ -1,13 +1,20 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/services/auth.service';
+
+function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
+  const password = group.get('password')?.value;
+  const confirm = group.get('confirmPassword')?.value;
+  return password === confirm ? null : { passwordMismatch: true };
+}
 
 @Component({
   selector: 'app-signup',
@@ -20,14 +27,17 @@ import { AuthService } from '../../../core/services/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatIconModule
   ],
   templateUrl: './signup.component.html',
-  styleUrl: './signup.component.scss'
+  styleUrls: ['./signup.component.scss']
 })
 export class SignupComponent {
   signupForm: FormGroup;
   loading = false;
+  showPassword = false;
+  backendError: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -38,24 +48,97 @@ export class SignupComponent {
     this.signupForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required]
-    });
+    }, { validators: passwordMatchValidator });
+  }
+
+  get passwordMismatch(): boolean {
+    return this.signupForm.hasError('passwordMismatch') &&
+      (this.signupForm.get('confirmPassword')?.dirty ?? false);
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  getPasswordStrength(): string {
+    const password = this.signupForm.get('password')?.value || '';
+    
+    if (password.length === 0) return '';
+    if (password.length < 6) return 'weak';
+    
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    
+    // Character variety checks
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    
+    if (score <= 2) return 'weak';
+    if (score <= 4) return 'medium';
+    if (score <= 5) return 'strong';
+    return 'very-strong';
+  }
+
+  getPasswordStrengthText(): string {
+    const strength = this.getPasswordStrength();
+    switch (strength) {
+      case 'weak': return 'Faible';
+      case 'medium': return 'Moyen';
+      case 'strong': return 'Fort';
+      case 'very-strong': return 'Très fort';
+      default: return '';
+    }
+  }
+
+  private formatSignupError(err: any): string {
+    if (!err) {
+      return 'Une erreur inconnue est survenue.';
+    }
+
+    if (err.status === 0) {
+      return 'Impossible de joindre le backend. Vérifiez que http://localhost:8080 est en cours d’exécution.';
+    }
+
+    if (err.error?.error) {
+      return err.error.error;
+    }
+
+    if (err.error?.message) {
+      return err.error.message;
+    }
+
+    if (err.status && err.statusText) {
+      return `Erreur ${err.status} : ${err.statusText}`;
+    }
+
+    return 'Registration failed';
   }
 
   onSubmit() {
     if (this.signupForm.invalid) return;
 
     this.loading = true;
-    this.authService.signup(this.signupForm.value).subscribe({
+    this.backendError = null;
+    const { email, password, firstName, lastName } = this.signupForm.value;
+    this.authService.signup({ email, password, firstName, lastName }).subscribe({
       next: () => {
-        this.snackBar.open('Registration successful!', 'Close', { duration: 3000 });
-        this.router.navigate(['/']);
+        this.router.navigate(['/signup-success'], { queryParams: { email } });
       },
       error: (err: any) => {
         this.loading = false;
-        this.snackBar.open(err.error?.error || 'Registration failed', 'Close', { duration: 3000 });
+        const message = this.formatSignupError(err);
+        this.backendError = message;
+        this.snackBar.open(message, 'Close', { duration: 5000 });
       }
     });
   }
 }
+

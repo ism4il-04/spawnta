@@ -1,5 +1,6 @@
 package com.spawnta.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,8 +18,8 @@ public class JwtService {
     private final long accessExpiry;
 
     public JwtService(
-        @Value("${JWT_SECRET}") String secret,
-        @Value("${JWT_ACCESS_EXPIRY:3600000}") long accessExpiry
+        @Value("${app.jwt.secret}") String secret,
+        @Value("${app.jwt.access-expiry}") long accessExpiry
     ) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiry = accessExpiry;
@@ -35,20 +36,31 @@ public class JwtService {
     }
 
     public String extractEmail(String token) {
-        return Jwts.parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .getSubject();
+        return parseClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return (String) parseClaims(token).get("role");
+    }
+
+    public java.util.Date extractExpiration(String token) {
+        return parseClaims(token).getExpiration();
     }
 
     public boolean isValid(String token) {
         try {
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            parseClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
     }
 }

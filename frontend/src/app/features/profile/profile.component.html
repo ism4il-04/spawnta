@@ -1,0 +1,214 @@
+<div class="profile-page">
+  <!-- Header -->
+  <div class="profile-header">
+    <h1>My Profile</h1>
+    <button mat-stroked-button color="warn" (click)="logout()">Logout</button>
+  </div>
+
+  <div class="profile-grid" *ngIf="profile; else loadingProfileTemplate">
+
+    <!-- Avatar Section -->
+    <mat-card class="avatar-card">
+      <mat-card-content>
+        <div class="avatar-container">
+          <img
+            [src]="profile.avatarUrl || 'assets/default-avatar.svg'"
+            alt="Avatar"
+            class="avatar-img"
+          />
+          <div class="avatar-upload-btn" (click)="avatarInput.click()">
+            <mat-icon>photo_camera</mat-icon>
+            <input #avatarInput type="file" hidden accept="image/*" (change)="onAvatarChange($event)" />
+          </div>
+        </div>
+        <div class="user-info">
+          <h2>{{ profile.firstName }} {{ profile.lastName }}</h2>
+          <p class="email">{{ profile.email }}</p>
+          <span class="role-badge">{{ profile.role }}</span>
+        </div>
+        <div class="gamification-summary">
+          <mat-divider style="margin: 15px 0;"></mat-divider>
+          <p class="gamification-loading" *ngIf="gamificationLoading">Loading XP &amp; badges…</p>
+          <p class="gamification-error" *ngIf="gamificationError && !gamificationLoading">
+            XP &amp; badges unavailable — check that the backend is running.
+          </p>
+          <ng-container *ngIf="gProfile && !gamificationLoading">
+            <div class="level-indicator">
+              <mat-icon class="level-icon">stars</mat-icon>
+              <span class="level-title">Niveau {{ gProfile.level }}</span>
+            </div>
+            <div class="xp-bar-container">
+              <div class="xp-bar-fill" [style.width.%]="(gProfile.xp / gProfile.currentLevelXpRequired) * 100"></div>
+            </div>
+            <div class="xp-sub-text">
+              <span>{{ gProfile.xp }} / {{ gProfile.currentLevelXpRequired }} XP</span>
+              <span class="total-xp-label">Total: {{ gProfile.totalXpEarned }} XP</span>
+            </div>
+          </ng-container>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Profile Info Form -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>Personal Info</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Bio</mat-label>
+            <textarea matInput formControlName="bio" rows="4" placeholder="Tell others about yourself..."></textarea>
+            <mat-hint align="end">{{ profileForm.get('bio')?.value?.length || 0 }}/500</mat-hint>
+          </mat-form-field>
+
+          <div class="social-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Facebook</mat-label>
+              <mat-icon matPrefix>facebook</mat-icon>
+              <input matInput formControlName="facebook" placeholder="Profile URL">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Instagram</mat-label>
+              <mat-icon matPrefix>camera_alt</mat-icon>
+              <input matInput formControlName="instagram" placeholder="@username">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>WhatsApp</mat-label>
+              <mat-icon matPrefix>phone</mat-icon>
+              <input matInput formControlName="whatsapp" placeholder="+33 6 12 34 56 78">
+            </mat-form-field>
+          </div>
+
+          <mat-slide-toggle formControlName="profilePublic" color="primary">
+            Public profile
+          </mat-slide-toggle>
+
+          <div class="actions">
+            <button mat-raised-button color="primary" type="submit" [disabled]="loading || profileForm.invalid">
+              {{ loading ? 'Saving...' : 'Save Profile' }}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Interests Section -->
+    <mat-card class="interests-card">
+      <mat-card-header>
+        <mat-card-title>Interests <span class="counter">({{ selectedInterests.size }}/10)</span></mat-card-title>
+        <mat-card-subtitle>Select up to 10 interests</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-chip-set class="interests-chips">
+          <mat-chip
+            *ngFor="let interest of allInterests"
+            [class.selected]="isSelected(interest)"
+            (click)="toggleInterest(interest)"
+          >
+            {{ interest | titlecase }}
+          </mat-chip>
+        </mat-chip-set>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="accent" (click)="onSaveInterests()" [disabled]="savingInterests">
+          {{ savingInterests ? 'Saving...' : 'Save Interests' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Gallery Section -->
+    <mat-card class="gallery-card">
+      <mat-card-header>
+        <mat-card-title>Gallery</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="gallery-grid" *ngIf="profile.gallery.length; else emptyGallery">
+          <div class="gallery-item" *ngFor="let photo of profile.gallery">
+            <img [src]="photo" alt="Gallery photo" />
+            <button mat-icon-button color="warn" class="remove-btn" (click)="onGalleryRemove(photo)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+        <ng-template #emptyGallery>
+          <p class="empty-text">No photos yet. Add your first one!</p>
+        </ng-template>
+        <div class="add-photo-btn">
+          <button mat-stroked-button color="primary" type="button" (click)="galleryInput.click()">
+            <mat-icon>add_photo_alternate</mat-icon> Add Photo
+          </button>
+          <input #galleryInput type="file" hidden accept="image/*" (change)="onGalleryAdd($event)" />
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Badges Section (Phase 4) -->
+    <mat-card class="badges-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>emoji_events</mat-icon> Badges
+          <span class="counter" *ngIf="gProfile && allBadges.length">({{ gProfile.achievements.length }}/{{ allBadges.length }})</span>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="empty-text" *ngIf="gamificationLoading">Loading badges…</p>
+        <p class="empty-text" *ngIf="gamificationError && !gamificationLoading">Could not load badges.</p>
+        <p class="empty-text" *ngIf="!gamificationLoading && !gamificationError && !allBadges.length">No badges in catalog yet.</p>
+        <div class="badges-grid" *ngIf="allBadges.length">
+          <div
+            class="badge-item"
+            *ngFor="let badge of allBadges"
+            [class.earned]="hasBadge(badge.id)"
+            [class.locked]="!hasBadge(badge.id)"
+          >
+            <mat-icon class="badge-icon">{{ hasBadge(badge.id) ? 'verified' : 'lock' }}</mat-icon>
+            <span class="badge-name">{{ badge.name }}</span>
+            <span class="badge-desc">{{ badge.description }}</span>
+            <span class="badge-xp">+{{ badge.xpReward }} XP</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Leaderboard Section (Phase 4) -->
+    <mat-card class="leaderboard-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>leaderboard</mat-icon> Classement
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="empty-text" *ngIf="gamificationLoading">Loading leaderboard…</p>
+        <p class="empty-text" *ngIf="gamificationError && !gamificationLoading">Could not load leaderboard.</p>
+        <p class="empty-text" *ngIf="!gamificationLoading && !gamificationError && !leaderboard.length">No players on the leaderboard yet.</p>
+        <div class="leaderboard-list" *ngIf="leaderboard.length">
+          <div class="leaderboard-row" *ngFor="let entry of leaderboard; let i = index">
+            <span class="rank" [class.top3]="i < 3">{{ i + 1 }}</span>
+            <img class="lb-avatar" [src]="entry.avatarUrl || 'assets/default-avatar.svg'" alt="avatar" />
+            <div class="lb-info">
+              <span class="lb-name">{{ entry.name }}</span>
+              <span class="lb-level">Niveau {{ entry.level }}</span>
+            </div>
+            <span class="lb-xp">{{ entry.totalXpEarned }} XP</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+
+  <ng-template #loadingProfileTemplate>
+    <div class="loading-container" *ngIf="loadingProfile && !profileLoadError">
+      <p>Loading profile...</p>
+    </div>
+    <div class="loading-container error-state" *ngIf="profileLoadError">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <p>Failed to load profile. Please check your connection.</p>
+      <button mat-raised-button color="primary" (click)="ngOnInit()">Retry</button>
+      <button mat-stroked-button color="warn" (click)="logout()">Logout</button>
+    </div>
+  </ng-template>
+</div>

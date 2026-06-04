@@ -1,7 +1,8 @@
 package com.spawnta.dto;
 
 public record AuthResponse(
-    String token,
+    String accessToken,
+    String refreshToken,
     String email,
     String firstName,
     String lastName,

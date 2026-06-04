@@ -1,0 +1,235 @@
+<div class="chat-shell">
+
+  <!-- ══════════════ LEFT PANEL – Conversation list ══════════════ -->
+  <aside class="chat-sidebar">
+    <div class="sidebar-header">
+      <h2>Messagerie</h2>
+      <span class="chat-count-badge" *ngIf="chats().length > 0">{{ chats().length }}</span>
+    </div>
+
+    <div class="sidebar-scroll">
+      <!-- Empty state -->
+      <div *ngIf="chats().length === 0" class="empty-conversations">
+        <span class="material-icons empty-icon">forum</span>
+        <p>Aucune conversation pour l'instant.</p>
+        <small>Rejoignez une activité pour accéder à son chat de groupe !</small>
+      </div>
+
+      <!-- Chat list items -->
+      <div
+        *ngFor="let chat of chats()"
+        class="chat-item"
+        [class.active]="selectedChat()?.id === chat.id"
+        [class.blocked]="chat.status === 'BLOCKED'"
+        (click)="selectChat(chat)"
+      >
+        <div class="chat-avatar">
+          <img *ngIf="chat.avatarUrl" [src]="chat.avatarUrl" [alt]="chat.title" />
+          <span *ngIf="!chat.avatarUrl" class="avatar-letter">
+            {{ chat.title.charAt(0).toUpperCase() }}
+          </span>
+        </div>
+
+        <div class="chat-item-content">
+          <div class="chat-item-top">
+            <span class="chat-title">{{ chat.title }}</span>
+            <span class="chat-time" *ngIf="chat.lastMessageTime">
+              {{ chat.lastMessageTime | date: 'HH:mm' }}
+            </span>
+          </div>
+          <div class="chat-preview">
+            <span class="preview-text">{{ chat.lastMessage || 'Conversation privée' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════════ RIGHT PANEL – Active conversation ══════════════ -->
+  <section class="chat-main">
+
+    <!-- Placeholder when no chat selected -->
+    <div *ngIf="!selectedChat()" class="chat-placeholder">
+      <div class="placeholder-content">
+        <span class="material-icons placeholder-icon">chat_bubble_outline</span>
+        <h3>Sélectionnez une conversation</h3>
+        <p>Choisissez une discussion dans la liste à gauche pour commencer à échanger.</p>
+      </div>
+    </div>
+
+    <!-- Active chat view -->
+    <ng-container *ngIf="selectedChat() as chat">
+
+      <!-- ── Chat Header ── -->
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="header-avatar">
+            <img *ngIf="chat.avatarUrl" [src]="chat.avatarUrl" [alt]="chat.title" />
+            <span *ngIf="!chat.avatarUrl" class="avatar-letter-sm">{{ chat.title.charAt(0).toUpperCase() }}</span>
+          </div>
+          <div class="header-info">
+            <span class="header-title">{{ chat.title }}</span>
+            <span class="header-sub">{{ chat.type === 'GROUP' ? 'Discussion de groupe' : 'Conversation privée' }}</span>
+          </div>
+        </div>
+
+        <div class="chat-header-actions">
+          <!-- Block / Unblock private chat -->
+          <button
+            class="icon-btn"
+            *ngIf="chat.type === 'PRIVATE' && chat.status !== 'BLOCKED'"
+            (click)="blockConversation()"
+            title="Bloquer la conversation"
+          >
+            <span class="material-icons">block</span>
+          </button>
+          <button
+            class="icon-btn"
+            *ngIf="chat.type === 'PRIVATE' && chat.status === 'BLOCKED'"
+            (click)="unblockConversation()"
+            title="Débloquer la conversation"
+          >
+            <span class="material-icons">lock_open</span>
+          </button>
+
+          <!-- Leave group chat -->
+          <button
+            class="icon-btn"
+            *ngIf="chat.type === 'GROUP' && chat.participantStatus !== 'LEFT'"
+            (click)="leaveConversation()"
+            title="Quitter le groupe"
+          >
+            <span class="material-icons">exit_to_app</span>
+          </button>
+
+          <!-- Notifications toggle -->
+          <button
+            class="icon-btn"
+            (click)="toggleNotifications()"
+            [title]="chat.notificationsEnabled ? 'Couper les notifications' : 'Activer les notifications'"
+          >
+            <span class="material-icons">{{ chat.notificationsEnabled ? 'notifications' : 'notifications_off' }}</span>
+          </button>
+
+          <!-- More options -->
+          <button class="icon-btn" title="Plus d'options">
+            <span class="material-icons">more_vert</span>
+          </button>
+
+          <!-- Delete -->
+          <button class="icon-btn" (click)="deleteConversation()" title="Supprimer la conversation">
+            <span class="material-icons">delete_outline</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Blocked banner -->
+      <div *ngIf="chat.status === 'BLOCKED'" class="blocked-banner">
+        <span class="material-icons">block</span>
+        Cette conversation est bloquée. Vous ne pouvez plus envoyer de messages.
+      </div>
+
+      <!-- Left banner -->
+      <div *ngIf="chat.participantStatus === 'LEFT'" class="blocked-banner">
+        <span class="material-icons">info</span>
+        Vous avez quitté ce groupe. Vous ne pouvez plus envoyer ni recevoir de nouveaux messages.
+      </div>
+
+      <!-- ── Messages ── -->
+      <div class="messages-container" #scrollContainer (scroll)="onScroll($event)">
+
+        <!-- Load more indicator -->
+        <div *ngIf="isLoadingMessages" class="loading-more">
+          <div class="spinner"></div>
+          <span>Chargement de l'historique…</span>
+        </div>
+
+        <!-- Load more button when there is more history -->
+        <div *ngIf="hasMoreMessages && !isLoadingMessages && messages().length > 0" class="load-more-row">
+          <button class="load-more-btn" (click)="currentPage = currentPage + 1; loadMessages(chat.id, true)">
+            Charger les messages précédents
+          </button>
+        </div>
+
+        <!-- Message bubbles -->
+        <ng-container *ngFor="let msg of messages(); let i = index">
+
+          <!-- Date separator -->
+          <div
+            *ngIf="i === 0 || (messages()[i - 1].createdAt | date: 'yyyy-MM-dd') !== (msg.createdAt | date: 'yyyy-MM-dd')"
+            class="date-separator"
+          >
+            <span>{{ msg.createdAt | date: 'd MMMM yyyy' : '' : 'fr' }}</span>
+          </div>
+
+          <div
+            class="message-row"
+            [class.own]="msg.senderId === activeUserId()"
+            [class.other]="msg.senderId !== activeUserId()"
+          >
+            <!-- Avatar (other user only) -->
+            <div *ngIf="msg.senderId !== activeUserId()" class="msg-avatar">
+              <img *ngIf="msg.senderAvatarUrl" [src]="msg.senderAvatarUrl" [alt]="msg.senderName" />
+              <span *ngIf="!msg.senderAvatarUrl" class="avatar-letter-xs">{{ msg.senderName.charAt(0).toUpperCase() }}</span>
+            </div>
+
+            <div class="msg-body">
+              <!-- Sender name (group chat only, other users) -->
+              <span *ngIf="chat.type === 'GROUP' && msg.senderId !== activeUserId()" class="msg-sender-name">
+                {{ msg.senderName }}
+              </span>
+
+              <div class="bubble-wrap">
+                <div class="bubble" [innerHTML]="msg.content | messageFormatter"></div>
+
+                <!-- Message options -->
+                <div class="msg-options">
+                  <button
+                    *ngIf="msg.senderId === activeUserId() || isModerator()"
+                    class="msg-option-btn"
+                    (click)="deleteMessage(msg.id)"
+                    title="Supprimer"
+                  >
+                    <span class="material-icons">delete_outline</span>
+                  </button>
+                </div>
+              </div>
+
+              <span class="msg-time">{{ msg.createdAt | date: 'HH:mm' }}</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Empty messages state -->
+        <div *ngIf="messages().length === 0 && !isLoadingMessages" class="no-messages">
+          <span class="material-icons">chat_bubble_outline</span>
+          <p>Aucun message pour l'instant. Soyez le premier à écrire !</p>
+        </div>
+      </div>
+
+      <!-- ── Input Bar ── -->
+      <div class="message-input-bar" [class.disabled]="chat.status === 'BLOCKED' || chat.participantStatus === 'LEFT'" *ngIf="chat.participantStatus !== 'LEFT'">
+        <textarea
+          class="message-textarea"
+          [(ngModel)]="newMessageText"
+          placeholder="Écrivez un message... (Entrée pour envoyer, Maj+Entrée pour nouvelle ligne)"
+          [disabled]="chat.status === 'BLOCKED'"
+          [maxlength]="maxMessageLength"
+          (keydown.enter)="$event.preventDefault(); sendMessage()"
+          (keydown.shift.enter)="$event.stopPropagation()"
+          rows="1"
+        ></textarea>
+
+        <button
+          class="send-btn"
+          (click)="sendMessage()"
+          [disabled]="!newMessageText.trim() || chat.status === 'BLOCKED'"
+          title="Envoyer"
+        >
+          <span class="material-icons">send</span>
+        </button>
+      </div>
+
+    </ng-container>
+  </section>
+</div>

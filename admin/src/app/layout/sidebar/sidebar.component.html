@@ -1,0 +1,63 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+  <div class="sidebar-header">
+    <div class="brand">
+      <div class="brand-logo">S</div>
+      <span class="brand-name" *ngIf="!collapsed">Spawnta Admin</span>
+    </div>
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <lucide-icon [name]="collapsed ? ChevronRight : ChevronLeft" [size]="18"></lucide-icon>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <span class="section-title" *ngIf="!collapsed">Main</span>
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" [title]="collapsed ? 'Dashboard' : ''">
+        <lucide-icon [name]="LayoutDashboard" [size]="20"></lucide-icon>
+        <span class="nav-label" *ngIf="!collapsed">Dashboard</span>
+      </a>
+      <a routerLink="/users" routerLinkActive="active" class="nav-item" [title]="collapsed ? 'Users' : ''">
+        <lucide-icon [name]="Users" [size]="20"></lucide-icon>
+        <span class="nav-label" *ngIf="!collapsed">Users</span>
+      </a>
+      <a routerLink="/moderation" routerLinkActive="active" class="nav-item" [title]="collapsed ? 'Moderation' : ''">
+        <lucide-icon [name]="Shield" [size]="20"></lucide-icon>
+        <span class="nav-label" *ngIf="!collapsed">Moderation</span>
+      </a>
+      <a routerLink="/activities" routerLinkActive="active" class="nav-item" [title]="collapsed ? 'Activities' : ''">
+        <lucide-icon [name]="Calendar" [size]="20"></lucide-icon>
+        <span class="nav-label" *ngIf="!collapsed">Activities</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <span class="section-title" *ngIf="!collapsed">Management</span>
+      <a routerLink="/subscriptions" routerLinkActive="active" class="nav-item" [title]="collapsed ? 'Subscriptions' : ''">
+        <lucide-icon [name]="CreditCard" [size]="20"></lucide-icon>
+        <span class="nav-label" *ngIf="!collapsed">Subscriptions</span>
+      </a>
+      <a routerLink="/analytics" routerLinkActive="active" class="nav-item" [title]="collapsed ? 'Analytics' : ''">
+        <lucide-icon [name]="BarChart3" [size]="20"></lucide-icon>
+        <span class="nav-label" *ngIf="!collapsed">Analytics</span>
+      </a>
+      <a routerLink="/audit" routerLinkActive="active" class="nav-item" [title]="collapsed ? 'Audit Logs' : ''">
+        <lucide-icon [name]="History" [size]="20"></lucide-icon>
+        <span class="nav-label" *ngIf="!collapsed">Audit Logs</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="admin-profile" *ngIf="authService.currentAdmin$ | async as admin">
+      <div class="avatar">{{ admin.firstName[0] }}{{ admin.lastName[0] }}</div>
+      <div class="profile-info" *ngIf="!collapsed">
+        <span class="name">{{ admin.firstName }} {{ admin.lastName }}</span>
+        <span class="email">{{ admin.email }}</span>
+      </div>
+    </div>
+    <button class="logout-btn" (click)="logout()" [title]="collapsed ? 'Logout' : ''">
+      <lucide-icon [name]="LogOut" [size]="20"></lucide-icon>
+      <span class="nav-label" *ngIf="!collapsed">Logout</span>
+    </button>
+  </div>
+</aside>
