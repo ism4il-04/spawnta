@@ -8,6 +8,7 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,7 @@ import java.util.function.Consumer;
  */
 @Component
 @Profile("!prod")
+@ConditionalOnProperty(name = "app.seed-data", havingValue = "true")
 @Order(100)
 public class DevDataSeeder implements CommandLineRunner {
 
