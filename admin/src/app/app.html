@@ -1,86 +1,100 @@
 <ng-container *ngIf="authService.currentAdmin$ | async as admin; else loginView">
-<div class="admin-layout">
-  <aside class="sidebar">
-    <div class="brand">
-      <span class="brand-mark">S</span>
-      <div>
-        <strong>Spawnta</strong>
-        <small>Admin</small>
-      </div>
-    </div>
-
-    <nav>
-      <a routerLink="/dashboard" routerLinkActive="active">
-        <span class="material-symbol">dashboard</span>
-        Dashboard
-      </a>
-      <a routerLink="/users" routerLinkActive="active">
-        <span class="material-symbol">group</span>
-        Utilisateurs
-      </a>
-      <a routerLink="/activities" routerLinkActive="active">
-        <span class="material-symbol">event</span>
-        Activites
-      </a>
-      <a routerLink="/subscriptions" routerLinkActive="active">
-        <span class="material-symbol">workspace_premium</span>
-        Abonnements
-      </a>
-      <a routerLink="/moderation" routerLinkActive="active">
-        <span class="material-symbol">shield</span>
-        Moderation
-      </a>
-    </nav>
-
-    <div class="admin-session">
-      <span>{{ admin.firstName }} {{ admin.lastName }}</span>
-      <small>{{ admin.email }}</small>
-      <button type="button" (click)="logout()">
-        <span class="material-symbol">logout</span>
-        Deconnexion
-      </button>
-    </div>
-  </aside>
-
-  <main class="content">
-    <router-outlet></router-outlet>
-  </main>
-</div>
+  <router-outlet></router-outlet>
 </ng-container>
 
 <ng-template #loginView>
   <main class="login-page">
-    <section class="login-panel">
-      <div class="brand login-brand">
-        <span class="brand-mark">S</span>
-        <div>
-          <strong>Spawnta</strong>
-          <small>Admin</small>
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="brand">
+            <div class="brand-logo">S</div>
+            <div class="brand-text">
+              <strong>Spawnta</strong>
+              <span>Admin Console</span>
+            </div>
+          </div>
+          <div class="header-content">
+            <h1>Welcome back</h1>
+            <p>Enter your credentials to access the control tower.</p>
+          </div>
+        </div>
+
+        <form (ngSubmit)="login()" #loginForm="ngForm">
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <div class="input-wrapper">
+              <lucide-icon [name]="Mail" [size]="18" class="input-icon"></lucide-icon>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                [(ngModel)]="email" 
+                autocomplete="username" 
+                required 
+                placeholder="admin@spawnta.com"
+                #emailInput="ngModel">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="password">Password</label>
+              <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+            <div class="input-wrapper">
+              <lucide-icon [name]="Lock" [size]="18" class="input-icon"></lucide-icon>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                [(ngModel)]="password" 
+                autocomplete="current-password" 
+                required 
+                placeholder="••••••••"
+                #passwordInput="ngModel">
+            </div>
+          </div>
+
+          <div class="login-error" *ngIf="errorMessage">
+            <lucide-icon [name]="Shield" [size]="16"></lucide-icon>
+            <span>{{ errorMessage }}</span>
+          </div>
+
+          <button type="submit" class="btn-primary login-btn" [disabled]="loading || loginForm.invalid">
+            <ng-container *ngIf="!loading">
+              <lucide-icon [name]="LogIn" [size]="18"></lucide-icon>
+              <span>Sign in to Dashboard</span>
+            </ng-container>
+            <ng-container *ngIf="loading">
+              <lucide-icon [name]="RefreshCw" [size]="18" class="spinning"></lucide-icon>
+              <span>Authenticating...</span>
+            </ng-container>
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <p>Secure administrative access. All actions are logged.</p>
         </div>
       </div>
-
-      <form (ngSubmit)="login()">
-        <span class="kicker">Console admin</span>
-        <h1>Connexion</h1>
-        <p>Connectez-vous avec un compte administrateur pour gerer la plateforme.</p>
-
-        <label>
-          <span>Email</span>
-          <input type="email" name="email" [(ngModel)]="email" autocomplete="username" required>
-        </label>
-
-        <label>
-          <span>Mot de passe</span>
-          <input type="password" name="password" [(ngModel)]="password" autocomplete="current-password" required>
-        </label>
-
-        <div class="login-error" *ngIf="errorMessage">{{ errorMessage }}</div>
-
-        <button type="submit" [disabled]="loading">
-          <span class="material-symbol">login</span>
-          {{ loading ? 'Connexion...' : 'Se connecter' }}
-        </button>
-      </form>
-    </section>
+      
+      <div class="login-decoration">
+        <div class="decoration-content">
+          <div class="badge">Production Environment</div>
+          <h2>Maintain community standards with Spawnta Admin.</h2>
+          <div class="features-list">
+            <div class="feature-item">
+              <div class="feature-icon"><lucide-icon [name]="Shield" [size]="16"></lucide-icon></div>
+              <span>Real-time moderation queue</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><lucide-icon [name]="RefreshCw" [size]="16"></lucide-icon></div>
+              <span>System-wide audit logging</span>
+            </div>
+          </div>
+        </div>
+        <div class="decoration-grid"></div>
+      </div>
+    </div>
   </main>
 </ng-template>

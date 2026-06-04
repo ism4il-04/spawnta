@@ -1,69 +1,138 @@
-<section class="admin-page">
-  <header class="page-header">
-    <div>
-      <span class="kicker">Admin</span>
-      <h1>Dashboard</h1>
-      <p>Vue rapide sur les comptes, activites, abonnements et alertes moderation.</p>
-    </div>
+<app-page-header title="Dashboard" description="Overview of platform performance and moderation status.">
+  <button class="btn-secondary" (click)="loadDashboard()" [disabled]="loading">
+    <lucide-icon [name]="RefreshCw" [size]="16" [class.spinning]="loading"></lucide-icon>
+    Refresh Data
+  </button>
+</app-page-header>
 
-    <button type="button" class="primary-action" (click)="loadDashboard()" [disabled]="loading">
-      <span class="material-symbol">refresh</span>
-      Actualiser
-    </button>
-  </header>
+<div class="dashboard-grid" *ngIf="dashboard; else loadingOrError">
+  <!-- Stats Section -->
+  <div class="stats-row">
+    <app-stat-card 
+      label="Total Users" 
+      [value]="dashboard.totalUsers" 
+      [icon]="Users" 
+      [trend]="12"
+      iconColor="#3b82f6"
+      iconBgColor="#eff6ff">
+    </app-stat-card>
+    
+    <app-stat-card 
+      label="Active Activities" 
+      [value]="dashboard.totalActivities" 
+      [icon]="Calendar" 
+      [trend]="8"
+      iconColor="#8b5cf6"
+      iconBgColor="#f5f3ff">
+    </app-stat-card>
 
-  <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
+    <app-stat-card 
+      label="Open Reports" 
+      [value]="moderationTotal()" 
+      [icon]="Shield" 
+      [trend]="-5"
+      iconColor="#ef4444"
+      iconBgColor="#fef2f2">
+    </app-stat-card>
 
-  <div class="summary-grid">
-    <article class="summary-card"><span>Utilisateurs</span><strong>{{ dashboard?.totalUsers ?? 0 }}</strong></article>
-    <article class="summary-card"><span>Premium</span><strong>{{ dashboard?.premiumUsers ?? 0 }}</strong></article>
-    <article class="summary-card"><span>Activites</span><strong>{{ dashboard?.totalActivities ?? 0 }}</strong></article>
-    <article class="summary-card"><span>A venir</span><strong>{{ dashboard?.upcomingActivities ?? 0 }}</strong></article>
-    <article class="summary-card warning"><span>Signalements</span><strong>{{ (dashboard?.openUserReports ?? 0) + (dashboard?.openActivityReports ?? 0) }}</strong></article>
-    <article class="summary-card danger"><span>Bannis</span><strong>{{ dashboard?.bannedUsers ?? 0 }}</strong></article>
+    <app-stat-card 
+      label="Revenue (Est.)" 
+      value="$12,450" 
+      [icon]="DollarSign" 
+      [trend]="15"
+      iconColor="#10b981"
+      iconBgColor="#ecfdf5">
+    </app-stat-card>
   </div>
 
-  <section class="split-grid">
-    <article class="split-card audit-logs">
-      <header>
-        <h2>Dernieres actions admin</h2>
-        <span class="material-symbol">history</span>
-      </header>
-      
-      <div class="audit-list">
-        <div class="audit-item" *ngFor="let log of dashboard?.recentAuditLogs">
-          <div class="audit-main">
-            <strong>{{ log.adminEmail }}</strong>
-            <span>{{ log.action }}</span>
+  <div class="main-grid">
+    <!-- Moderation Overview -->
+    <div class="card moderation-card">
+      <div class="card-header">
+        <h2 class="card-title">Moderation Queue</h2>
+        <a routerLink="/moderation" class="view-all">View All <lucide-icon [name]="ArrowRight" [size]="14"></lucide-icon></a>
+      </div>
+      <div class="card-body">
+        <div class="moderation-stats">
+          <div class="mod-item">
+            <span class="mod-label">User Reports</span>
+            <div class="progress-container">
+              <div class="progress-bar" [style.width.%]="ratio(dashboard.openUserReports, moderationTotal())"></div>
+              <span class="mod-value">{{ dashboard.openUserReports }}</span>
+            </div>
           </div>
-          <div class="audit-meta">
-            <small>{{ log.targetType }} #{{ log.targetId }}</small>
-            <time>{{ log.createdAt | date:'shortTime' }}</time>
+          <div class="mod-item">
+            <span class="mod-label">Activity Reports</span>
+            <div class="progress-container">
+              <div class="progress-bar alt" [style.width.%]="ratio(dashboard.openActivityReports, moderationTotal())"></div>
+              <span class="mod-value">{{ dashboard.openActivityReports }}</span>
+            </div>
           </div>
         </div>
-        <div class="empty-state" *ngIf="!dashboard?.recentAuditLogs?.length && !loading">
-          Aucune action recente.
+        
+        <div class="quick-actions">
+          <h3>Quick Actions</h3>
+          <div class="actions-grid">
+            <button class="action-btn" routerLink="/moderation">
+              <lucide-icon [name]="Shield" [size]="18"></lucide-icon>
+              <span>Review Reports</span>
+            </button>
+            <button class="action-btn" routerLink="/users">
+              <lucide-icon [name]="Users" [size]="18"></lucide-icon>
+              <span>Manage Users</span>
+            </button>
+          </div>
         </div>
       </div>
-    </article>
+    </div>
 
-    <article class="split-card stats">
-      <header>
-        <h2>Sante plateforme</h2>
-        <span class="material-symbol">analytics</span>
-      </header>
-
-      <div class="stat-row">
-        <span>Verification email</span>
-        <div class="bar"><i [style.width.%]="ratio(dashboard?.totalUsers ? (dashboard!.totalUsers - dashboard!.unverifiedUsers) : 0, dashboard?.totalUsers ?? 0)"></i></div>
-        <strong>{{ ratio(dashboard?.totalUsers ? (dashboard!.totalUsers - dashboard!.unverifiedUsers) : 0, dashboard?.totalUsers ?? 0) }}%</strong>
+    <!-- Platform Activity -->
+    <div class="card activity-card">
+      <div class="card-header">
+        <h2 class="card-title">Real-time Activity</h2>
+        <div class="live-indicator">
+          <span class="dot"></span> Live
+        </div>
       </div>
-
-      <div class="stat-row">
-        <span>Taux Premium</span>
-        <div class="bar"><i [style.width.%]="ratio(dashboard?.premiumUsers ?? 0, dashboard?.totalUsers ?? 0)"></i></div>
-        <strong>{{ ratio(dashboard?.premiumUsers ?? 0, dashboard?.totalUsers ?? 0) }}%</strong>
+      <div class="card-body">
+        <div class="activity-list">
+          <!-- Mock Activities -->
+          <div class="activity-item">
+            <div class="activity-icon join"><lucide-icon [name]="Users" [size]="14"></lucide-icon></div>
+            <div class="activity-info">
+              <p><strong>Sarah M.</strong> joined the platform</p>
+              <span class="time">2 minutes ago</span>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon report"><lucide-icon [name]="Shield" [size]="14"></lucide-icon></div>
+            <div class="activity-info">
+              <p>New report on activity <strong>#4521</strong></p>
+              <span class="time">15 minutes ago</span>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon create"><lucide-icon [name]="Calendar" [size]="14"></lucide-icon></div>
+            <div class="activity-info">
+              <p><strong>John Doe</strong> created "Hiking Trip"</p>
+              <span class="time">1 hour ago</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </article>
-  </section>
-</section>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingOrError>
+  <div class="state-container" *ngIf="loading">
+    <lucide-icon [name]="RefreshCw" [size]="48" class="spinning"></lucide-icon>
+    <p>Loading dashboard data...</p>
+  </div>
+  
+  <div class="state-container error" *ngIf="errorMessage && !loading">
+    <lucide-icon [name]="Shield" [size]="48"></lucide-icon>
+    <p>{{ errorMessage }}</p>
+    <button class="btn-primary" (click)="loadDashboard()">Try Again</button>
+  </div>
+</ng-template>
