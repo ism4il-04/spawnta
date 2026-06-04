@@ -16,7 +16,16 @@ import { RecommendationsFeedComponent } from '../recommendations/recommendations
 export class HomeComponent {
   protected readonly authService = inject(AuthService);
 
-  protected readonly features = [
+  protected get filteredFeatures() {
+    return this.features.filter(f => {
+      if (f.id === 'auth' && this.authService.isLoggedIn()) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  private readonly features = [
     {
       id: 'carte',
       icon: 'map',

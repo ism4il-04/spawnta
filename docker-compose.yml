@@ -124,7 +124,18 @@ services:
     restart: unless-stopped
     ports:
       - "4300:80"
- 
+
+  stripe-cli:
+    image: stripe/stripe-cli
+    container_name: spawnta-stripe-cli
+    restart: unless-stopped
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
+    command: >
+      listen --forward-to backend:8080/api/subscription/webhook --project-name default
+    depends_on:
+      - backend
+
 # ─── Named volumes ────────────────────────────────────────────
 volumes:
   postgres_data:

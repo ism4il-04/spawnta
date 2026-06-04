@@ -12,8 +12,10 @@ public record AdminSubscriptionsDTO(
     long pastDueSubscriptions,
     long cancelledSubscriptions,
     BigDecimal successfulPayments,
+    BigDecimal monthlyRecurringRevenue,
     List<PlanDTO> plans,
-    List<UserSubscriptionAdminDTO> subscriptions
+    List<UserSubscriptionAdminDTO> subscriptions,
+    List<TransactionDTO> recentTransactions
 ) {
     public record PlanDTO(
         Long id,
@@ -35,5 +37,15 @@ public record AdminSubscriptionsDTO(
         LocalDateTime startDate,
         LocalDateTime renewalDate,
         LocalDateTime endDate
+    ) {}
+
+    public record TransactionDTO(
+        Long id,
+        String userEmail,
+        BigDecimal amount,
+        String currency,
+        String status,
+        LocalDateTime timestamp,
+        String stripeId
     ) {}
 }

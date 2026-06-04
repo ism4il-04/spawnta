@@ -88,8 +88,16 @@ public class StripeService {
         
         // Check if user already has a Stripe customer ID
         if (user.getStripeCustomerId() != null && !user.getStripeCustomerId().isEmpty()) {
-            logger.info("User already has Stripe customer ID: {}", user.getStripeCustomerId());
-            return user.getStripeCustomerId();
+            try {
+                // Verify the customer still exists on Stripe
+                Customer customer = Customer.retrieve(user.getStripeCustomerId());
+                logger.info("Verified existing Stripe customer ID: {}", customer.getId());
+                return customer.getId();
+            } catch (StripeException e) {
+                logger.warn("Existing Stripe customer ID {} is invalid or not found: {}. Recreating...", 
+                        user.getStripeCustomerId(), e.getMessage());
+                // ID is invalid, continue to create a new one
+            }
         }
         
         // Create new customer in Stripe
@@ -102,6 +110,10 @@ public class StripeService {
         
         Customer customer = Customer.create(params);
         logger.info("Created Stripe customer: {} for user: {}", customer.getId(), user.getId());
+        
+        // Update user with new Stripe customer ID
+        user.setStripeCustomerId(customer.getId());
+        userRepository.save(user);
         
         return customer.getId();
     }

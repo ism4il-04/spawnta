@@ -20,6 +20,10 @@
   }
 }
 
+.full-width {
+  grid-column: 1 / -1;
+}
+
 .card {
   background: white;
   border-radius: 12px;
@@ -195,9 +199,9 @@
     flex-shrink: 0;
     margin-top: 2px;
 
-    &.join { background: #3b82f6; }
-    &.report { background: #ef4444; }
-    &.create { background: #10b981; }
+    &.user_join { background: #3b82f6; }
+    &.new_report { background: #ef4444; }
+    &.activity_create { background: #10b981; }
   }
 
   .activity-info {
@@ -217,10 +221,52 @@
       }
     }
 
+    .desc {
+      font-size: 0.8125rem;
+      color: #64748b;
+    }
+
     .time {
       font-size: 0.75rem;
       color: #94a3b8;
     }
+  }
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    color: #64748b;
+    font-weight: 600;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+
+    &.details {
+      max-width: 250px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .pill.action {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
   }
 }
 

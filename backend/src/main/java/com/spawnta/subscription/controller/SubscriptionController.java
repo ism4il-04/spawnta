@@ -16,6 +16,7 @@ import com.stripe.exception.StripeException;
 import com.spawnta.entity.User;
 import com.spawnta.repository.UserRepository;
 import com.spawnta.subscription.dto.*;
+import com.spawnta.subscription.entity.SubscriptionPlan;
 import com.spawnta.subscription.entity.UserSubscription;
 import com.spawnta.subscription.repository.SubscriptionPlanRepository;
 import com.spawnta.subscription.repository.UserSubscriptionRepository;
@@ -80,7 +81,14 @@ public class SubscriptionController {
                 .orElse(null);
         
         if (subscription == null) {
-            return ResponseEntity.notFound().build();
+            // Return a default "FREE" subscription DTO if none exists
+            SubscriptionPlan freePlan = subscriptionPlanRepository.findByTier(com.spawnta.subscription.entity.SubscriptionTier.FREE)
+                    .orElse(null);
+            
+            return ResponseEntity.ok(UserSubscriptionDTO.builder()
+                    .plan(freePlan != null ? mapPlanToDTO(freePlan) : null)
+                    .status("ACTIVE")
+                    .build());
         }
         
         return ResponseEntity.ok(mapSubscriptionToDTO(subscription));
@@ -101,6 +109,23 @@ public class SubscriptionController {
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
             
+            // Check if user already has an active subscription
+            UserSubscription existingSub = userSubscriptionRepository.findByUserIdAndStatus(user.getId(), com.spawnta.subscription.entity.SubscriptionStatus.ACTIVE)
+                    .orElse(null);
+            
+            if (existingSub != null) {
+                // Check if they are trying to "upgrade" to the same tier
+                if (existingSub.getPlan().getTier().getId().equalsIgnoreCase(request.getTier())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("error", "Vous avez deja un abonnement actif pour ce niveau."));
+                }
+                
+                // If they want to change, they should ideally cancel the old one or we handle it in Stripe
+                // For now, let's ask them to cancel or handle it by informing them.
+                logger.info("User {} already has an active subscription ({}). Processing as potential change.", 
+                    user.getEmail(), existingSub.getPlan().getTier());
+            }
+            
             CheckoutSessionResponse response = stripeService.createCheckoutSession(
                     user,
                     request.getTier(),
@@ -111,8 +136,8 @@ public class SubscriptionController {
             return ResponseEntity.ok(response);
         } catch (StripeException e) {
             logger.error("Stripe error during upgrade: ", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Failed to create checkout session: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Stripe configuration error: " + e.getMessage()));
         } catch (Exception e) {
             logger.error("Error during upgrade: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -140,8 +165,8 @@ public class SubscriptionController {
             return ResponseEntity.ok(Map.of("message", "Subscription cancelled successfully"));
         } catch (StripeException e) {
             logger.error("Stripe error during cancellation: ", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Failed to cancel subscription: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Stripe configuration error: " + e.getMessage()));
         } catch (Exception e) {
             logger.error("Error during cancellation: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -9,12 +9,26 @@
     <div class="current-plan" *ngIf="isLoggedIn">
       <span>Plan actuel</span>
       <strong>{{ currentTier }}</strong>
+      <mat-icon *ngIf="isProcessingPayment" class="processing-spinner">sync</mat-icon>
     </div>
   </header>
 
-  <div class="status-panel" *ngIf="loadingPlans">
-    <mat-icon>hourglass_empty</mat-icon>
-    <span>Chargement des plans...</span>
+  <div class="status-panel processing fade-in" *ngIf="isProcessingPayment">
+    <div class="spinner-container">
+      <div class="double-bounce1"></div>
+      <div class="double-bounce2"></div>
+    </div>
+    <div class="processing-text">
+      <h3>Finalisation de votre abonnement</h3>
+      <p>Nous synchronisons vos nouveaux avantages, un instant...</p>
+    </div>
+  </div>
+
+  <div class="status-panel" *ngIf="loadingPlans && !isProcessingPayment">
+    <div class="spinner-container-small">
+      <div class="double-bounce1"></div>
+      <div class="double-bounce2"></div>
+    </div>
   </div>
 
   <div class="status-panel error" *ngIf="plansError && !loadingPlans">

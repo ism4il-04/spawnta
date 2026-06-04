@@ -10,7 +10,7 @@ import { ToastContainerComponent } from './shared/components/toast-container/toa
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, ToastContainerComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, ToastContainerComponent, NotificationsDropdownComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })

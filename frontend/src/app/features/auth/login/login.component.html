@@ -4,24 +4,24 @@
       <span class="badge-icon">🚀</span>
       <span>Spawnta Access</span>
     </div>
-    <h1>Reconnectez-vous à vos sorties.</h1>
+    <h1>Jump back into your outings.</h1>
     <p class="hero-text">
-      Retrouvez votre profil, vos activités et la carte interactive depuis un espace 
-      cohérent avec le reste de l'application. Votre communauté vous attend.
+      Find your profile, your activities, and the interactive map from a space 
+      consistent with the rest of the application. Your community is waiting.
     </p>
 
     <div class="hero-features">
       <div class="feature-item">
         <div class="feature-icon">🗺️</div>
-        <span>Carte interactive</span>
+        <span>Interactive map</span>
       </div>
       <div class="feature-item">
         <div class="feature-icon">👤</div>
-        <span>Profil voyageur</span>
+        <span>Traveller profile</span>
       </div>
       <div class="feature-item">
         <div class="feature-icon">🤝</div>
-        <span>Rencontres et trips</span>
+        <span>Meetups & trips</span>
       </div>
     </div>
   </section>
@@ -29,33 +29,33 @@
   <div class="auth-card-container animate-slide-in-right">
     <div class="modern-card auth-card">
       <div class="card-header">
-        <div class="card-badge">Connexion</div>
-        <h2 class="card-title">Bon retour sur Spawnta</h2>
-        <p class="card-subtitle">Connectez-vous pour accéder à votre compte</p>
+        <div class="card-badge">Sign in</div>
+        <h2 class="card-title">Welcome back to Spawnta</h2>
+        <p class="card-subtitle">Sign in to access your account</p>
       </div>
       
       <div class="card-body">
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="modern-form">
           <div class="modern-form-field">
-            <label class="form-label" for="email">Adresse email</label>
+            <label class="form-label" for="email">Email address</label>
             <input 
               id="email"
               class="form-input"
               [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
               formControlName="email"
               type="email"
-              placeholder="votre@email.com"
+              placeholder="your@email.com"
               autocomplete="email">
             <span class="form-error" *ngIf="loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched">
-              L'email est requis
+              Email is required
             </span>
             <span class="form-error" *ngIf="loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched">
-              Veuillez entrer un email valide
+              Please enter a valid email
             </span>
           </div>
 
           <div class="modern-form-field">
-            <label class="form-label" for="password">Mot de passe</label>
+            <label class="form-label" for="password">Password</label>
             <div class="password-input-wrapper">
               <input 
                 id="password"
@@ -63,21 +63,21 @@
                 [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
                 formControlName="password"
                 [type]="showPassword ? 'text' : 'password'"
-                placeholder="Votre mot de passe"
+                placeholder="Your password"
                 autocomplete="current-password">
               <button 
                 type="button" 
                 class="password-toggle"
                 (click)="togglePasswordVisibility()"
-                [attr.aria-label]="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
                 <i class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</i>
               </button>
             </div>
             <span class="form-error" *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched">
-              Le mot de passe est requis
+              Password is required
             </span>
             <span class="form-error" *ngIf="loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched">
-              Le mot de passe doit contenir au moins 6 caractères
+              Password must be at least 6 characters
             </span>
           </div>
 
@@ -88,32 +88,32 @@
               [disabled]="loginForm.invalid || loading">
               <span *ngIf="!loading">
                 <i class="material-icons">login</i>
-                Se connecter
+                Sign in
               </span>
               <span *ngIf="loading" class="loading-content">
                 <div class="spinner"></div>
-                Connexion en cours...
+                Signing in...
               </span>
             </button>
           </div>
 
           <div class="forgot-password">
-            <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+            <a href="#" class="forgot-link">Forgot password?</a>
           </div>
         </form>
       </div>
       
       <div class="card-footer">
         <p class="footer-text">
-          Vous n'avez pas encore de compte ? 
-          <a routerLink="/signup" class="footer-link">Créer un compte</a>
+          Don't have an account yet? 
+          <a routerLink="/signup" class="footer-link">Create an account</a>
         </p>
         <div class="social-divider">
-          <span>ou</span>
+          <span>or</span>
         </div>
         <button type="button" class="btn btn-outline btn-full social-btn">
           <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="social-icon">
-          Continuer avec Google
+          Continue with Google
         </button>
       </div>
     </div>

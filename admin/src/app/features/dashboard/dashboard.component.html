@@ -12,7 +12,6 @@
       label="Total Users" 
       [value]="dashboard.totalUsers" 
       [icon]="Users" 
-      [trend]="12"
       iconColor="#3b82f6"
       iconBgColor="#eff6ff">
     </app-stat-card>
@@ -21,7 +20,6 @@
       label="Active Activities" 
       [value]="dashboard.totalActivities" 
       [icon]="Calendar" 
-      [trend]="8"
       iconColor="#8b5cf6"
       iconBgColor="#f5f3ff">
     </app-stat-card>
@@ -30,16 +28,14 @@
       label="Open Reports" 
       [value]="moderationTotal()" 
       [icon]="Shield" 
-      [trend]="-5"
       iconColor="#ef4444"
       iconBgColor="#fef2f2">
     </app-stat-card>
 
     <app-stat-card 
-      label="Revenue (Est.)" 
-      value="$12,450" 
-      [icon]="DollarSign" 
-      [trend]="15"
+      label="Revenue" 
+      [value]="(dashboard.successfulPayments | currency:'EUR':'symbol':'1.0-0') || '0 €'" 
+      [icon]="Euro" 
       iconColor="#10b981"
       iconBgColor="#ecfdf5">
     </app-stat-card>
@@ -96,28 +92,54 @@
       </div>
       <div class="card-body">
         <div class="activity-list">
-          <!-- Mock Activities -->
-          <div class="activity-item">
-            <div class="activity-icon join"><lucide-icon [name]="Users" [size]="14"></lucide-icon></div>
+          <div class="activity-item" *ngFor="let activity of dashboard.recentActivities">
+            <div class="activity-icon" [ngClass]="activity.type.toLowerCase()">
+              <lucide-icon [name]="activity.iconType === 'users' ? Users : (activity.iconType === 'shield' ? Shield : Calendar)" [size]="14"></lucide-icon>
+            </div>
             <div class="activity-info">
-              <p><strong>Sarah M.</strong> joined the platform</p>
-              <span class="time">2 minutes ago</span>
+              <p><strong>{{ activity.title }}</strong></p>
+              <p class="desc">{{ activity.description }}</p>
+              <span class="time">{{ activity.timestamp | date:'shortTime' }}</span>
             </div>
           </div>
-          <div class="activity-item">
-            <div class="activity-icon report"><lucide-icon [name]="Shield" [size]="14"></lucide-icon></div>
-            <div class="activity-info">
-              <p>New report on activity <strong>#4521</strong></p>
-              <span class="time">15 minutes ago</span>
-            </div>
+          <div class="empty-state" *ngIf="!dashboard.recentActivities.length">
+            Aucune activité récente.
           </div>
-          <div class="activity-item">
-            <div class="activity-icon create"><lucide-icon [name]="Calendar" [size]="14"></lucide-icon></div>
-            <div class="activity-info">
-              <p><strong>John Doe</strong> created "Hiking Trip"</p>
-              <span class="time">1 hour ago</span>
-            </div>
-          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audit Logs -->
+    <div class="card audit-card full-width">
+      <div class="card-header">
+        <h2 class="card-title">Audit Logs (Actions Admin)</h2>
+        <span class="view-all">Dernières actions</span>
+      </div>
+      <div class="card-body">
+        <div class="table-container">
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th>Admin</th>
+                <th>Action</th>
+                <th>Cible</th>
+                <th>Détails</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let log of dashboard.recentAuditLogs">
+                <td><strong>{{ log.adminEmail }}</strong></td>
+                <td><span class="pill action">{{ log.action }}</span></td>
+                <td>{{ log.targetType }} #{{ log.targetId }}</td>
+                <td class="details" [title]="log.details">{{ log.details }}</td>
+                <td>{{ log.createdAt | date:'short' }}</td>
+              </tr>
+              <tr *ngIf="!dashboard.recentAuditLogs.length">
+                <td colspan="5" class="empty-row">Aucun log d'audit disponible.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

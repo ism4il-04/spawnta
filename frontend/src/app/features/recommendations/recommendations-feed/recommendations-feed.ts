@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -17,6 +17,7 @@ import { RecommendationService, FeedActivity } from '../../../core/services/reco
 export class RecommendationsFeedComponent implements OnInit {
   private recService = inject(RecommendationService);
   private snackBar = inject(MatSnackBar);
+  private ngZone = inject(NgZone);
 
   feed: FeedActivity[] = [];
   loading = false;
@@ -53,29 +54,33 @@ export class RecommendationsFeedComponent implements OnInit {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        this.recService.generateRecommendations(pos.coords.latitude, pos.coords.longitude).subscribe({
-          next: () => {
-            this.recService.getPersonalizedFeed().subscribe({
-              next: (f) => {
-                this.feed = f;
-                this.loading = false;
-              },
-              error: () => {
-                this.loading = false;
-                this.feedError = true;
-              }
-            });
-          },
-          error: () => {
-            this.loading = false;
-            this.feedError = true;
-            this.snackBar.open('Impossible de générer les recommandations', 'Fermer', { duration: 4000 });
-          }
+        this.ngZone.run(() => {
+          this.recService.generateRecommendations(pos.coords.latitude, pos.coords.longitude).subscribe({
+            next: () => {
+              this.recService.getPersonalizedFeed().subscribe({
+                next: (f) => {
+                  this.feed = f;
+                  this.loading = false;
+                },
+                error: () => {
+                  this.loading = false;
+                  this.feedError = true;
+                }
+              });
+            },
+            error: () => {
+              this.loading = false;
+              this.feedError = true;
+              this.snackBar.open('Unable to generate recommendations', 'Close', { duration: 4000 });
+            }
+          });
         });
       },
       () => {
-        this.loading = false;
-        this.snackBar.open('Autorisez la géolocalisation pour des recommandations personnalisées', 'Fermer', { duration: 4000 });
+        this.ngZone.run(() => {
+          this.loading = false;
+          this.snackBar.open('Allow geolocation for personalized recommendations', 'Close', { duration: 4000 });
+        });
       }
     );
   }

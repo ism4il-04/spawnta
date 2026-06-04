@@ -24,6 +24,16 @@ export interface UserSubscriptionAdmin {
   endDate: string | null;
 }
 
+export interface AdminTransaction {
+  id: number;
+  userEmail: string;
+  amount: number;
+  currency: string;
+  status: string;
+  timestamp: string;
+  stripeId: string | null;
+}
+
 export interface AdminSubscriptions {
   totalPlans: number;
   activeSubscriptions: number;
@@ -31,8 +41,10 @@ export interface AdminSubscriptions {
   pastDueSubscriptions: number;
   cancelledSubscriptions: number;
   successfulPayments: number;
+  monthlyRecurringRevenue: number;
   plans: SubscriptionPlanAdmin[];
   subscriptions: UserSubscriptionAdmin[];
+  recentTransactions: AdminTransaction[];
 }
 
 @Injectable({

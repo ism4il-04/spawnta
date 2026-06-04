@@ -43,13 +43,7 @@ export class SubscriptionsComponent implements OnInit {
   }
 
   estimatedMrr(): number {
-    if (!this.data) return 0;
-    return this.data.subscriptions
-      .filter(subscription => subscription.status === 'ACTIVE')
-      .reduce((total, subscription) => {
-        const plan = this.data?.plans.find(item => item.tier === subscription.tier);
-        return total + (plan?.monthlyPrice ?? 0);
-      }, 0);
+    return this.data?.monthlyRecurringRevenue ?? 0;
   }
 
   churnRate(): number {
