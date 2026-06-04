@@ -18,7 +18,8 @@ public record AdminDashboardDTO(
     long subscriptionPlans,
     long activeSubscriptions,
     BigDecimal successfulPayments,
-    List<AuditEntryDTO> recentAuditLogs
+    List<AuditEntryDTO> recentAuditLogs,
+    List<PlatformActivityDTO> recentActivities
 ) {
     public record AuditEntryDTO(
         Long id,
@@ -28,5 +29,13 @@ public record AdminDashboardDTO(
         Long targetId,
         String details,
         LocalDateTime createdAt
+    ) {}
+
+    public record PlatformActivityDTO(
+        String type, // USER_JOIN, ACTIVITY_CREATE, NEW_REPORT
+        String title,
+        String description,
+        String iconType,
+        LocalDateTime timestamp
     ) {}
 }

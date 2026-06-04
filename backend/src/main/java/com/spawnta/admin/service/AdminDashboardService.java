@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -74,7 +75,8 @@ public class AdminDashboardService {
             subscriptionPlanRepository.count(),
             userSubscriptionRepository.findByStatus(SubscriptionStatus.ACTIVE).size(),
             successfulPaymentsTotal(),
-            recentAuditLogs()
+            recentAuditLogs(),
+            recentActivities()
         );
     }
 
@@ -124,6 +126,51 @@ public class AdminDashboardService {
         return paymentTransactionRepository.findByStatus(PaymentStatus.SUCCEEDED).stream()
             .map(transaction -> transaction.getAmount() == null ? BigDecimal.ZERO : transaction.getAmount())
             .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private List<AdminDashboardDTO.PlatformActivityDTO> recentActivities() {
+        List<AdminDashboardDTO.PlatformActivityDTO> activities = new ArrayList<>();
+
+        // Recent User Joins
+        userRepository.findAll().stream()
+            .sorted(Comparator.comparing(User::getCreatedAt).reversed())
+            .limit(5)
+            .forEach(u -> activities.add(new AdminDashboardDTO.PlatformActivityDTO(
+                "USER_JOIN",
+                u.getFirstName() + " " + u.getLastName() + " rejoint",
+                u.getEmail() + " a rejoint Spawnta",
+                "users",
+                u.getCreatedAt()
+            )));
+
+        // Recent Activities Created
+        activityRepository.findAll().stream()
+            .sorted(Comparator.comparing(com.spawnta.entity.Activity::getCreatedAt).reversed())
+            .limit(5)
+            .forEach(a -> activities.add(new AdminDashboardDTO.PlatformActivityDTO(
+                "ACTIVITY_CREATE",
+                "Nouvelle activité: " + a.getTitle(),
+                "Créée par " + a.getHost().getFirstName(),
+                "calendar",
+                a.getCreatedAt()
+            )));
+
+        // Recent User Reports
+        userReportRepository.findAll().stream()
+            .sorted(Comparator.comparing(com.spawnta.moderation.entity.UserReport::getCreatedAt).reversed())
+            .limit(5)
+            .forEach(r -> activities.add(new AdminDashboardDTO.PlatformActivityDTO(
+                "NEW_REPORT",
+                "Signalement utilisateur",
+                "Raison: " + r.getReason(),
+                "shield",
+                r.getCreatedAt()
+            )));
+
+        return activities.stream()
+            .sorted(Comparator.comparing(AdminDashboardDTO.PlatformActivityDTO::timestamp).reversed())
+            .limit(10)
+            .toList();
     }
 
     private List<AdminDashboardDTO.AuditEntryDTO> recentAuditLogs() {

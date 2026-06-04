@@ -195,9 +195,9 @@
     flex-shrink: 0;
     margin-top: 2px;
 
-    &.join { background: #3b82f6; }
-    &.report { background: #ef4444; }
-    &.create { background: #10b981; }
+    &.user_join { background: #3b82f6; }
+    &.new_report { background: #ef4444; }
+    &.activity_create { background: #10b981; }
   }
 
   .activity-info {
@@ -215,6 +215,11 @@
         color: #0f172a;
         font-weight: 600;
       }
+    }
+
+    .desc {
+      font-size: 0.8125rem;
+      color: #64748b;
     }
 
     .time {
