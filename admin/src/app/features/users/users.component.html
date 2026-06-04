@@ -12,27 +12,11 @@
     </button>
   </header>
 
-  <div class="summary-grid" *ngIf="summary">
-    <article class="summary-card">
-      <span>Total</span>
-      <strong>{{ summary.totalUsers }}</strong>
-    </article>
-    <article class="summary-card">
-      <span>Premium</span>
-      <strong>{{ summary.premiumUsers }}</strong>
-    </article>
-    <article class="summary-card">
-      <span>Admins</span>
-      <strong>{{ summary.admins }}</strong>
-    </article>
-    <article class="summary-card warning">
-      <span>Suspendus</span>
-      <strong>{{ summary.suspendedUsers }}</strong>
-    </article>
-    <article class="summary-card danger">
-      <span>Bannis</span>
-      <strong>{{ summary.bannedUsers }}</strong>
-    </article>
+  <div class="summary-grid">
+    <article class="summary-card"><span>Total</span><strong>{{ summary?.totalUsers ?? 0 }}</strong></article>
+    <article class="summary-card"><span>Premium</span><strong>{{ summary?.premiumUsers ?? 0 }}</strong></article>
+    <article class="summary-card warning"><span>Suspendus</span><strong>{{ summary?.suspendedUsers ?? 0 }}</strong></article>
+    <article class="summary-card danger"><span>Bannis</span><strong>{{ summary?.bannedUsers ?? 0 }}</strong></article>
   </div>
 
   <section class="filters-panel">
@@ -66,15 +50,10 @@
     <button type="button" class="secondary-action" (click)="loadUsers()">Filtrer</button>
   </section>
 
-  <div class="status-panel error" *ngIf="errorMessage">
-    {{ errorMessage }}
-    <button type="button" (click)="loadUsers()">Reessayer</button>
-  </div>
+  <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
   <section class="table-shell">
-    <div class="table-loading" *ngIf="loading">Chargement des utilisateurs...</div>
-
-    <table *ngIf="!loading">
+    <table>
       <thead>
         <tr>
           <th>Utilisateur</th>
@@ -97,12 +76,15 @@
               </div>
             </div>
           </td>
-          <td><span class="pill role">{{ user.role }}</span></td>
+          <td><span class="pill role" [ngClass]="roleClass(user.role)">{{ user.role }}</span></td>
           <td><span class="pill tier">{{ user.subscriptionTier || 'FREE' }}</span></td>
           <td><span class="pill" [class]="statusClass(user)">{{ statusLabel(user) }}</span></td>
           <td>{{ user.level }} / {{ user.xp }} XP</td>
           <td>{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
           <td class="actions">
+            <button type="button" class="secondary" (click)="changeRole(user, user.role === 'ADMIN' ? 'USER' : 'ADMIN')" [disabled]="actionUserId === user.id">
+              {{ user.role === 'ADMIN' ? 'Démouvoir' : 'Promouvoir' }}
+            </button>
             <button type="button" (click)="suspend(user)" [disabled]="actionUserId === user.id || user.role === 'ADMIN'">
               Suspendre
             </button>
@@ -114,8 +96,8 @@
             </button>
           </td>
         </tr>
-        <tr *ngIf="!users.length">
-          <td colspan="7" class="empty-row">Aucun utilisateur pour ces filtres.</td>
+        <tr *ngIf="!users.length && !loading">
+          <td colspan="7" class="empty-row">Aucun utilisateur trouvé.</td>
         </tr>
       </tbody>
     </table>

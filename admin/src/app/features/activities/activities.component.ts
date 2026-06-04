@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import {
@@ -17,10 +17,11 @@ import {
 })
 export class ActivitiesComponent implements OnInit {
   private readonly activitiesService = inject(AdminActivitiesService);
+  private readonly cd = inject(ChangeDetectorRef);
 
   activities: AdminActivity[] = [];
   summary: Omit<AdminActivitiesResponse, 'activities'> | null = null;
-  loading = true;
+  loading = false;
   actionActivityId: number | null = null;
   errorMessage = '';
 
@@ -40,7 +41,10 @@ export class ActivitiesComponent implements OnInit {
       status: this.status,
       category: this.category
     }).pipe(
-      finalize(() => this.loading = false)
+      finalize(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      })
     ).subscribe({
       next: response => {
         this.activities = response.activities;
@@ -49,9 +53,11 @@ export class ActivitiesComponent implements OnInit {
           upcomingActivities: response.upcomingActivities,
           pastActivities: response.pastActivities
         };
+        this.cd.detectChanges();
       },
       error: error => {
         this.errorMessage = error?.error?.error ?? 'Impossible de charger les activites.';
+        this.cd.detectChanges();
       }
     });
   }

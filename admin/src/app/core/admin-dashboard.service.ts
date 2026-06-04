@@ -12,6 +12,14 @@ export interface AuditEntry {
   createdAt: string;
 }
 
+export interface PlatformActivity {
+  type: string;
+  title: string;
+  description: string;
+  iconType: string;
+  timestamp: string;
+}
+
 export interface AdminDashboard {
   totalUsers: number;
   admins: number;
@@ -27,6 +35,7 @@ export interface AdminDashboard {
   activeSubscriptions: number;
   successfulPayments: number;
   recentAuditLogs: AuditEntry[];
+  recentActivities: PlatformActivity[];
 }
 
 @Injectable({

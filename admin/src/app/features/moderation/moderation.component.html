@@ -1,123 +1,186 @@
-<section class="admin-page">
-  <header class="page-header">
-    <div>
-      <span class="kicker">Admin</span>
-      <h1>Moderation</h1>
-      <p>Traitez les signalements utilisateurs et activites avec un historique audit.</p>
+<app-page-header title="Moderation Queue" description="Review and resolve reports from the community.">
+  <div class="header-filters">
+    <div class="search-box">
+      <lucide-icon [name]="Search" [size]="16"></lucide-icon>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Search reports...">
     </div>
-
-    <button type="button" class="primary-action" (click)="loadReports()" [disabled]="loading">
-      <span class="material-symbol">refresh</span>
-      Actualiser
+    <select class="filter-select" [(ngModel)]="status" (change)="loadReports()">
+      <option value="all">All Statuses</option>
+      <option value="pending">Pending</option>
+      <option value="investigating">Investigating</option>
+      <option value="resolved">Resolved</option>
+      <option value="dismissed">Dismissed</option>
+    </select>
+    <button class="btn-secondary" (click)="loadReports()" [disabled]="loading">
+      <lucide-icon [name]="RefreshCw" [size]="16" [class.spinning]="loading"></lucide-icon>
     </button>
-  </header>
+  </div>
+</app-page-header>
 
-  <section class="filters-panel">
-    <label>
-      <span>Statut</span>
-      <select [(ngModel)]="status" (change)="loadReports()">
-        <option value="all">Tous</option>
-        <option value="OPEN">Ouverts</option>
-        <option value="INVESTIGATING">Investigation</option>
-        <option value="RESOLVED">Resolus</option>
-        <option value="DISMISSED">Rejetes</option>
-      </select>
-    </label>
-  </section>
-
-  <div class="status-panel" *ngIf="loading">Chargement des signalements...</div>
-  <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
-
-  <ng-container *ngIf="data && !loading">
-    <div class="summary-grid">
-      <article class="summary-card warning"><span>Users ouverts</span><strong>{{ data.openUserReports }}</strong></article>
-      <article class="summary-card warning"><span>Activites ouvertes</span><strong>{{ data.openActivityReports }}</strong></article>
-      <article class="summary-card"><span>Users resolus</span><strong>{{ data.resolvedUserReports }}</strong></article>
-      <article class="summary-card"><span>Activites resolues</span><strong>{{ data.resolvedActivityReports }}</strong></article>
+<div class="moderation-container" *ngIf="data; else loadingState">
+  <!-- Sidebar Queue -->
+  <div class="queue-sidebar">
+    <div class="tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'">All</button>
+      <button class="tab-btn" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Users</button>
+      <button class="tab-btn" [class.active]="activeTab === 'activities'" (click)="activeTab = 'activities'">Activities</button>
     </div>
 
-    <section class="reports-grid">
-      <article class="report-panel">
-        <h2>Signalements utilisateurs</h2>
-        <div class="report-card" *ngFor="let report of data.userReports">
-          <div class="report-head">
-            <span class="pill" [class]="statusClass(report.status)">{{ report.status }}</span>
-            <small>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+    <div class="queue-list">
+      <!-- User Reports -->
+      <ng-container *ngIf="activeTab === 'all' || activeTab === 'users'">
+        <div class="report-item" 
+             *ngFor="let report of filteredUserReports" 
+             [class.active]="selectedReport?.id === report.id && selectedKind === 'user'"
+             (click)="selectUserReport(report)">
+          <div class="report-icon user"><lucide-icon [name]="Users" [size]="16"></lucide-icon></div>
+          <div class="report-content">
+            <div class="report-header">
+              <span class="report-type">User Report</span>
+              <span class="status-badge" [class]="statusClass(report.status)">{{ report.status }}</span>
+            </div>
+            <p class="report-subject">{{ report.reportedUserEmail }}</p>
+            <div class="report-footer">
+              <span class="reporter">by {{ report.reporterEmail }}</span>
+              <span class="date">{{ report.createdAt | date:'short' }}</span>
+            </div>
           </div>
-          <h3>{{ report.reportedUserName }}</h3>
-          <p>{{ report.reason }} - {{ report.description }}</p>
-          <small>Par {{ report.reporterEmail }} contre {{ report.reportedUserEmail }}</small>
-          <div class="actions">
-            <button type="button" (click)="selectUserReport(report)">Details</button>
-            <button type="button" (click)="updateUserReport(report, 'investigate')" [disabled]="actionId === 'user-' + report.id">Investiguer</button>
-            <button type="button" (click)="updateUserReport(report, 'resolve')" [disabled]="actionId === 'user-' + report.id">Resoudre</button>
-            <button type="button" class="danger" (click)="updateUserReport(report, 'dismiss')" [disabled]="actionId === 'user-' + report.id">Rejeter</button>
-          </div>
+          <lucide-icon [name]="ChevronRight" [size]="16" class="arrow"></lucide-icon>
         </div>
-        <p class="empty" *ngIf="!data.userReports.length">Aucun signalement utilisateur.</p>
-      </article>
+      </ng-container>
 
-      <article class="report-panel">
-        <h2>Signalements activites</h2>
-        <div class="report-card" *ngFor="let report of data.activityReports">
-          <div class="report-head">
-            <span class="pill" [class]="statusClass(report.status)">{{ report.status }}</span>
-            <small>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+      <!-- Activity Reports -->
+      <ng-container *ngIf="activeTab === 'all' || activeTab === 'activities'">
+        <div class="report-item" 
+             *ngFor="let report of filteredActivityReports" 
+             [class.active]="selectedReport?.id === report.id && selectedKind === 'activity'"
+             (click)="selectActivityReport(report)">
+          <div class="report-icon activity"><lucide-icon [name]="Calendar" [size]="16"></lucide-icon></div>
+          <div class="report-content">
+            <div class="report-header">
+              <span class="report-type">Activity Report</span>
+              <span class="status-badge" [class]="statusClass(report.status)">{{ report.status }}</span>
+            </div>
+            <p class="report-subject">{{ report.activityTitle }}</p>
+            <div class="report-footer">
+              <span class="reporter">by {{ report.reporterEmail }}</span>
+              <span class="date">{{ report.createdAt | date:'short' }}</span>
+            </div>
           </div>
-          <h3>{{ report.activityTitle }}</h3>
-          <p>{{ report.reason }} - {{ report.description }}</p>
-          <small>Par {{ report.reporterEmail }} - host {{ report.hostEmail }}</small>
-          <div class="actions">
-            <button type="button" (click)="selectActivityReport(report)">Details</button>
-            <button type="button" (click)="updateActivityReport(report, 'investigate')" [disabled]="actionId === 'activity-' + report.id">Investiguer</button>
-            <button type="button" (click)="updateActivityReport(report, 'resolve')" [disabled]="actionId === 'activity-' + report.id">Resoudre</button>
-            <button type="button" class="danger" (click)="updateActivityReport(report, 'dismiss')" [disabled]="actionId === 'activity-' + report.id">Rejeter</button>
-          </div>
+          <lucide-icon [name]="ChevronRight" [size]="16" class="arrow"></lucide-icon>
         </div>
-        <p class="empty" *ngIf="!data.activityReports.length">Aucun signalement activite.</p>
-      </article>
-    </section>
+      </ng-container>
 
-    <aside class="detail-panel" *ngIf="selectedReport">
-      <div class="detail-head">
-        <div>
-          <span class="kicker">{{ selectedKind === 'user' ? 'Utilisateur' : 'Activite' }}</span>
-          <h2>Detail du signalement</h2>
+      <div class="empty-queue" *ngIf="filteredUserReports.length === 0 && filteredActivityReports.length === 0">
+        <lucide-icon [name]="CheckCircle" [size]="32"></lucide-icon>
+        <p>No reports found</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail View -->
+  <div class="detail-view">
+    <div class="detail-placeholder" *ngIf="!selectedReport">
+      <lucide-icon [name]="Shield" [size]="48"></lucide-icon>
+      <h2>Select a report to review</h2>
+      <p>Review user behavior and activity content to maintain community standards.</p>
+    </div>
+
+    <div class="detail-content" *ngIf="selectedReport">
+      <div class="detail-header">
+        <div class="detail-title">
+          <span class="kind-badge" [class]="selectedKind">{{ selectedKind === 'user' ? 'User Report' : 'Activity Report' }}</span>
+          <h1>{{ selectedKind === 'user' ? asUserReport(selectedReport).reportedUserEmail : asActivityReport(selectedReport).activityTitle }}</h1>
         </div>
-        <span class="pill" [class]="statusClass(selectedReport.status)">{{ selectedReport.status }}</span>
+        <div class="detail-actions">
+          <button class="btn-action investigate" 
+                  *ngIf="selectedReport.status === 'PENDING'"
+                  (click)="updateReport(selectedReport, 'investigate')">
+            <lucide-icon [name]="Clock" [size]="18"></lucide-icon>
+            Investigate
+          </button>
+          <button class="btn-action resolve" 
+                  *ngIf="selectedReport.status !== 'RESOLVED'"
+                  (click)="updateReport(selectedReport, 'resolve')">
+            <lucide-icon [name]="CheckCircle" [size]="18"></lucide-icon>
+            Resolve
+          </button>
+          <button class="btn-action dismiss" 
+                  *ngIf="selectedReport.status !== 'DISMISSED'"
+                  (click)="updateReport(selectedReport, 'dismiss')">
+            <lucide-icon [name]="XCircle" [size]="18"></lucide-icon>
+            Dismiss
+          </button>
+        </div>
       </div>
 
-      <ng-container *ngIf="isUserReport(selectedReport)">
-        <dl>
-          <div><dt>Cible</dt><dd>{{ selectedReport.reportedUserName }}</dd></div>
-          <div><dt>Email cible</dt><dd>{{ selectedReport.reportedUserEmail }}</dd></div>
-          <div><dt>Reporter</dt><dd>{{ selectedReport.reporterEmail }}</dd></div>
-          <div><dt>Motif</dt><dd>{{ selectedReport.reason }}</dd></div>
-          <div><dt>Description</dt><dd>{{ selectedReport.description }}</dd></div>
-          <div><dt>Notes</dt><dd>{{ selectedReport.resolutionNotes || '-' }}</dd></div>
-        </dl>
-        <div class="detail-actions">
-          <button type="button" (click)="updateUserReport(selectedReport, 'investigate')">Investiguer</button>
-          <button type="button" (click)="updateUserReport(selectedReport, 'resolve')">Resoudre</button>
-          <button type="button" class="danger" (click)="updateUserReport(selectedReport, 'dismiss')">Rejeter</button>
-        </div>
-      </ng-container>
+      <div class="detail-body">
+        <section class="info-section">
+          <h3>Report Details</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Reason</label>
+              <div class="reason-box">{{ selectedReport.reason }}</div>
+            </div>
+            <div class="info-item">
+              <label>Reporter</label>
+              <span>{{ selectedReport.reporterEmail }}</span>
+            </div>
+            <div class="info-item">
+              <label>Date</label>
+              <span>{{ selectedReport.createdAt | date:'full' }}</span>
+            </div>
+          </div>
+        </section>
 
-      <ng-container *ngIf="isActivityReport(selectedReport)">
-        <dl>
-          <div><dt>Activite</dt><dd>{{ selectedReport.activityTitle }}</dd></div>
-          <div><dt>Host</dt><dd>{{ selectedReport.hostEmail }}</dd></div>
-          <div><dt>Reporter</dt><dd>{{ selectedReport.reporterEmail }}</dd></div>
-          <div><dt>Motif</dt><dd>{{ selectedReport.reason }}</dd></div>
-          <div><dt>Description</dt><dd>{{ selectedReport.description }}</dd></div>
-          <div><dt>Notes</dt><dd>{{ selectedReport.resolutionNotes || '-' }}</dd></div>
-        </dl>
-        <div class="detail-actions">
-          <button type="button" (click)="updateActivityReport(selectedReport, 'investigate')">Investiguer</button>
-          <button type="button" (click)="updateActivityReport(selectedReport, 'resolve')">Resoudre</button>
-          <button type="button" class="danger" (click)="updateActivityReport(selectedReport, 'dismiss')">Rejeter</button>
-        </div>
-      </ng-container>
-    </aside>
-  </ng-container>
-</section>
+        <section class="content-section" *ngIf="selectedKind === 'activity'">
+          <h3>Activity Details</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Host</label>
+              <span>{{ asActivityReport(selectedReport).hostEmail }}</span>
+            </div>
+          </div>
+          <div class="content-box">
+            <p><strong>Description de l'activité :</strong></p>
+            {{ asActivityReport(selectedReport).activityDescription }}
+          </div>
+        </section>
+
+        <section class="content-section">
+          <h3>Report description</h3>
+          <div class="content-box">
+            {{ selectedReport.description }}
+          </div>
+        </section>
+
+        <section class="timeline-section">
+          <h3>History</h3>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-point"></div>
+              <div class="timeline-content">
+                <p><strong>Report created</strong> by {{ selectedReport.reporterEmail }}</p>
+                <span>{{ selectedReport.createdAt | date:'short' }}</span>
+              </div>
+            </div>
+            <div class="timeline-item" *ngIf="selectedReport.status !== 'PENDING'">
+              <div class="timeline-point active"></div>
+              <div class="timeline-content">
+                <p><strong>Status updated to {{ selectedReport.status }}</strong></p>
+                <p class="notes" *ngIf="selectedReport.resolutionNotes">"{{ selectedReport.resolutionNotes }}"</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingState>
+  <div class="state-container">
+    <lucide-icon [name]="RefreshCw" [size]="48" class="spinning"></lucide-icon>
+    <p>Loading reports...</p>
+  </div>
+</ng-template>
