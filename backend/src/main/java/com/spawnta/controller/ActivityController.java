@@ -118,14 +118,14 @@ public class ActivityController {
             String field = firstError.getField();
             String defaultMessage = firstError.getDefaultMessage();
             
-            // Messages personnalisés pour certains champs
+            // Custom messages for specific fields
             if ("scheduledAt".equals(field)) {
-                message = "La date et l'heure de l'activité doivent être dans le futur. Veuillez sélectionner une date ultérieure.";
+                message = "The activity date and time must be in the future. Please select a future date.";
             } else {
                 message = field + ": " + defaultMessage;
             }
         } else {
-            message = "Données de l'activité invalides";
+            message = "Invalid activity data";
         }
         
         return ResponseEntity.badRequest().body(Map.of("error", message));

@@ -17,7 +17,7 @@
         <input 
           type="text" 
           class="search-input" 
-          placeholder="Rechercher..."
+          placeholder="Search..."
           [(ngModel)]="searchQuery"
           (input)="onSearch($event)">
       </div>
@@ -30,14 +30,14 @@
          [routerLinkActiveOptions]="{ exact: true }"
          class="nav-link">
         <i class="material-icons">home</i>
-        <span>Accueil</span>
+        <span>Home</span>
       </a>
       
       <a routerLink="/map" 
          routerLinkActive="active"
          class="nav-link">
         <i class="material-icons">map</i>
-        <span>Carte</span>
+        <span>Map</span>
       </a>
       
       <a *ngIf="authService.isLoggedIn()" 
@@ -50,7 +50,7 @@
             {{ count > 9 ? '9+' : count }}
           </span>
         </div>
-        <span>Messagerie</span>
+        <span>Messages</span>
       </a>
       
       <a *ngIf="authService.isLoggedIn()" 
@@ -58,22 +58,14 @@
          routerLinkActive="active"
          class="nav-link">
         <i class="material-icons">person</i>
-        <span>Profil</span>
+        <span>Profile</span>
       </a>
     </div>
 
     <!-- User Actions -->
     <div class="nav-actions">
       <!-- Notifications -->
-      <button *ngIf="authService.isLoggedIn()" 
-              class="action-btn notification-btn"
-              [class.has-notifications]="hasNotifications"
-              (click)="toggleNotifications()">
-        <i class="material-icons">notifications</i>
-        <span class="notification-badge" *ngIf="notificationCount > 0">
-          {{ notificationCount > 9 ? '9+' : notificationCount }}
-        </span>
-      </button>
+      <app-notifications-dropdown *ngIf="authService.isLoggedIn()"></app-notifications-dropdown>
 
       <!-- User Menu -->
       <div *ngIf="authService.isLoggedIn()" class="user-menu" [class.open]="userMenuOpen">
@@ -97,24 +89,24 @@
           <div class="dropdown-divider"></div>
           <a routerLink="/profile" class="dropdown-item" (click)="closeUserMenu()">
             <i class="material-icons">person</i>
-            <span>Mon profil</span>
+            <span>My Profile</span>
           </a>
           <a routerLink="/settings" class="dropdown-item" (click)="closeUserMenu()">
             <i class="material-icons">settings</i>
-            <span>Paramètres</span>
+            <span>Settings</span>
           </a>
           <div class="dropdown-divider"></div>
           <button class="dropdown-item logout-item" (click)="logout()">
             <i class="material-icons">logout</i>
-            <span>Déconnexion</span>
+            <span>Log out</span>
           </button>
         </div>
       </div>
 
       <!-- Auth Buttons -->
       <div *ngIf="!authService.isLoggedIn()" class="auth-buttons">
-        <a routerLink="/login" class="btn btn-ghost">Se connecter</a>
-        <a routerLink="/signup" class="btn btn-primary">Créer un compte</a>
+        <a routerLink="/login" class="btn btn-ghost">Log in</a>
+        <a routerLink="/signup" class="btn btn-primary">Sign up</a>
       </div>
     </div>
 
@@ -157,7 +149,7 @@
          class="mobile-nav-link"
          (click)="closeMobileMenu()">
         <i class="material-icons">map</i>
-        <span>Carte</span>
+        <span>Map</span>
       </a>
       
       <a *ngIf="authService.isLoggedIn()" 
@@ -171,7 +163,7 @@
             {{ count > 9 ? '9+' : count }}
           </span>
         </div>
-        <span>Messagerie</span>
+        <span>Messages</span>
       </a>
       
       <a *ngIf="authService.isLoggedIn()" 
@@ -180,19 +172,19 @@
          class="mobile-nav-link"
          (click)="closeMobileMenu()">
         <i class="material-icons">person</i>
-        <span>Profil</span>
+        <span>Profile</span>
       </a>
       
       <div *ngIf="!authService.isLoggedIn()" class="mobile-auth-buttons">
-        <a routerLink="/login" class="btn btn-outline btn-full" (click)="closeMobileMenu()">Se connecter</a>
-        <a routerLink="/signup" class="btn btn-primary btn-full" (click)="closeMobileMenu()">Créer un compte</a>
+        <a routerLink="/login" class="btn btn-outline btn-full" (click)="closeMobileMenu()">Log in</a>
+        <a routerLink="/signup" class="btn btn-primary btn-full" (click)="closeMobileMenu()">Sign up</a>
       </div>
       
       <button *ngIf="authService.isLoggedIn()" 
               class="mobile-nav-link logout-link" 
               (click)="logout()">
         <i class="material-icons">logout</i>
-        <span>Déconnexion</span>
+        <span>Log out</span>
       </button>
     </div>
   </div>

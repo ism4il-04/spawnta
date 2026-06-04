@@ -1,7 +1,7 @@
 <div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
 
   <!-- ══════════ SIDEBAR ══════════ -->
-  <aside class="sidebar" role="navigation" aria-label="Menu principal">
+  <aside class="sidebar" role="navigation" aria-label="Main menu">
 
     <!-- Brand -->
     <div class="sidebar-brand">
@@ -68,7 +68,7 @@
 
     <!-- Collapse button -->
     <button class="sidebar-collapse-btn" (click)="toggleSidebar()" id="btn-collapse-sidebar"
-            [attr.aria-label]="sidebarCollapsed ? 'Développer le menu' : 'Réduire le menu'">
+            [attr.aria-label]="sidebarCollapsed ? 'Expand menu' : 'Collapse menu'">
       <mat-icon class="collapse-icon">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
       <span class="nav-label">Collapse</span>
     </button>
@@ -83,17 +83,14 @@
       <div class="topbar-search">
         <mat-icon class="search-icon">search</mat-icon>
         <input id="topbar-search-input" type="search" class="search-input"
-               placeholder="Rechercher des activités, lieux…" autocomplete="off">
+               placeholder="Search activities, locations…" autocomplete="off">
       </div>
 
       <div class="topbar-end">
 
-        <button *ngIf="authService.isLoggedIn()" class="icon-btn" id="btn-notifications"
-                aria-label="Notifications">
-          <mat-icon>notifications_none</mat-icon>
-        </button>
+        <app-notifications-dropdown *ngIf="authService.isLoggedIn()"></app-notifications-dropdown>
 
-        <button class="icon-btn" id="btn-settings" aria-label="Paramètres">
+        <button class="icon-btn" id="btn-settings" aria-label="Settings">
           <mat-icon>settings</mat-icon>
         </button>
 
@@ -114,24 +111,24 @@
             <hr class="dropdown-divider">
             <button class="dropdown-item" role="menuitem"
                     (click)="navigateToProfile()" id="menu-profil">
-              <mat-icon>person</mat-icon> Mon profil
+              <mat-icon>person</mat-icon> My Profile
             </button>
             <button class="dropdown-item" role="menuitem"
                     (click)="navigateToSubscription()" id="menu-abonnement">
-              <mat-icon>workspace_premium</mat-icon> Abonnement
+              <mat-icon>workspace_premium</mat-icon> Subscription
             </button>
             <button class="dropdown-item logout-item" role="menuitem"
                     (click)="logout()" id="menu-deconnexion">
-              <mat-icon>logout</mat-icon> Déconnexion
+              <mat-icon>logout</mat-icon> Log out
             </button>
           </div>
         </div>
 
         <!-- Guest: auth links -->
         <ng-container *ngIf="!authService.isLoggedIn()">
-          <a routerLink="/login" class="auth-link" id="topbar-login">Connexion</a>
+          <a routerLink="/login" class="auth-link" id="topbar-login">Log in</a>
           <a routerLink="/signup" class="auth-link auth-link--primary" id="topbar-signup">
-            Inscription
+            Sign up
           </a>
         </ng-container>
 

@@ -54,7 +54,7 @@ export class SubscriptionComponent implements OnInit {
       next: plans => this.plans = this.sortPlans(plans),
       error: () => {
         this.plansError = true;
-        this.snackBar.open('Impossible de charger les plans.', 'Fermer', { duration: 4000 });
+        this.snackBar.open('Unable to load plans.', 'Close', { duration: 4000 });
       }
     });
   }
@@ -71,7 +71,7 @@ export class SubscriptionComponent implements OnInit {
       next: subscription => this.currentSubscription = subscription,
       error: error => {
         if (error.status !== 404) {
-          this.snackBar.open('Abonnement actuel indisponible.', 'Fermer', { duration: 4000 });
+          this.snackBar.open('Current subscription unavailable.', 'Close', { duration: 4000 });
         }
       }
     });
@@ -96,11 +96,11 @@ export class SubscriptionComponent implements OnInit {
           window.location.href = response.checkoutUrl;
           return;
         }
-        this.snackBar.open('Session Stripe creee, mais URL manquante.', 'Fermer', { duration: 4000 });
+        this.snackBar.open('Stripe session created, but checkout URL is missing.', 'Close', { duration: 4000 });
       },
       error: error => {
-        const message = error?.error?.error ?? 'Impossible de lancer le paiement.';
-        this.snackBar.open(message, 'Fermer', { duration: 5000 });
+        const message = error?.error?.error ?? 'Unable to initiate payment.';
+        this.snackBar.open(message, 'Close', { duration: 5000 });
       }
     });
   }
@@ -111,15 +111,15 @@ export class SubscriptionComponent implements OnInit {
 
   actionLabel(plan: SubscriptionPlan): string {
     if (this.isCurrentPlan(plan)) {
-      return 'Plan actuel';
+      return 'Current plan';
     }
     if (plan.tier === 'FREE') {
-      return 'Inclus';
+      return 'Included';
     }
     if (!this.authService.isLoggedIn()) {
-      return 'Se connecter';
+      return 'Sign in';
     }
-    return this.upgradeTier === plan.tier ? 'Preparation...' : 'Choisir ce plan';
+    return this.upgradeTier === plan.tier ? 'Preparing...' : 'Choose this plan';
   }
 
   monthlyPrice(plan: SubscriptionPlan): string {

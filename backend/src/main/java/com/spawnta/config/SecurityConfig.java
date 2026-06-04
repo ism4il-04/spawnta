@@ -44,6 +44,7 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/api/auth/**",
                     "/api/subscription/webhook",  // Stripe webhook endpoint (no auth required)
+                    "/ws",
                     "/ws/**",
                     "/error"
                 ).permitAll()

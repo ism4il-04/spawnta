@@ -144,17 +144,17 @@ public class RecommendationService {
             boolean matchesInterest = user.getInterests().stream()
                     .anyMatch(interest -> interest.name().equalsIgnoreCase(actCat));
             if (matchesInterest) {
-                return "Basé sur votre intérêt pour " + actCat;
+                return "Based on your interest in " + actCat;
             }
         }
 
         if (score >= 70.0) {
-            return "Populaire près de chez vous";
+            return "Popular near you";
         } else if (score >= 40.0) {
-            return "Activité recommandée pour vous";
+            return "Recommended activity for you";
         }
 
-        return "Recommandé pour la communauté";
+        return "Recommended for the community";
     }
 
     private double calculateDistanceInKm(double lat1, double lon1, double lat2, double lon2) {

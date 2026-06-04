@@ -29,7 +29,7 @@ public class SessionExpiryScheduler {
                     "/queue/errors",
                     Map.of(
                         "type", "AUTH_EXPIRED",
-                        "message", "Votre session JWT a expiré. Veuillez renouveler l'authentification."
+                        "message", "Your session has expired. Please log in again."
                     )
                 );
             } catch (Exception ignored) {}
