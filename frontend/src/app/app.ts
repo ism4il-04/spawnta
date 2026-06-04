@@ -5,11 +5,12 @@ import { AuthService } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
 import { NotificationsDropdownComponent } from './features/notifications/notifications-dropdown/notifications-dropdown';
 import { MatIconModule } from '@angular/material/icon';
+import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatIconModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, ToastContainerComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })

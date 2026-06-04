@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import { Client, IMessage } from '@stomp/stompjs';
 import { AuthService } from './auth.service';
+import { NotificationToastService } from './notification-toast.service';
+import { Router } from '@angular/router';
 
 export interface ChatResponse {
   id: number;
@@ -46,6 +48,8 @@ export interface PaginatedMessages {
 export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly toastService = inject(NotificationToastService);
+  private readonly router = inject(Router);
 
   private readonly apiUrl = 'http://localhost:8080/api/chats';
   private stompClient: Client | null = null;
@@ -195,11 +199,25 @@ export class ChatService {
       try {
         const body = JSON.parse(message.body);
         this.messageStreamSubject.next(body);
+        
         // Increment unread badge if the message is for a different chat
         if (body.type === 'MESSAGE') {
           const msgChatId = body.payload?.chatId;
+          const msg = body.payload as MessageResponse;
+          
           if (msgChatId !== undefined && msgChatId !== this.activeChatId) {
             this.incrementUnread();
+            
+            // Afficher une notification toast
+            this.toastService.showMessage(
+              msg.senderName || 'Nouveau message',
+              msg.content,
+              msg.senderAvatarUrl || undefined,
+              () => {
+                // Naviguer vers le chat quand on clique sur la notification
+                this.router.navigate(['/chat'], { queryParams: { id: msgChatId } });
+              }
+            );
           }
         }
       } catch (err) {
