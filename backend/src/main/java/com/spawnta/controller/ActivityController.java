@@ -4,6 +4,7 @@ import com.spawnta.dto.ActivityParticipantResponse;
 import com.spawnta.dto.ActivityResponse;
 import com.spawnta.dto.CreateActivityRequest;
 import com.spawnta.dto.JoinActivityRequest;
+import com.spawnta.dto.MyActivityResponse;
 import com.spawnta.entity.ActivityType;
 import com.spawnta.entity.ParticipationMode;
 import com.spawnta.service.ActivityService;
@@ -57,6 +58,12 @@ public class ActivityController {
             scheduledDate
         );
         return ResponseEntity.ok(activities);
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<MyActivityResponse>> getMyActivities(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(activityService.getMyActivities(email));
     }
 
     @GetMapping("/{id}")

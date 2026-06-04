@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+import com.spawnta.dto.AttendancePendingResponse;
 
 @Service
 public class AttendanceService {
@@ -107,11 +109,11 @@ public class AttendanceService {
 
         int duration = activity.getDurationMinutes() != null ? activity.getDurationMinutes() : 120;
         LocalDateTime deadline = activity.getScheduledAt().plusMinutes(duration).plusMinutes(30);
-        String qrCode = generateActivityQrCode(activityId);
 
-        // Host only needs the QR code to show participants (no self check-in record)
-        if (isHost && !joined) {
-            return new AttendanceCheckInDto(null, qrCode, activity.getTitle(), deadline);
+        if (isHost) {
+            long expiryTime = java.time.ZonedDateTime.of(deadline, java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+            String signedToken = qrCodeService.generateSignedToken(activityId, expiryTime);
+            return new AttendanceCheckInDto(null, signedToken, activity.getTitle(), deadline);
         }
 
         if (!joined) {
@@ -124,11 +126,11 @@ public class AttendanceService {
                     return attendanceRepository.save(newAttendance);
                 });
 
-        return new AttendanceCheckInDto(attendance.getId(), qrCode, activity.getTitle(), deadline);
+        return new AttendanceCheckInDto(attendance.getId(), null, activity.getTitle(), deadline);
     }
 
     @Transactional
-    public ActivityAttendance confirmCheckIn(Long activityId, Long userId, String photoUrl, Double latitude, Double longitude) {
+    public ActivityAttendance confirmCheckIn(Long activityId, Long userId, Double latitude, Double longitude) {
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
 
@@ -137,7 +139,12 @@ public class AttendanceService {
         }
 
         ActivityAttendance attendance = attendanceRepository.findByActivityIdAndParticipantId(activityId, userId)
-                .orElseThrow(() -> new IllegalStateException("You must initiate check-in before confirming."));
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                    ActivityAttendance newAttendance = new ActivityAttendance(activity, user);
+                    return attendanceRepository.save(newAttendance);
+                });
 
         if (attendance.getStatus() == AttendanceStatus.CONFIRMED) {
             throw new IllegalStateException("Your attendance has already been confirmed.");
@@ -158,19 +165,53 @@ public class AttendanceService {
             throw new IllegalStateException("You are too far from the activity location to check in");
         }
 
-        // 3. Photo Evidence Validation
-        if (!attendanceValidator.validatePhotoEvidence(photoUrl)) {
-            throw new IllegalArgumentException("Invalid photo evidence provided");
-        }
+        attendance.setCheckInTime(now);
+        attendance.setStatus(AttendanceStatus.PENDING);
+        attendance.setConfirmedAt(null);
+        ActivityAttendance saved = attendanceRepository.save(attendance);
 
-        // Save Evidence
-        AttendanceEvidence evidence = new AttendanceEvidence(attendance, photoUrl, checkinLoc);
+        AttendanceEvidence evidence = new AttendanceEvidence(saved, "GPS_VERIFIED", checkinLoc);
         evidenceRepository.save(evidence);
 
-        // Update Check-in Status
+        return saved;
+    }
+
+    @Transactional
+    public ActivityAttendance checkInViaQr(Long activityId, Long userId, String token) {
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
+
+        if (activity.getHost().getId().equals(userId)) {
+            throw new IllegalStateException("Hosts cannot check in as participants on their own activity.");
+        }
+
+        if (!qrCodeService.validateSignedToken(token, activityId)) {
+            throw new IllegalArgumentException("Invalid or expired QR code token.");
+        }
+
+        ActivityAttendance attendance = attendanceRepository.findByActivityIdAndParticipantId(activityId, userId)
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                    ActivityAttendance newAttendance = new ActivityAttendance(activity, user);
+                    return attendanceRepository.save(newAttendance);
+                });
+
+        if (attendance.getStatus() == AttendanceStatus.CONFIRMED) {
+            return attendance;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
         attendance.setCheckInTime(now);
-        attendance.setStatus(AttendanceStatus.PENDING); // Awaiting host confirmation
-        return attendanceRepository.save(attendance);
+        attendance.setStatus(AttendanceStatus.CONFIRMED);
+        attendance.setConfirmedAt(now);
+        ActivityAttendance saved = attendanceRepository.save(attendance);
+
+        gamificationService.awardXp(userId, 100, "Participated in: " + activity.getTitle());
+        createAttendanceConfirmedOutboxEvent(saved);
+
+        return saved;
     }
 
     @Transactional
@@ -206,9 +247,26 @@ public class AttendanceService {
         }
     }
 
-    public String generateActivityQrCode(Long activityId) {
-        String payload = "spawnta://check-in/" + activityId;
-        return qrCodeService.toPngDataUri(payload, 280);
+    @Transactional(readOnly = true)
+    public List<AttendancePendingResponse> getPendingAttendances(Long activityId, Long hostId) {
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
+
+        if (!activity.getHost().getId().equals(hostId)) {
+            throw new IllegalStateException("Only the host can view pending check-ins");
+        }
+
+        return attendanceRepository.findByActivityId(activityId).stream()
+                .filter(a -> a.getStatus() == AttendanceStatus.PENDING)
+                .map(a -> new AttendancePendingResponse(
+                        a.getId(),
+                        a.getParticipant().getId(),
+                        a.getParticipant().getFirstName(),
+                        a.getParticipant().getLastName(),
+                        a.getParticipant().getEmail(),
+                        a.getCheckInTime()
+                ))
+                .collect(Collectors.toList());
     }
 
     private void createAttendanceConfirmedOutboxEvent(ActivityAttendance attendance) {
