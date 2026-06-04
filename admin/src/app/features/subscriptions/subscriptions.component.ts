@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { finalize } from 'rxjs';
 import { AdminSubscriptions, AdminSubscriptionsService } from '../../core/admin-subscriptions.service';
 
@@ -12,9 +12,10 @@ import { AdminSubscriptions, AdminSubscriptionsService } from '../../core/admin-
 })
 export class SubscriptionsComponent implements OnInit {
   private readonly subscriptionsService = inject(AdminSubscriptionsService);
+  private readonly cd = inject(ChangeDetectorRef);
 
   data: AdminSubscriptions | null = null;
-  loading = true;
+  loading = false;
   errorMessage = '';
 
   ngOnInit(): void {
@@ -25,10 +26,19 @@ export class SubscriptionsComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
     this.subscriptionsService.getSubscriptions().pipe(
-      finalize(() => this.loading = false)
+      finalize(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      })
     ).subscribe({
-      next: data => this.data = data,
-      error: error => this.errorMessage = error?.error?.error ?? 'Impossible de charger les abonnements.'
+      next: data => {
+        this.data = data;
+        this.cd.detectChanges();
+      },
+      error: error => {
+        this.errorMessage = error?.error?.error ?? 'Impossible de charger les abonnements.';
+        this.cd.detectChanges();
+      }
     });
   }
 

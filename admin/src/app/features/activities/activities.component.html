@@ -12,19 +12,10 @@
     </button>
   </header>
 
-  <div class="summary-grid" *ngIf="summary">
-    <article class="summary-card">
-      <span>Total</span>
-      <strong>{{ summary.totalActivities }}</strong>
-    </article>
-    <article class="summary-card success">
-      <span>A venir</span>
-      <strong>{{ summary.upcomingActivities }}</strong>
-    </article>
-    <article class="summary-card muted">
-      <span>Passees</span>
-      <strong>{{ summary.pastActivities }}</strong>
-    </article>
+  <div class="summary-grid">
+    <article class="summary-card"><span>Total</span><strong>{{ summary?.totalActivities ?? 0 }}</strong></article>
+    <article class="summary-card success"><span>A venir</span><strong>{{ summary?.upcomingActivities ?? 0 }}</strong></article>
+    <article class="summary-card muted"><span>Passees</span><strong>{{ summary?.pastActivities ?? 0 }}</strong></article>
   </div>
 
   <section class="filters-panel">
@@ -50,15 +41,10 @@
     <button type="button" class="secondary-action" (click)="loadActivities()">Filtrer</button>
   </section>
 
-  <div class="status-panel error" *ngIf="errorMessage">
-    {{ errorMessage }}
-    <button type="button" (click)="loadActivities()">Reessayer</button>
-  </div>
+  <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
   <section class="table-shell">
-    <div class="table-loading" *ngIf="loading">Chargement des activites...</div>
-
-    <table *ngIf="!loading">
+    <table>
       <thead>
         <tr>
           <th>Activite</th>
@@ -95,8 +81,8 @@
             </button>
           </td>
         </tr>
-        <tr *ngIf="!activities.length">
-          <td colspan="7" class="empty-row">Aucune activite pour ces filtres.</td>
+        <tr *ngIf="!activities.length && !loading">
+          <td colspan="7" class="empty-row">Aucune activité trouvée.</td>
         </tr>
       </tbody>
     </table>

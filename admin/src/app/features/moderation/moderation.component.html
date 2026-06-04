@@ -25,58 +25,48 @@
     </label>
   </section>
 
-  <div class="status-panel" *ngIf="loading">Chargement des signalements...</div>
   <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
-  <ng-container *ngIf="data && !loading">
-    <div class="summary-grid">
-      <article class="summary-card warning"><span>Users ouverts</span><strong>{{ data.openUserReports }}</strong></article>
-      <article class="summary-card warning"><span>Activites ouvertes</span><strong>{{ data.openActivityReports }}</strong></article>
-      <article class="summary-card"><span>Users resolus</span><strong>{{ data.resolvedUserReports }}</strong></article>
-      <article class="summary-card"><span>Activites resolues</span><strong>{{ data.resolvedActivityReports }}</strong></article>
-    </div>
+  <div class="summary-grid">
+    <article class="summary-card warning"><span>Utilisateurs signalés</span><strong>{{ data?.openUserReports ?? 0 }}</strong></article>
+    <article class="summary-card warning"><span>Activités signalées</span><strong>{{ data?.openActivityReports ?? 0 }}</strong></article>
+    <article class="summary-card success"><span>Signalements résolus</span><strong>{{ (data?.resolvedUserReports ?? 0) + (data?.resolvedActivityReports ?? 0) }}</strong></article>
+  </div>
 
-    <section class="reports-grid">
-      <article class="report-panel">
-        <h2>Signalements utilisateurs</h2>
-        <div class="report-card" *ngFor="let report of data.userReports">
-          <div class="report-head">
+  <section class="moderation-layout">
+    <aside class="reports-list">
+      <div class="list-section">
+        <h3>Utilisateurs ({{ data?.userReports?.length ?? 0 }})</h3>
+        <div class="report-item" 
+             *ngFor="let report of data?.userReports"
+             [class.active]="selectedReport?.id === report.id && selectedKind === 'user'"
+             (click)="selectUserReport(report)">
+          <div class="report-main">
+            <strong>{{ report.reportedUserEmail }}</strong>
             <span class="pill" [class]="statusClass(report.status)">{{ report.status }}</span>
-            <small>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
           </div>
-          <h3>{{ report.reportedUserName }}</h3>
-          <p>{{ report.reason }} - {{ report.description }}</p>
-          <small>Par {{ report.reporterEmail }} contre {{ report.reportedUserEmail }}</small>
-          <div class="actions">
-            <button type="button" (click)="selectUserReport(report)">Details</button>
-            <button type="button" (click)="updateUserReport(report, 'investigate')" [disabled]="actionId === 'user-' + report.id">Investiguer</button>
-            <button type="button" (click)="updateUserReport(report, 'resolve')" [disabled]="actionId === 'user-' + report.id">Resoudre</button>
-            <button type="button" class="danger" (click)="updateUserReport(report, 'dismiss')" [disabled]="actionId === 'user-' + report.id">Rejeter</button>
-          </div>
+          <small>Par: {{ report.reporterEmail }}</small>
         </div>
-        <p class="empty" *ngIf="!data.userReports.length">Aucun signalement utilisateur.</p>
-      </article>
+      </div>
 
-      <article class="report-panel">
-        <h2>Signalements activites</h2>
-        <div class="report-card" *ngFor="let report of data.activityReports">
-          <div class="report-head">
+      <div class="list-section">
+        <h3>Activités ({{ data?.activityReports?.length ?? 0 }})</h3>
+        <div class="report-item" 
+             *ngFor="let report of data?.activityReports"
+             [class.active]="selectedReport?.id === report.id && selectedKind === 'activity'"
+             (click)="selectActivityReport(report)">
+          <div class="report-main">
+            <strong>{{ report.activityTitle }}</strong>
             <span class="pill" [class]="statusClass(report.status)">{{ report.status }}</span>
-            <small>{{ report.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
           </div>
-          <h3>{{ report.activityTitle }}</h3>
-          <p>{{ report.reason }} - {{ report.description }}</p>
-          <small>Par {{ report.reporterEmail }} - host {{ report.hostEmail }}</small>
-          <div class="actions">
-            <button type="button" (click)="selectActivityReport(report)">Details</button>
-            <button type="button" (click)="updateActivityReport(report, 'investigate')" [disabled]="actionId === 'activity-' + report.id">Investiguer</button>
-            <button type="button" (click)="updateActivityReport(report, 'resolve')" [disabled]="actionId === 'activity-' + report.id">Resoudre</button>
-            <button type="button" class="danger" (click)="updateActivityReport(report, 'dismiss')" [disabled]="actionId === 'activity-' + report.id">Rejeter</button>
-          </div>
+          <small>Par: {{ report.reporterEmail }}</small>
         </div>
-        <p class="empty" *ngIf="!data.activityReports.length">Aucun signalement activite.</p>
-      </article>
-    </section>
+      </div>
+      
+      <div class="empty-state" *ngIf="!data?.userReports?.length && !data?.activityReports?.length && !loading">
+        Aucun signalement en attente.
+      </div>
+    </aside>
 
     <aside class="detail-panel" *ngIf="selectedReport">
       <div class="detail-head">
@@ -119,5 +109,5 @@
         </div>
       </ng-container>
     </aside>
-  </ng-container>
+  </section>
 </section>

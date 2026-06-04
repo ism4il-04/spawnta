@@ -12,83 +12,81 @@
     </button>
   </header>
 
-  <div class="status-panel" *ngIf="loading">Chargement des abonnements...</div>
   <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
-  <ng-container *ngIf="data && !loading">
-    <div class="summary-grid">
-      <article class="summary-card"><span>Plans</span><strong>{{ data.totalPlans }}</strong></article>
-      <article class="summary-card"><span>Actifs</span><strong>{{ data.activeSubscriptions }}</strong></article>
-      <article class="summary-card warning"><span>En attente</span><strong>{{ data.pendingSubscriptions }}</strong></article>
-      <article class="summary-card danger"><span>Past due</span><strong>{{ data.pastDueSubscriptions }}</strong></article>
-      <article class="summary-card"><span>Paiements</span><strong>{{ data.successfulPayments | number:'1.0-2' }}</strong></article>
-      <article class="summary-card success"><span>MRR estime</span><strong>{{ estimatedMrr() | currency:'EUR':'symbol':'1.0-0' }}</strong></article>
-      <article class="summary-card muted"><span>Churn</span><strong>{{ churnRate() | number:'1.0-1' }}%</strong></article>
-    </div>
+  <div class="summary-grid">
+    <article class="summary-card"><span>Plans</span><strong>{{ data?.totalPlans ?? 0 }}</strong></article>
+    <article class="summary-card"><span>Actifs</span><strong>{{ data?.activeSubscriptions ?? 0 }}</strong></article>
+    <article class="summary-card warning"><span>En attente</span><strong>{{ data?.pendingSubscriptions ?? 0 }}</strong></article>
+    <article class="summary-card danger"><span>Past due</span><strong>{{ data?.pastDueSubscriptions ?? 0 }}</strong></article>
+    <article class="summary-card"><span>Paiements</span><strong>{{ (data?.successfulPayments ?? 0) | number:'1.0-2' }}</strong></article>
+    <article class="summary-card success"><span>MRR estime</span><strong>{{ estimatedMrr() | currency:'EUR':'symbol':'1.0-0' }}</strong></article>
+    <article class="summary-card muted"><span>Churn</span><strong>{{ churnRate() | number:'1.0-1' }}%</strong></article>
+  </div>
 
-    <section class="metrics-panel">
-      <article>
-        <span>Repartition abonnements</span>
-        <div class="bar-row">
-          <small>Actifs</small>
-          <div><i [style.width.%]="data.activeSubscriptions ? 100 : 0"></i></div>
-          <strong>{{ data.activeSubscriptions }}</strong>
-        </div>
-        <div class="bar-row warning">
-          <small>En attente</small>
-          <div><i [style.width.%]="data.pendingSubscriptions ? (data.pendingSubscriptions / (data.activeSubscriptions + data.pendingSubscriptions + data.pastDueSubscriptions + data.cancelledSubscriptions || 1)) * 100 : 0"></i></div>
-          <strong>{{ data.pendingSubscriptions }}</strong>
-        </div>
-        <div class="bar-row danger">
-          <small>Annules</small>
-          <div><i [style.width.%]="data.cancelledSubscriptions ? churnRate() : 0"></i></div>
-          <strong>{{ data.cancelledSubscriptions }}</strong>
-        </div>
-      </article>
-    </section>
+  <section class="metrics-panel">
+    <article>
+      <span>Repartition abonnements</span>
+      <div class="bar-row">
+        <small>Actifs</small>
+        <div><i [style.width.%]="data?.activeSubscriptions ? 100 : 0"></i></div>
+        <strong>{{ data?.activeSubscriptions ?? 0 }}</strong>
+      </div>
+      <div class="bar-row warning">
+        <small>En attente</small>
+        <div><i [style.width.%]="data?.pendingSubscriptions ? (data!.pendingSubscriptions / ((data?.activeSubscriptions ?? 0) + data!.pendingSubscriptions + (data?.pastDueSubscriptions ?? 0) + (data?.cancelledSubscriptions ?? 0) || 1)) * 100 : 0"></i></div>
+        <strong>{{ data?.pendingSubscriptions ?? 0 }}</strong>
+      </div>
+      <div class="bar-row danger">
+        <small>Annules</small>
+        <div><i [style.width.%]="data?.cancelledSubscriptions ? churnRate() : 0"></i></div>
+        <strong>{{ data?.cancelledSubscriptions ?? 0 }}</strong>
+      </div>
+    </article>
+  </section>
 
-    <section class="plans-grid">
-      <article class="plan-card" *ngFor="let plan of data.plans">
-        <div>
-          <span class="pill tier">{{ plan.tier }}</span>
-          <h2>{{ plan.name }}</h2>
-        </div>
-        <strong>{{ plan.monthlyPrice | currency:'EUR':'symbol':'1.0-2' }}</strong>
-        <p>{{ plan.description || 'Aucune description.' }}</p>
-        <ul>
-          <li *ngFor="let feature of plan.features">{{ feature }}</li>
-          <li *ngIf="!plan.features.length">Aucune feature configuree.</li>
-        </ul>
-      </article>
-    </section>
+  <section class="plans-grid">
+    <article class="plan-card" *ngFor="let plan of data?.plans">
+      <div>
+        <span class="pill tier">{{ plan.tier }}</span>
+        <h2>{{ plan.name }}</h2>
+      </div>
+      <strong>{{ plan.monthlyPrice | currency:'EUR':'symbol':'1.0-2' }}</strong>
+      <p>{{ plan.description || 'Aucune description.' }}</p>
+      <ul>
+        <li *ngFor="let feature of plan.features">{{ feature }}</li>
+        <li *ngIf="!plan.features.length">Aucune feature configuree.</li>
+      </ul>
+    </article>
+    <div class="empty-state" *ngIf="!data?.plans?.length && !loading">Aucun plan configure.</div>
+  </section>
 
-    <section class="table-shell">
-      <table>
-        <thead>
-          <tr>
-            <th>Utilisateur</th>
-            <th>Plan</th>
-            <th>Statut</th>
-            <th>Debut</th>
-            <th>Renouvellement</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let subscription of data.subscriptions">
-            <td>
-              <strong>{{ subscription.userName }}</strong>
-              <small>{{ subscription.userEmail }}</small>
-            </td>
-            <td>{{ subscription.planName }}</td>
-            <td><span class="pill" [class]="statusClass(subscription.status)">{{ subscription.status }}</span></td>
-            <td>{{ subscription.startDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ subscription.renewalDate ? (subscription.renewalDate | date:'dd/MM/yyyy') : '-' }}</td>
-          </tr>
-          <tr *ngIf="!data.subscriptions.length">
-            <td colspan="5" class="empty-row">Aucun abonnement utilisateur pour le moment.</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-  </ng-container>
+  <section class="table-shell">
+    <table>
+      <thead>
+        <tr>
+          <th>Utilisateur</th>
+          <th>Plan</th>
+          <th>Statut</th>
+          <th>Debut</th>
+          <th>Renouvellement</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let subscription of data?.subscriptions">
+          <td>
+            <strong>{{ subscription.userName }}</strong>
+            <small>{{ subscription.userEmail }}</small>
+          </td>
+          <td>{{ subscription.planName }}</td>
+          <td><span class="pill" [class]="statusClass(subscription.status)">{{ subscription.status }}</span></td>
+          <td>{{ subscription.startDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ subscription.renewalDate ? (subscription.renewalDate | date:'dd/MM/yyyy') : '-' }}</td>
+        </tr>
+        <tr *ngIf="!data?.subscriptions?.length && !loading">
+          <td colspan="5" class="empty-row">Aucun abonnement utilisateur pour le moment.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
 </section>

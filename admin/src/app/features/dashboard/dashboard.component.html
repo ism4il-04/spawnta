@@ -12,60 +12,58 @@
     </button>
   </header>
 
-  <div class="status-panel" *ngIf="loading">Chargement du dashboard...</div>
   <div class="status-panel error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
-  <ng-container *ngIf="dashboard && !loading">
-    <div class="summary-grid">
-      <article class="summary-card"><span>Utilisateurs</span><strong>{{ dashboard.totalUsers }}</strong></article>
-      <article class="summary-card"><span>Premium</span><strong>{{ dashboard.premiumUsers }}</strong></article>
-      <article class="summary-card"><span>Activites</span><strong>{{ dashboard.totalActivities }}</strong></article>
-      <article class="summary-card"><span>A venir</span><strong>{{ dashboard.upcomingActivities }}</strong></article>
-      <article class="summary-card warning"><span>Signalements</span><strong>{{ dashboard.openUserReports + dashboard.openActivityReports }}</strong></article>
-      <article class="summary-card danger"><span>Bannis</span><strong>{{ dashboard.bannedUsers }}</strong></article>
-    </div>
+  <div class="summary-grid">
+    <article class="summary-card"><span>Utilisateurs</span><strong>{{ dashboard?.totalUsers ?? 0 }}</strong></article>
+    <article class="summary-card"><span>Premium</span><strong>{{ dashboard?.premiumUsers ?? 0 }}</strong></article>
+    <article class="summary-card"><span>Activites</span><strong>{{ dashboard?.totalActivities ?? 0 }}</strong></article>
+    <article class="summary-card"><span>A venir</span><strong>{{ dashboard?.upcomingActivities ?? 0 }}</strong></article>
+    <article class="summary-card warning"><span>Signalements</span><strong>{{ (dashboard?.openUserReports ?? 0) + (dashboard?.openActivityReports ?? 0) }}</strong></article>
+    <article class="summary-card danger"><span>Bannis</span><strong>{{ dashboard?.bannedUsers ?? 0 }}</strong></article>
+  </div>
 
-    <section class="split-grid">
-      <article class="panel">
-        <h2>Etat plateforme</h2>
-        <dl>
-          <div><dt>Admins</dt><dd>{{ dashboard.admins }}</dd></div>
-          <div><dt>Emails non verifies</dt><dd>{{ dashboard.unverifiedUsers }}</dd></div>
-          <div><dt>Utilisateurs suspendus</dt><dd>{{ dashboard.suspendedUsers }}</dd></div>
-          <div><dt>Plans abonnement</dt><dd>{{ dashboard.subscriptionPlans }}</dd></div>
-          <div><dt>Abonnements actifs</dt><dd>{{ dashboard.activeSubscriptions }}</dd></div>
-          <div><dt>Paiements reussis</dt><dd>{{ dashboard.successfulPayments | number:'1.0-2' }}</dd></div>
-        </dl>
-      </article>
+  <section class="split-grid">
+    <article class="split-card audit-logs">
+      <header>
+        <h2>Dernieres actions admin</h2>
+        <span class="material-symbol">history</span>
+      </header>
+      
+      <div class="audit-list">
+        <div class="audit-item" *ngFor="let log of dashboard?.recentAuditLogs">
+          <div class="audit-main">
+            <strong>{{ log.adminEmail }}</strong>
+            <span>{{ log.action }}</span>
+          </div>
+          <div class="audit-meta">
+            <small>{{ log.targetType }} #{{ log.targetId }}</small>
+            <time>{{ log.createdAt | date:'shortTime' }}</time>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="!dashboard?.recentAuditLogs?.length && !loading">
+          Aucune action recente.
+        </div>
+      </div>
+    </article>
 
-      <article class="panel">
-        <h2>Tendances rapides</h2>
-        <div class="trend-row">
-          <span>Premium</span>
-          <div><i [style.width.%]="ratio(dashboard.premiumUsers, dashboard.totalUsers)"></i></div>
-          <strong>{{ ratio(dashboard.premiumUsers, dashboard.totalUsers) }}%</strong>
-        </div>
-        <div class="trend-row activity">
-          <span>Activites a venir</span>
-          <div><i [style.width.%]="ratio(dashboard.upcomingActivities, dashboard.totalActivities)"></i></div>
-          <strong>{{ ratio(dashboard.upcomingActivities, dashboard.totalActivities) }}%</strong>
-        </div>
-        <div class="trend-row alert">
-          <span>Moderation ouverte</span>
-          <div><i [style.width.%]="ratio(moderationTotal(), dashboard.totalUsers + dashboard.totalActivities)"></i></div>
-          <strong>{{ moderationTotal() }}</strong>
-        </div>
-      </article>
+    <article class="split-card stats">
+      <header>
+        <h2>Sante plateforme</h2>
+        <span class="material-symbol">analytics</span>
+      </header>
 
-      <article class="panel">
-        <h2>Audit recent</h2>
-        <div class="audit-row" *ngFor="let log of dashboard.recentAuditLogs">
-          <span>{{ log.action }}</span>
-          <small>{{ log.adminEmail }} - {{ log.targetType }} #{{ log.targetId || '-' }} - {{ log.createdAt | date:'dd/MM HH:mm' }}</small>
-          <em *ngIf="log.details">{{ log.details }}</em>
-        </div>
-        <p class="empty" *ngIf="!dashboard.recentAuditLogs.length">Aucune action admin pour le moment.</p>
-      </article>
-    </section>
-  </ng-container>
+      <div class="stat-row">
+        <span>Verification email</span>
+        <div class="bar"><i [style.width.%]="ratio(dashboard?.totalUsers ? (dashboard!.totalUsers - dashboard!.unverifiedUsers) : 0, dashboard?.totalUsers ?? 0)"></i></div>
+        <strong>{{ ratio(dashboard?.totalUsers ? (dashboard!.totalUsers - dashboard!.unverifiedUsers) : 0, dashboard?.totalUsers ?? 0) }}%</strong>
+      </div>
+
+      <div class="stat-row">
+        <span>Taux Premium</span>
+        <div class="bar"><i [style.width.%]="ratio(dashboard?.premiumUsers ?? 0, dashboard?.totalUsers ?? 0)"></i></div>
+        <strong>{{ ratio(dashboard?.premiumUsers ?? 0, dashboard?.totalUsers ?? 0) }}%</strong>
+      </div>
+    </article>
+  </section>
 </section>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ActivityReportAdmin, AdminModeration, AdminModerationService, UserReportAdmin } from '../../core/admin-moderation.service';
@@ -13,9 +13,10 @@ import { ActivityReportAdmin, AdminModeration, AdminModerationService, UserRepor
 })
 export class ModerationComponent implements OnInit {
   private readonly moderationService = inject(AdminModerationService);
+  private readonly cd = inject(ChangeDetectorRef);
 
   data: AdminModeration | null = null;
-  loading = true;
+  loading = false;
   actionId = '';
   errorMessage = '';
   status = 'all';
@@ -30,7 +31,10 @@ export class ModerationComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
     this.moderationService.getReports(this.status).pipe(
-      finalize(() => this.loading = false)
+      finalize(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      })
     ).subscribe({
       next: data => {
         this.data = data;
@@ -38,8 +42,12 @@ export class ModerationComponent implements OnInit {
           this.selectedReport = data.userReports[0] ?? data.activityReports[0] ?? null;
           this.selectedKind = data.userReports[0] ? 'user' : data.activityReports[0] ? 'activity' : null;
         }
+        this.cd.detectChanges();
       },
-      error: error => this.errorMessage = error?.error?.error ?? 'Impossible de charger la moderation.'
+      error: error => {
+        this.errorMessage = error?.error?.error ?? 'Impossible de charger la moderation.';
+        this.cd.detectChanges();
+      }
     });
   }
 
