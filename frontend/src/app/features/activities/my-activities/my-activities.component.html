@@ -1,0 +1,185 @@
+<div class="my-activities-page">
+  <div class="page-header">
+    <mat-icon class="header-icon">event_note</mat-icon>
+    <h1>My Activities</h1>
+  </div>
+
+  <div class="loading-wrap" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading your activities...</p>
+  </div>
+
+  <mat-tab-group *ngIf="!loading" animationDuration="300ms" class="activity-tabs">
+
+    <!-- ═══════ HOSTED TAB ═══════ -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">star</mat-icon>
+        Hosted ({{ hostedActivities.length }})
+      </ng-template>
+
+      <div class="tab-body">
+        <div class="empty-state" *ngIf="hostedActivities.length === 0">
+          <mat-icon class="empty-icon">campaign</mat-icon>
+          <p>You haven't hosted any activities yet.</p>
+          <a mat-flat-button color="primary" routerLink="/map">Create one on the Map</a>
+        </div>
+
+        <div class="activity-card" *ngFor="let item of hostedActivities"
+             [class.expanded]="expandedActivityId === item.activity.id">
+
+          <!-- Card Header -->
+          <div class="card-header" (click)="toggleExpand(item.activity.id)">
+            <div class="card-left">
+              <div class="category-badge">{{ item.activity.category || 'General' }}</div>
+              <h3 class="card-title">{{ item.activity.title }}</h3>
+              <div class="card-meta">
+                <span class="meta-item">
+                  <mat-icon>schedule</mat-icon>
+                  {{ item.activity.scheduledAt | date:'MMM d, y · h:mm a' }}
+                </span>
+                <span class="meta-item" *ngIf="item.activity.address">
+                  <mat-icon>place</mat-icon>
+                  {{ item.activity.address }}
+                </span>
+                <span class="meta-item">
+                  <mat-icon>people</mat-icon>
+                  {{ item.activity.participantCount }}{{ item.activity.maxParticipants ? ' / ' + item.activity.maxParticipants : '' }} participants
+                </span>
+              </div>
+            </div>
+            <div class="card-right">
+              <span class="status-badge" [ngClass]="getTimeStatus(item).cssClass">
+                {{ getTimeStatus(item).label }}
+              </span>
+              <mat-icon class="expand-arrow">
+                {{ expandedActivityId === item.activity.id ? 'expand_less' : 'expand_more' }}
+              </mat-icon>
+            </div>
+          </div>
+
+          <!-- Expanded Detail Panel -->
+          <div class="card-detail" *ngIf="expandedActivityId === item.activity.id">
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+              <a mat-stroked-button color="accent" [routerLink]="['/check-in', item.activity.id]">
+                <mat-icon>qr_code_scanner</mat-icon> Check-In Page
+              </a>
+              <a mat-stroked-button [routerLink]="['/chat']" [queryParams]="{ activityId: item.activity.id }">
+                <mat-icon>chat</mat-icon> Group Chat
+              </a>
+            </div>
+
+            <!-- Pending GPS Check-ins -->
+            <div class="detail-section">
+              <h4><mat-icon>how_to_reg</mat-icon> Pending GPS Check-Ins</h4>
+              <p class="section-empty" *ngIf="loadingCheckIns[item.activity.id]">Loading...</p>
+              <p class="section-empty" *ngIf="!loadingCheckIns[item.activity.id] && (!pendingCheckInsMap[item.activity.id] || pendingCheckInsMap[item.activity.id].length === 0)">
+                No pending check-in requests.
+              </p>
+              <div class="person-row" *ngFor="let att of pendingCheckInsMap[item.activity.id] || []">
+                <div class="person-avatar">{{ att.firstName ? att.firstName[0].toUpperCase() : 'P' }}</div>
+                <div class="person-info">
+                  <span class="person-name">{{ att.firstName }} {{ att.lastName }}</span>
+                  <span class="person-sub">{{ att.checkInTime | date:'shortTime' }}</span>
+                </div>
+                <button mat-flat-button color="primary" class="action-btn"
+                        [disabled]="confirmingCheckInId === att.attendanceId"
+                        (click)="confirmCheckIn(item.activity.id, att)">
+                  <mat-icon *ngIf="confirmingCheckInId !== att.attendanceId">check</mat-icon>
+                  {{ confirmingCheckInId === att.attendanceId ? 'Confirming...' : 'Confirm' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Pending Join Requests -->
+            <div class="detail-section" *ngIf="item.activity.participationMode === 'APPROVAL'">
+              <h4><mat-icon>person_add</mat-icon> Pending Join Requests</h4>
+              <p class="section-empty" *ngIf="loadingJoins[item.activity.id]">Loading...</p>
+              <p class="section-empty" *ngIf="!loadingJoins[item.activity.id] && (!pendingJoinMap[item.activity.id] || pendingJoinMap[item.activity.id].length === 0)">
+                No pending join requests.
+              </p>
+              <div class="person-row" *ngFor="let p of pendingJoinMap[item.activity.id] || []">
+                <div class="person-avatar">{{ p.firstName ? p.firstName[0].toUpperCase() : 'P' }}</div>
+                <div class="person-info">
+                  <span class="person-name">{{ p.firstName }} {{ p.lastName }}</span>
+                  <span class="person-sub" *ngIf="p.introMessage">"{{ p.introMessage }}"</span>
+                </div>
+                <button mat-flat-button color="primary" class="action-btn"
+                        [disabled]="approvingJoinId === p.id"
+                        (click)="approveJoin(item.activity.id, p)">
+                  <mat-icon *ngIf="approvingJoinId !== p.id">check</mat-icon>
+                  {{ approvingJoinId === p.id ? 'Approving...' : 'Approve' }}
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ═══════ JOINED TAB ═══════ -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">directions_run</mat-icon>
+        Joined ({{ joinedActivities.length }})
+      </ng-template>
+
+      <div class="tab-body">
+        <div class="empty-state" *ngIf="joinedActivities.length === 0">
+          <mat-icon class="empty-icon">explore</mat-icon>
+          <p>You haven't joined any activities yet.</p>
+          <a mat-flat-button color="primary" routerLink="/map">Explore the Map</a>
+        </div>
+
+        <div class="activity-card joined-card" *ngFor="let item of joinedActivities">
+          <div class="card-header">
+            <div class="card-left">
+              <div class="category-badge">{{ item.activity.category || 'General' }}</div>
+              <h3 class="card-title">{{ item.activity.title }}</h3>
+              <div class="card-meta">
+                <span class="meta-item">
+                  <mat-icon>person</mat-icon>
+                  Hosted by {{ item.activity.hostFirstName }} {{ item.activity.hostLastName }}
+                </span>
+                <span class="meta-item">
+                  <mat-icon>schedule</mat-icon>
+                  {{ item.activity.scheduledAt | date:'MMM d, y · h:mm a' }}
+                </span>
+                <span class="meta-item" *ngIf="item.activity.address">
+                  <mat-icon>place</mat-icon>
+                  {{ item.activity.address }}
+                </span>
+              </div>
+            </div>
+            <div class="card-right">
+              <span class="status-badge" [ngClass]="getTimeStatus(item).cssClass">
+                {{ getTimeStatus(item).label }}
+              </span>
+              <span class="participation-badge" *ngIf="item.participation.pendingRequest" class="badge-pending-join">
+                Awaiting Approval
+              </span>
+              <span class="att-badge" *ngIf="getAttendanceBadge(item) as attBadge" [ngClass]="attBadge.cssClass">
+                {{ attBadge.label }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Actions for joined activities -->
+          <div class="joined-actions" *ngIf="item.participation.joined">
+            <a mat-stroked-button [routerLink]="['/check-in', item.activity.id]"
+               *ngIf="item.participation.canCheckIn">
+              <mat-icon>qr_code_scanner</mat-icon> Check-In
+            </a>
+            <a mat-stroked-button [routerLink]="['/chat']" [queryParams]="{ activityId: item.activity.id }">
+              <mat-icon>chat</mat-icon> Chat
+            </a>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

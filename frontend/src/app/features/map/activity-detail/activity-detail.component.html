@@ -28,15 +28,18 @@
       <mat-icon class="card-icon">event</mat-icon>
       <div class="card-content">
         <label>SCHEDULED AT</label>
-        <span>{{ activity.scheduledAt | date:'MMM d, y, h:mm:ss a' }}</span>
+        <span>{{ activity.scheduledAt | date:'EEE, MMM d, y · h:mm a' }}</span>
       </div>
     </div>
     
     <div class="info-card">
       <mat-icon class="card-icon">schedule</mat-icon>
       <div class="card-content">
-        <label>DURATION</label>
-        <span>{{ activity.durationMinutes || 'Flexible' }} minutes</span>
+        <label>STATUS</label>
+        <span [ngClass]="activityTimeStatus.cssClass">
+          <strong>{{ activityTimeStatus.status }}</strong>
+          <span *ngIf="activityTimeStatus.detail"> ({{ activityTimeStatus.detail }})</span>
+        </span>
       </div>
     </div>
 
@@ -47,26 +50,6 @@
         <span>{{ activity.participantCount }}/{{ activity.maxParticipants || '∞' }} joined</span>
       </div>
     </div>
-  </div>
-
-  <!-- Join Button for Guests -->
-  <div class="join-actions" *ngIf="!isHost">
-    <div class="approval-form-wrapper" *ngIf="activity.participationMode === 'APPROVAL'">
-      <mat-form-field appearance="outline" class="intro-field">
-        <mat-label>Why would you like to join?</mat-label>
-        <textarea matInput [(ngModel)]="introMessage" placeholder="Tell the host a bit about yourself..." maxlength="150" rows="3"></textarea>
-        <mat-hint align="end">{{ introMessage.length || 0 }}/150</mat-hint>
-      </mat-form-field>
-    </div>
-
-    <button mat-flat-button class="join-btn-modern" (click)="joinActivity()">
-      Rejoindre l'activité
-    </button>
-  </div>
-
-  <div *ngIf="isHost" class="host-status-banner">
-    <mat-icon>workspace_premium</mat-icon>
-    <span>You are hosting this activity.</span>
   </div>
 
   <!-- Host Details Section -->
@@ -84,7 +67,7 @@
       <span class="host-email">{{ activity.hostEmail }}</span>
     </div>
     <div class="host-actions" *ngIf="!isHost">
-      <button mat-icon-button color="primary" matTooltip="Contacter l'hôte" (click)="contactUser(activity.hostId)">
+      <button mat-icon-button color="primary" matTooltip="Contact host" (click)="contactUser(activity.hostId)">
         <mat-icon>chat</mat-icon>
       </button>
     </div>
@@ -93,13 +76,13 @@
   <!-- Already Joined Banner -->
   <div *ngIf="!isHost && participation?.joined" class="host-status-banner joined-banner">
     <mat-icon>check_circle</mat-icon>
-    <span>Vous avez rejoint cette activité !</span>
+    <span>You have joined this activity!</span>
   </div>
 
   <!-- Pending Request Banner -->
   <div *ngIf="!isHost && participation?.pendingRequest" class="host-status-banner pending-banner">
     <mat-icon>hourglass_empty</mat-icon>
-    <span>Votre demande est en attente d'approbation par l'hôte.</span>
+    <span>Your request is awaiting host approval.</span>
   </div>
 
   <!-- Participation Section for Guests (only when NOT joined and NOT pending) -->
@@ -116,7 +99,7 @@
       </mat-form-field>
     </div>
 
-    <button mat-flat-button color="primary" class="join-btn" (click)="joinActivity()">
+    <button mat-flat-button color="primary" class="join-btn-modern" (click)="joinActivity()">
       <mat-icon>{{ activity.participationMode === 'DIRECT' ? 'bolt' : 'send' }}</mat-icon>
       <span>{{ activity.participationMode === 'DIRECT' ? 'Join Instantly' : 'Submit Join Request' }}</span>
     </button>
@@ -127,10 +110,10 @@
     <span>You are hosting this activity.</span>
   </div>
 
-  <div class="group-chat-actions" style="margin-top: 1rem; text-align: center;">
+  <div *ngIf="isHost || participation?.joined" class="group-chat-actions" style="margin-top: 1rem; text-align: center;">
     <button mat-stroked-button color="primary" (click)="openGroupChat()">
       <mat-icon>forum</mat-icon>
-      Accéder au chat du groupe
+      Access group chat
     </button>
   </div>
 
@@ -138,27 +121,27 @@
   <div class="phase4-section">
     <div class="section-title">
       <mat-icon>qr_code_scanner</mat-icon>
-      <span>Présence</span>
+      <span>ATTENDANCE & CHECK-IN</span>
     </div>
 
     <div class="phase4-actions" *ngIf="participation?.canCheckIn">
       <a mat-stroked-button color="accent" [routerLink]="['/check-in', activity.id]">
         <mat-icon>my_location</mat-icon>
-        Valider ma présence
+        Check-In / Validate Presence
       </a>
     </div>
     <p class="phase4-hint" *ngIf="!isHost && participation && !participation.joined">
-      Rejoignez l'activité pour pouvoir valider votre présence.
+      Join the activity to check-in and validate your presence.
     </p>
 
     <div *ngIf="isHost" class="host-qr-block">
       <button mat-stroked-button color="accent" (click)="showHostQrCode()" [disabled]="loadingHostQr">
         <mat-icon>qr_code_2</mat-icon>
-        {{ loadingHostQr ? 'Génération…' : 'Afficher le QR de l\'activité' }}
+        {{ loadingHostQr ? 'Generating...' : 'Show Activity QR Code' }}
       </button>
       <div class="host-qr-preview" *ngIf="hostQrImageSrc">
         <img [src]="hostQrImageSrc" alt="QR code check-in" />
-        <p>Les participants peuvent scanner ce QR ou utiliser « Valider ma présence ».</p>
+        <p>Participants can scan this QR or click "Check-In / Validate Presence".</p>
       </div>
     </div>
 
@@ -168,6 +151,48 @@
       [canRate]="participation?.canRate ?? false"
       [hasRated]="participation?.hasRated ?? false">
     </app-activity-rating>
+  </div>
+
+  <!-- Pending check-ins box for Host -->
+  <div *ngIf="isHost" class="pending-section">
+    <div class="section-title">
+      <mat-icon>how_to_reg</mat-icon>
+      <span>PENDING CHECK-INS (GPS REQUESTS)</span>
+    </div>
+    
+    <p *ngIf="loadingAttendances" class="pending-state">Loading pending check-ins...</p>
+    <p *ngIf="!loadingAttendances && pendingAttendances.length === 0" class="pending-state no-pending">
+      No pending check-in requests at this time.
+    </p>
+
+    <div class="pending-list" *ngIf="!loadingAttendances && pendingAttendances.length > 0">
+      <div class="pending-card" *ngFor="let attendance of pendingAttendances">
+        <div class="pending-header">
+          <div class="participant-avatar">
+            {{ attendance.firstName ? attendance.firstName[0].toUpperCase() : 'P' }}
+          </div>
+          <div class="participant-info">
+            <span class="participant-name">{{ attendance.firstName }} {{ attendance.lastName }}</span>
+            <span class="participant-email">{{ attendance.email }}</span>
+            <span class="checkin-time" style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: block;">
+              Checked in at: {{ attendance.checkInTime | date:'shortTime' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="pending-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            class="approve-btn"
+            [disabled]="confirmingAttendanceId === attendance.attendanceId"
+            (click)="confirmAttendance(attendance)">
+            <mat-icon *ngIf="confirmingAttendanceId !== attendance.attendanceId">check</mat-icon>
+            <span>{{ confirmingAttendanceId === attendance.attendanceId ? 'Confirming...' : 'Confirm Presence' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Pending requests box for Host -->
@@ -200,7 +225,7 @@
         </div>
 
         <div class="pending-actions">
-          <button mat-icon-button color="primary" matTooltip="Contacter" (click)="contactUser(participant.userId)">
+          <button mat-icon-button color="primary" matTooltip="Contact" (click)="contactUser(participant.userId)">
             <mat-icon>chat</mat-icon>
           </button>
           <button

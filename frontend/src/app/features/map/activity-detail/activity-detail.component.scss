@@ -136,6 +136,26 @@
           font-size: 14px;
           font-weight: 500;
           color: #111827;
+
+          &.status-open {
+            color: #16a34a;
+            font-weight: 600;
+          }
+
+          &.status-ongoing {
+            color: #2563eb;
+            font-weight: 600;
+          }
+
+          &.status-finished {
+            color: #9ca3af;
+            font-weight: 500;
+          }
+
+          &.status-flexible {
+            color: #4b5563;
+            font-weight: 500;
+          }
         }
       }
     }

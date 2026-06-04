@@ -2,71 +2,87 @@
   <mat-card class="check-in-card">
     <mat-card-header>
       <mat-card-title>
-        <mat-icon>location_on</mat-icon> Validation de présence
+        <mat-icon>qr_code_scanner</mat-icon> Validate Attendance
       </mat-card-title>
       <mat-card-subtitle *ngIf="activityName">{{ activityName }}</mat-card-subtitle>
     </mat-card-header>
+
     <mat-card-content>
+      <!-- Loading State -->
       <div *ngIf="loading" class="spinner-container">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Vérification en cours…</p>
+        <p>{{ loadingMessage }}</p>
       </div>
 
+      <!-- Success State -->
       <div *ngIf="success" class="success-state">
         <mat-icon class="success-icon">check_circle</mat-icon>
-        <h2>Check-in réussi !</h2>
-        <p>Votre présence a été enregistrée. L'hôte peut la confirmer.</p>
-        <a mat-stroked-button routerLink="/map">Retour à la carte</a>
+        <h2>Check-in Successful!</h2>
+        <p>Your presence has been confirmed. You gained +100 XP!</p>
+        <a mat-flat-button color="primary" routerLink="/map">Back to Map</a>
       </div>
 
-      <div *ngIf="!loading && !success && qrImageSrc" class="qr-state">
-        <p>Présentez ce QR à l'hôte ou confirmez votre position sur place :</p>
-        <img class="qr-image" [src]="qrImageSrc" alt="QR code de présence" />
-        <p class="deadline" *ngIf="checkInDeadline">
-          <mat-icon>schedule</mat-icon>
-          Limite : {{ checkInDeadline | date:'short' }}
-        </p>
-        <button mat-raised-button color="primary" (click)="confirmCheckIn()">
-          <mat-icon>my_location</mat-icon>
-          Confirmer ma position
-        </button>
-      </div>
-
-      <!-- Already checked in: PENDING host confirmation -->
-      <div *ngIf="!loading && !success && blocked && attendanceStatus === 'PENDING'" class="action-state pending-state">
-        <mat-icon class="status-icon pending-icon">hourglass_empty</mat-icon>
-        <h3>Présence enregistrée</h3>
-        <p>Votre présence a été enregistrée et est en attente de confirmation par l'hôte.</p>
-        <a mat-stroked-button routerLink="/map">Retour à la carte</a>
-      </div>
-
-      <!-- Already checked in: CONFIRMED by host -->
+      <!-- Eligibility: Already checked in: CONFIRMED -->
       <div *ngIf="!loading && !success && blocked && attendanceStatus === 'CONFIRMED'" class="action-state confirmed-state">
         <mat-icon class="status-icon confirmed-icon">verified</mat-icon>
-        <h3>Présence confirmée !</h3>
-        <p>Votre présence a été confirmée par l'hôte. Merci d'avoir participé !</p>
-        <a mat-stroked-button routerLink="/map">Retour à la carte</a>
+        <h3>Attendance Confirmed!</h3>
+        <p>Your presence is already confirmed for this activity. Thank you for participating!</p>
+        <a mat-stroked-button routerLink="/map">Back to Map</a>
       </div>
 
-      <!-- Generic blocked state (host, not joined, etc.) -->
-      <div *ngIf="blocked && !loading && !attendanceStatus" class="action-state blocked-state">
-        <mat-icon>info</mat-icon>
+      <!-- Eligibility: Blocked message (host, not joined, out of time window, etc) -->
+      <div *ngIf="blocked && !loading && attendanceStatus !== 'CONFIRMED'" class="action-state blocked-state">
+        <mat-icon class="status-icon blocked-icon">info</mat-icon>
+        <h3>Check-in Restricted</h3>
         <p>{{ blockMessage }}</p>
-        <a mat-stroked-button routerLink="/map">Retour à la carte</a>
+        <a mat-stroked-button routerLink="/map">Back to Map</a>
       </div>
 
-      <div *ngIf="!loading && !success && !blocked && !qrImageSrc" class="action-state">
-        <p>
-          Pour valider votre présence, vous devez être à moins de 200 m du lieu
-          et pendant la fenêtre horaire de l'activité.
-        </p>
-        <button mat-raised-button color="primary" (click)="startCheckIn()">
-          <mat-icon>qr_code_scanner</mat-icon>
-          Démarrer le check-in
-        </button>
-        <a mat-button routerLink="/map">Annuler</a>
+      <!-- Active Check-in Screen (if not blocked, not loading, and not success) -->
+      <div *ngIf="!loading && !success && !blocked" class="active-checkin-wrapper">
+        
+        <!-- Toggle validation method -->
+        <div class="method-selector">
+          <button mat-button [class.active]="activeMethod === 'QR'" (click)="setMethod('QR')">
+            <mat-icon>camera_alt</mat-icon> Scan Host QR
+          </button>
+          <button mat-button [class.active]="activeMethod === 'GPS'" (click)="setMethod('GPS')">
+            <mat-icon>my_location</mat-icon> GPS Location
+          </button>
+        </div>
+
+        <!-- Method: QR Scanner -->
+        <div *ngIf="activeMethod === 'QR'" class="qr-scanner-section">
+          <p class="instruction-text">Scan the QR code shown on the host's screen to validate instantly.</p>
+          
+          <div class="scanner-container">
+            <div id="reader"></div>
+            <div class="scanner-laser" *ngIf="isScannerActive"></div>
+          </div>
+
+          <div class="scanner-controls">
+            <button mat-flat-button color="primary" *ngIf="!isScannerActive" (click)="startScanner()">
+              <mat-icon>videocam</mat-icon> Start Camera
+            </button>
+            <button mat-stroked-button color="warn" *ngIf="isScannerActive" (click)="stopScanner()">
+              <mat-icon>videocam_off</mat-icon> Stop Camera
+            </button>
+          </div>
+        </div>
+
+        <!-- Method: GPS Check-in -->
+        <div *ngIf="activeMethod === 'GPS'" class="gps-section">
+          <p class="instruction-text">Validate your attendance by confirming your physical presence within 200m of the activity.</p>
+          
+          <button mat-raised-button color="accent" class="confirm-gps-btn" (click)="confirmCheckInGps()">
+            <mat-icon>location_searching</mat-icon> Verify Location
+          </button>
+        </div>
+
+        <div class="cancel-link-container">
+          <a mat-button routerLink="/map">Cancel</a>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>
 </div>
-
