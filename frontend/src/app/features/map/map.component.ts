@@ -1,8 +1,9 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, NgZone, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
 import { ActivityService, ActivityResponse } from '../../core/services/activity.service';
+import { AuthService } from '../../core/services/auth.service';
 import { GeocodingService, GeocodingResult } from '../../core/services/geocoding.service';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,10 +24,10 @@ import { debounceTime } from 'rxjs/operators';
   selector: 'app-map',
   standalone: true,
   imports: [
-    CommonModule, 
-    LeafletModule, 
-    MatSidenavModule, 
-    MatButtonModule, 
+    CommonModule,
+    LeafletModule,
+    MatSidenavModule,
+    MatButtonModule,
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
@@ -53,7 +54,7 @@ export class MapComponent implements OnInit, OnDestroy {
     zoom: 13,
     center: L.latLng(48.8566, 2.3522) // Paris default
   };
-  
+
   activities: ActivityResponse[] = [];
   markers: L.Marker[] = [];
   layers: L.Layer[] = [];
@@ -68,7 +69,7 @@ export class MapComponent implements OnInit, OnDestroy {
     scheduledDate: ''
   };
   readonly categories = ['Coffee & Cafes', 'Hiking & Trekking', 'Nightlife', 'Culture', 'Sports'];
-  
+
   // Radius circle visualization
   radiusCircle: L.Circle | null = null;
   userLocation: L.LatLng | null = null;
@@ -78,7 +79,7 @@ export class MapComponent implements OnInit, OnDestroy {
   selectedActivity: ActivityResponse | null = null;
   tempMarker: L.Marker | null = null;
   isFormVisible = true; // Nouveau: contrôle la visibilité du formulaire
-  
+
   // Toggle states
   isSearchPanelCollapsed = false;
 
@@ -91,16 +92,19 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   };
 
+  private readonly ngZone = inject(NgZone);
+  protected readonly authService = inject(AuthService);
+
   constructor(
     private activityService: ActivityService,
     private geocodingService: GeocodingService,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.locateUser(true); // silent initial load
     document.addEventListener('joinActivity', this.activityDetailListener as EventListener);
-    
+
     // Setup debounced radius change
     this.radiusSubject.pipe(
       debounceTime(300)
@@ -116,45 +120,49 @@ export class MapComponent implements OnInit, OnDestroy {
 
   onMapReady(map: L.Map) {
     this.map = map;
-    
+
     // Refresh activities and update circle when map stops moving
     this.map.on('moveend', () => {
-      this.updateRadiusCircle();
-      this.loadActivities();
+      this.ngZone.run(() => {
+        this.updateRadiusCircle();
+        this.loadActivities();
+      });
     });
 
     // Handle clicks for activity creation
     this.map.on('click', (e: L.LeafletMouseEvent) => {
-      if (this.panelMode === 'CREATE') {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        
-        if (this.tempMarker) {
-          this.map.removeLayer(this.tempMarker);
-        }
-        
-        // Use custom marker icon for temp marker too!
-        const tempIcon = L.divIcon({
-          className: 'custom-leaflet-marker-wrapper',
-          html: `
-            <div class="custom-leaflet-marker" style="background-color: #3b82f6; border-color: #3b82f644; transform: scale(1.1);">
-              <i class="material-icons marker-icon" style="font-size: 16px; color: white;">add_location</i>
-            </div>
-          `,
-          iconSize: [36, 36],
-          iconAnchor: [18, 18]
-        });
+      this.ngZone.run(() => {
+        if (this.panelMode === 'CREATE') {
+          const lat = e.latlng.lat;
+          const lng = e.latlng.lng;
 
-        this.tempMarker = L.marker([lat, lng], { icon: tempIcon }).addTo(this.map);
-        
-        if (this.createCmp) {
-          this.createCmp.setLocation(lat, lng);
+          if (this.tempMarker) {
+            this.map.removeLayer(this.tempMarker);
+          }
+
+          // Use custom marker icon for temp marker too!
+          const tempIcon = L.divIcon({
+            className: 'custom-leaflet-marker-wrapper',
+            html: `
+              <div class="custom-leaflet-marker" style="background-color: #3b82f6; border-color: #3b82f644; transform: scale(1.1);">
+                <i class="material-icons marker-icon" style="font-size: 16px; color: white;">add_location</i>
+              </div>
+            `,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+          });
+
+          this.tempMarker = L.marker([lat, lng], { icon: tempIcon }).addTo(this.map);
+
+          if (this.createCmp) {
+            this.createCmp.setLocation(lat, lng);
+          }
+
+          this.snackBar.open('Location selected on map.', 'OK', { duration: 2000 });
         }
-        
-        this.snackBar.open('Location selected on map.', 'OK', { duration: 2000 });
-      }
+      });
     });
-    
+
     // Draw initial radius circle
     this.updateRadiusCircle();
   }
@@ -163,34 +171,38 @@ export class MapComponent implements OnInit, OnDestroy {
     if (!silent) {
       this.snackBar.open('Acquiring GPS location...', 'Dismiss', { duration: 2000 });
     }
-    
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          this.userLocation = L.latLng(lat, lng);
-          
-          if (this.map && this.map.getPane('mapPane')) {
-            this.map.setView([lat, lng], 13);
-          } else {
-            this.options.center = L.latLng(lat, lng);
-          }
-          
-          if (!silent) {
-            this.snackBar.open('Location centered!', 'Success', { duration: 3000 });
-          }
-          
-          // Draw circle after map is ready
-          setTimeout(() => this.updateRadiusCircle(), 100);
-          this.loadActivities(lat, lng);
+          this.ngZone.run(() => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            this.userLocation = L.latLng(lat, lng);
+
+            if (this.map && this.map.getPane('mapPane')) {
+              this.map.setView([lat, lng], 13);
+            } else {
+              this.options.center = L.latLng(lat, lng);
+            }
+
+            if (!silent) {
+              this.snackBar.open('Location centered!', 'Success', { duration: 3000 });
+            }
+
+            // Draw circle after map is ready
+            setTimeout(() => this.updateRadiusCircle(), 100);
+            this.loadActivities(lat, lng);
+          });
         },
         (error) => {
-          console.warn('Geolocation failed, using default location.');
-          if (!silent) {
-            this.snackBar.open('Unable to retrieve location. Using default.', 'OK', { duration: 3000 });
-          }
-          this.loadActivities();
+          this.ngZone.run(() => {
+            console.warn('Geolocation failed, using default location.');
+            if (!silent) {
+              this.snackBar.open('Unable to retrieve location. Using default.', 'OK', { duration: 3000 });
+            }
+            this.loadActivities();
+          });
         }
       );
     } else {
@@ -208,7 +220,7 @@ export class MapComponent implements OnInit, OnDestroy {
       lat = center.lat;
       lng = center.lng;
     }
-    
+
     this.activityService.getNearby(lat, lng, this.filters).subscribe({
       next: (data: ActivityResponse[]) => {
         this.activities = data;
@@ -225,7 +237,7 @@ export class MapComponent implements OnInit, OnDestroy {
   getMarkerIcon(category: string, type: 'MEETUP' | 'TRIP', isDestination = false): L.DivIcon {
     let color = '#0f766e'; // teal default
     let icon = 'groups'; // default meetup icon
-    
+
     if (isDestination) {
       color = '#ef4444'; // red destination
       icon = 'flag';
@@ -275,10 +287,10 @@ export class MapComponent implements OnInit, OnDestroy {
     const title = this.escapeHtml(act.title);
     const address = this.escapeHtml(act.address || 'Location TBA');
     const activityType = act.activityType === 'TRIP' ? 'Trip' : 'Meetup';
-    const dateText = new Date(act.scheduledAt).toLocaleDateString('fr-FR', { 
-      day: '2-digit', 
-      month: 'long', 
-      year: 'numeric' 
+    const dateText = new Date(act.scheduledAt).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
     }).replace(/^\w/, c => c.toUpperCase());
     const count = act.participantCount || 0;
     const maxParticipants = act.maxParticipants || '∞';
@@ -331,7 +343,7 @@ export class MapComponent implements OnInit, OnDestroy {
     this.activities.forEach(act => {
       const type = act.activityType || 'MEETUP';
       const category = act.category || '';
-      
+
       if (type === 'MEETUP' && act.latitude && act.longitude) {
         const markerIcon = this.getMarkerIcon(category, 'MEETUP');
         const marker = L.marker([act.latitude, act.longitude], { icon: markerIcon });
@@ -342,15 +354,15 @@ export class MapComponent implements OnInit, OnDestroy {
         const marker = L.marker([act.startLatitude, act.startLongitude], { icon: markerIcon });
         marker.bindPopup(this.buildPopupHtml(act));
         this.layers.push(marker);
-        
+
         if (act.destLatitude && act.destLongitude) {
           const destIcon = this.getMarkerIcon(category, 'TRIP', true);
           const destMarker = L.marker([act.destLatitude, act.destLongitude], { icon: destIcon });
           destMarker.bindPopup(this.buildPopupHtml(act, true));
           this.layers.push(destMarker);
-          
+
           const line = L.polyline(
-            [[act.startLatitude, act.startLongitude], [act.destLatitude, act.destLongitude]], 
+            [[act.startLatitude, act.startLongitude], [act.destLatitude, act.destLongitude]],
             { color: '#f97316', weight: 3, dashArray: '6, 8', opacity: 0.8 }
           );
           this.layers.push(line);
@@ -420,8 +432,9 @@ export class MapComponent implements OnInit, OnDestroy {
     }
 
     const centerPoint = this.userLocation || (this.map ? this.map.getCenter() : null);
-    
-    if (!centerPoint || !this.map) {
+
+    // Guard: map must exist and its overlay pane must be ready in the DOM
+    if (!centerPoint || !this.map || !this.map.getPane('overlayPane')) {
       return;
     }
 
@@ -453,7 +466,7 @@ export class MapComponent implements OnInit, OnDestroy {
     this.selectedActivity = activity;
     this.panelMode = 'DETAIL';
     this.sidenav.open();
-    
+
     if (this.map) {
       this.map.getContainer().style.cursor = '';
     }
@@ -466,7 +479,7 @@ export class MapComponent implements OnInit, OnDestroy {
     this.panelMode = 'NONE';
     this.selectedActivity = null;
     this.isFormVisible = true; // Réinitialiser la visibilité
-    
+
     if (this.tempMarker && this.map) {
       this.map.removeLayer(this.tempMarker);
       this.tempMarker = null;

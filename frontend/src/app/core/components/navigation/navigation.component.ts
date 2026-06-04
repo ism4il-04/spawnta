@@ -1,16 +1,13 @@
-import { Component, Input, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subject, takeUntil, Observable, of } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-
-// Mock services - replace with actual implementations
-interface ChatService {
-  unreadCount$: Observable<number>;
-}
+import { ChatService } from '../../services/chat.service';
+import { NotificationsDropdownComponent } from '../../../features/notifications/notifications-dropdown/notifications-dropdown';
 
 interface User {
   firstName: string;
@@ -26,7 +23,8 @@ interface User {
     CommonModule,
     RouterModule,
     FormsModule,
-    MatIconModule
+    MatIconModule,
+    NotificationsDropdownComponent
   ],
   templateUrl: './navigation.component.html',
   styleUrls: ['./navigation.component.scss']
@@ -38,19 +36,15 @@ export class NavigationComponent implements OnInit, OnDestroy {
   searchQuery = '';
   userMenuOpen = false;
   mobileMenuOpen = false;
-  notificationCount = 0;
-  hasNotifications = false;
   currentUser: User | null = null;
 
-  // Mock chat service - replace with actual service
-  chatService: ChatService = {
-    unreadCount$: of(0)
-  };
+  // Services
+  protected readonly chatService = inject(ChatService);
+  public readonly authService = inject(AuthService);
 
   private destroy$ = new Subject<void>();
 
   constructor(
-    public authService: AuthService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
@@ -62,10 +56,6 @@ export class NavigationComponent implements OnInit, OnDestroy {
     ).subscribe((user: any) => {
       this.currentUser = user;
     });
-
-    // Mock notification count - replace with actual service
-    this.notificationCount = 3;
-    this.hasNotifications = this.notificationCount > 0;
   }
 
   ngOnDestroy() {
@@ -132,7 +122,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
     this.authService.logout();
     this.closeUserMenu();
     this.closeMobileMenu();
-    this.snackBar.open('Déconnexion réussie', 'Fermer', { duration: 3000 });
+    this.snackBar.open('Logged out successfully', 'Close', { duration: 3000 });
     this.router.navigate(['/']);
   }
 }

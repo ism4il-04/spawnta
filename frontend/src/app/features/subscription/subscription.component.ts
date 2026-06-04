@@ -73,17 +73,17 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
       next: subscription => {
         this.currentSubscription = subscription;
         this.isProcessingPayment = false;
-        this.snackBar.open('🚀 Félicitations ! Votre abonnement est maintenant actif.', 'Super !', { 
+        this.snackBar.open('🚀 Félicitations ! Votre abonnement est maintenant actif.', 'Super !', {
           duration: 5000,
-          panelClass: ['success-snackbar'] 
+          panelClass: ['success-snackbar']
         });
         this.stopPolling();
         // Remove query params without refreshing
-        this.router.navigate([], { 
-          relativeTo: this.route, 
-          queryParams: { checkout: null }, 
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { checkout: null },
           queryParamsHandling: 'merge',
-          replaceUrl: true 
+          replaceUrl: true
         });
       },
       complete: () => {
@@ -168,10 +168,10 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
           window.location.href = response.checkoutUrl;
           return;
         }
-        this.snackBar.open('Session Stripe creee, mais URL manquante.', 'Fermer', { duration: 4000 });
+        this.snackBar.open('Session Stripe créée, mais URL de paiement manquante.', 'Fermer', { duration: 4000 });
       },
       error: error => {
-        const message = error?.error?.error ?? 'Impossible de lancer le paiement.';
+        const message = error?.error?.error ?? 'Impossible d\'initier le paiement.';
         this.snackBar.open(message, 'Fermer', { duration: 5000 });
       }
     });
@@ -191,7 +191,7 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
     if (!this.authService.isLoggedIn()) {
       return 'Se connecter';
     }
-    return this.upgradeTier === plan.tier ? 'Preparation...' : 'Choisir ce plan';
+    return this.upgradeTier === plan.tier ? 'Préparation...' : 'Choisir ce plan';
   }
 
   monthlyPrice(plan: SubscriptionPlan): string {

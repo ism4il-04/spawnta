@@ -135,7 +135,7 @@ export class ActivityDetailComponent implements OnChanges {
 
   constructor(
     private activityService: ActivityService,
-    private authService: AuthService,
+    protected readonly authService: AuthService,
     private chatService: ChatService,
     private attendanceService: AttendanceService,
     private router: Router,

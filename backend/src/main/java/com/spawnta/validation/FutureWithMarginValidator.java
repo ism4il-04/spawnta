@@ -22,8 +22,8 @@ public class FutureWithMarginValidator implements ConstraintValidator<FutureWith
         
         LocalDateTime now = LocalDateTime.now();
         // Since the app uses timezone-naive LocalDateTime, allow a timezone-safe margin
-        // of up to 14 hours to accommodate users in timezones behind the server (e.g. UTC, US/UTC-X)
-        LocalDateTime minimumTime = now.minusHours(14).minusMinutes(marginMinutes);
+        // of up to 30 hours to accommodate users in all timezones relative to the server
+        LocalDateTime minimumTime = now.minusHours(30).minusMinutes(marginMinutes);
         
         return value.isAfter(minimumTime);
     }
