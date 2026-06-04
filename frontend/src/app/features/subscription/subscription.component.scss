@@ -73,6 +73,16 @@ $text-muted: #6b8fa1;
     font-size: 1rem;
     margin-top: 0.15rem;
   }
+
+  .processing-spinner {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    color: $accent;
+    animation: spin 2s linear infinite;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+  }
 }
 
 .status-panel {
@@ -85,24 +95,90 @@ $text-muted: #6b8fa1;
   border: 1px solid rgba($border, 0.7);
   background: #fff;
   color: $text-dark;
+  margin-bottom: 1.5rem;
 
   mat-icon {
     color: $primary;
   }
 
+  &.processing {
+    background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($accent, 0.05) 100%);
+    border: 2px solid $accent;
+    padding: 2rem;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    gap: 1.5rem;
+    box-shadow: 0 10px 25px rgba($accent, 0.1);
+
+    .processing-text {
+      h3 {
+        margin: 0;
+        color: $primary;
+        font-size: 1.25rem;
+        font-weight: 800;
+      }
+      p {
+        margin: 0.5rem 0 0;
+        color: $text-muted;
+        font-size: 0.95rem;
+      }
+    }
+  }
+
   &.error mat-icon {
     color: #dc2626;
   }
+}
 
-  .text-button {
-    margin-left: auto;
-    border: none;
-    background: transparent;
-    color: $primary;
-    font: inherit;
-    font-weight: 800;
-    cursor: pointer;
-  }
+// Modern Loading Spinner
+.spinner-container, .spinner-container-small {
+  position: relative;
+}
+
+.spinner-container {
+  width: 50px;
+  height: 50px;
+}
+
+.spinner-container-small {
+  width: 24px;
+  height: 24px;
+}
+
+.double-bounce1, .double-bounce2 {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: $accent;
+  opacity: 0.6;
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: sk-bounce 2.0s infinite ease-in-out;
+}
+
+.double-bounce2 {
+  animation-delay: -1.0s;
+}
+
+@keyframes sk-bounce {
+  0%, 100% { transform: scale(0.0) }
+  50% { transform: scale(1.0) }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .plans-grid {

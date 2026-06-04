@@ -27,5 +27,10 @@ public enum PaymentStatus {
     /**
      * Payment requires additional action (3D Secure, etc.)
      */
-    REQUIRES_ACTION
+    REQUIRES_ACTION,
+    
+    /**
+     * Payment has been refunded
+     */
+    REFUNDED
 }
