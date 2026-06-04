@@ -260,6 +260,41 @@
       font-size: 1.15rem;
     }
   }
+
+  .duration-picker {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+
+    .duration-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      align-items: center;
+
+      .duration-input {
+        text-align: center;
+        padding: 0.85rem 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        -moz-appearance: textfield;
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+      }
+
+      .duration-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
 }
 
 /* ===== LOCATION SECTION ===== */

@@ -51,8 +51,10 @@ export class CreateActivityComponent {
       participationMode: ['DIRECT', Validators.required],
       maxParticipants: [null],
       scheduledAt: ['', Validators.required],
-      scheduledTime: ['18:00', Validators.required], // Heure par défaut à 18h00
-      durationMinutes: [120],
+      scheduledTime: ['18:00', Validators.required],
+      durationDays: [0],
+      durationHours: [2],
+      durationMins: [0],
       category: [''],
       
       // Coordinates
@@ -98,13 +100,24 @@ export class CreateActivityComponent {
 
     this.loading = true;
     const formValue = this.activityForm.value;
+
+    // Compute total duration in minutes from days/hours/minutes
+    const totalMinutes =
+      (formValue.durationDays || 0) * 24 * 60 +
+      (formValue.durationHours || 0) * 60 +
+      (formValue.durationMins || 0);
+
     const payload = {
       ...formValue,
-      scheduledAt: this.toLocalDateTime(formValue.scheduledAt, formValue.scheduledTime)
+      scheduledAt: this.toLocalDateTime(formValue.scheduledAt, formValue.scheduledTime),
+      durationMinutes: totalMinutes || null
     };
 
-    // Remove scheduledTime from payload as it's not needed by the backend
+    // Remove helper fields not needed by the backend
     delete payload.scheduledTime;
+    delete payload.durationDays;
+    delete payload.durationHours;
+    delete payload.durationMins;
 
     this.activityService.create(payload).subscribe({
       next: (res: any) => {

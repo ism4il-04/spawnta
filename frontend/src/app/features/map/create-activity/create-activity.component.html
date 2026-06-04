@@ -106,19 +106,46 @@
           </div>
         </div>
 
-        <!-- Duration and Max Participants Row -->
-        <div class="form-row">
-          <div class="modern-form-field">
-            <label class="form-label" for="durationMinutes">Durée (minutes)</label>
-            <input 
-              id="durationMinutes"
-              class="form-input"
-              formControlName="durationMinutes"
-              type="number"
-              placeholder="60"
-              min="15">
+        <!-- Duration Section -->
+        <div class="modern-form-field">
+          <label class="form-label">Durée de l'activité</label>
+          <div class="duration-picker">
+            <div class="duration-unit">
+              <input 
+                class="form-input duration-input"
+                formControlName="durationDays"
+                type="number"
+                min="0"
+                max="30"
+                placeholder="0">
+              <span class="duration-label">jours</span>
+            </div>
+            <div class="duration-unit">
+              <input 
+                class="form-input duration-input"
+                formControlName="durationHours"
+                type="number"
+                min="0"
+                max="23"
+                placeholder="2">
+              <span class="duration-label">heures</span>
+            </div>
+            <div class="duration-unit">
+              <input 
+                class="form-input duration-input"
+                formControlName="durationMins"
+                type="number"
+                min="0"
+                max="59"
+                step="15"
+                placeholder="0">
+              <span class="duration-label">min</span>
+            </div>
           </div>
+        </div>
 
+        <!-- Max Participants -->
+        <div class="form-row">
           <div class="modern-form-field">
             <label class="form-label" for="maxParticipants">Max Participants</label>
             <input 

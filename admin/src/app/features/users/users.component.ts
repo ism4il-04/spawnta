@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AdminUser, AdminUsersResponse, AdminUsersService } from '../../core/admin-users.service';
@@ -13,10 +13,11 @@ import { AdminUser, AdminUsersResponse, AdminUsersService } from '../../core/adm
 })
 export class UsersComponent implements OnInit {
   private readonly usersService = inject(AdminUsersService);
+  private readonly cd = inject(ChangeDetectorRef);
 
   users: AdminUser[] = [];
   summary: AdminUsersResponse['summary'] | null = null;
-  loading = true;
+  loading = false;
   actionUserId: number | null = null;
   errorMessage = '';
 
@@ -36,14 +37,19 @@ export class UsersComponent implements OnInit {
       status: this.status,
       tier: this.tier
     }).pipe(
-      finalize(() => this.loading = false)
+      finalize(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      })
     ).subscribe({
       next: response => {
         this.users = response.users;
         this.summary = response.summary;
+        this.cd.detectChanges();
       },
       error: error => {
         this.errorMessage = error?.error?.error ?? 'Impossible de charger les utilisateurs.';
+        this.cd.detectChanges();
       }
     });
   }

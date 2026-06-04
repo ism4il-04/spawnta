@@ -15,12 +15,18 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
          class="nav-item" id="nav-accueil">
         <mat-icon class="nav-icon">home</mat-icon>
-        <span class="nav-label">Accueil</span>
+        <span class="nav-label">Home</span>
       </a>
 
       <a routerLink="/map" routerLinkActive="active" class="nav-item" id="nav-carte">
         <mat-icon class="nav-icon">map</mat-icon>
-        <span class="nav-label">Carte</span>
+        <span class="nav-label">Map</span>
+      </a>
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/my-activities" routerLinkActive="active"
+         class="nav-item" id="nav-my-activities">
+        <mat-icon class="nav-icon">event_note</mat-icon>
+        <span class="nav-label">My Activities</span>
       </a>
 
       <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active"
@@ -31,31 +37,31 @@
             {{ count > 0 ? count : null }}
           </span>
         </span>
-        <span class="nav-label">Messagerie</span>
+        <span class="nav-label">Messages</span>
       </a>
 
       <a *ngIf="authService.isLoggedIn()" routerLink="/profile" routerLinkActive="active"
          class="nav-item" id="nav-profil">
         <mat-icon class="nav-icon">person_outline</mat-icon>
-        <span class="nav-label">Profil</span>
+        <span class="nav-label">Profile</span>
       </a>
 
       <a routerLink="/subscription" routerLinkActive="active"
          class="nav-item" id="nav-abonnement">
         <mat-icon class="nav-icon">workspace_premium</mat-icon>
-        <span class="nav-label">Abonnement</span>
+        <span class="nav-label">Subscription</span>
       </a>
 
       <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active"
          class="nav-item" id="nav-connexion">
         <mat-icon class="nav-icon">login</mat-icon>
-        <span class="nav-label">Connexion</span>
+        <span class="nav-label">Login</span>
       </a>
 
       <a *ngIf="!authService.isLoggedIn()" routerLink="/signup" routerLinkActive="active"
          class="nav-item" id="nav-inscription">
         <mat-icon class="nav-icon">person_add</mat-icon>
-        <span class="nav-label">Inscription</span>
+        <span class="nav-label">Sign Up</span>
       </a>
 
     </nav>
@@ -64,7 +70,7 @@
     <button class="sidebar-collapse-btn" (click)="toggleSidebar()" id="btn-collapse-sidebar"
             [attr.aria-label]="sidebarCollapsed ? 'Développer le menu' : 'Réduire le menu'">
       <mat-icon class="collapse-icon">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-      <span class="nav-label">Réduire</span>
+      <span class="nav-label">Collapse</span>
     </button>
   </aside>
 

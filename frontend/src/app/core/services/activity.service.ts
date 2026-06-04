@@ -114,4 +114,21 @@ export class ActivityService {
   getPendingParticipants(activityId: number): Observable<ActivityParticipantResponse[]> {
     return this.http.get<ActivityParticipantResponse[]>(`${this.apiUrl}/${activityId}/participants/pending`);
   }
+
+  getMyActivities(): Observable<MyActivityResponse[]> {
+    return this.http.get<MyActivityResponse[]>(`${this.apiUrl}/my`);
+  }
+}
+
+export interface MyActivityResponse {
+  activity: ActivityResponse;
+  participation: {
+    host: boolean;
+    joined: boolean;
+    pendingRequest: boolean;
+    canCheckIn: boolean;
+    canRate: boolean;
+    hasRated: boolean;
+    attendanceStatus: string | null;
+  };
 }

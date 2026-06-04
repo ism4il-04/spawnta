@@ -1,9 +1,11 @@
 package com.spawnta.service;
 
 import com.spawnta.dto.ActivityParticipantResponse;
+import com.spawnta.dto.ActivityParticipationStatusDto;
 import com.spawnta.dto.ActivityResponse;
 import com.spawnta.dto.CreateActivityRequest;
 import com.spawnta.dto.JoinActivityRequest;
+import com.spawnta.dto.MyActivityResponse;
 import com.spawnta.entity.*;
 import com.spawnta.repository.ActivityParticipantRepository;
 import com.spawnta.repository.ActivityRepository;
@@ -17,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,16 +29,19 @@ public class ActivityService {
     private final ActivityParticipantRepository participantRepository;
     private final UserRepository userRepository;
     private final ChatService chatService;
+    private final AttendanceService attendanceService;
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public ActivityService(ActivityRepository activityRepository,
                            ActivityParticipantRepository participantRepository,
                            UserRepository userRepository,
-                           ChatService chatService) {
+                           ChatService chatService,
+                           AttendanceService attendanceService) {
         this.activityRepository = activityRepository;
         this.participantRepository = participantRepository;
         this.userRepository = userRepository;
         this.chatService = chatService;
+        this.attendanceService = attendanceService;
     }
 
     @Transactional
@@ -237,6 +242,33 @@ public class ActivityService {
                 participant.getJoinedAt()
             ))
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MyActivityResponse> getMyActivities(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Map<Long, MyActivityResponse> map = new LinkedHashMap<>();
+
+        // Hosted activities
+        for (Activity act : activityRepository.findByHostId(user.getId())) {
+            ActivityResponse resp = mapToResponse(act);
+            ActivityParticipationStatusDto status = attendanceService.getMyParticipationStatus(act.getId(), user.getId());
+            map.put(act.getId(), new MyActivityResponse(resp, status));
+        }
+
+        // Joined / requested activities
+        for (ActivityParticipant part : participantRepository.findByUserId(user.getId())) {
+            Activity act = part.getActivity();
+            if (!map.containsKey(act.getId())) {
+                ActivityResponse resp = mapToResponse(act);
+                ActivityParticipationStatusDto status = attendanceService.getMyParticipationStatus(act.getId(), user.getId());
+                map.put(act.getId(), new MyActivityResponse(resp, status));
+            }
+        }
+
+        return new ArrayList<>(map.values());
     }
 
     // ─── Helpers ─────────────────────────────────────────

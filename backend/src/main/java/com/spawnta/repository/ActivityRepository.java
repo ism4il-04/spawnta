@@ -78,5 +78,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
     long countByHostId(Long hostId);
 
+    List<Activity> findByHostId(Long hostId);
+
     List<Activity> findAllByScheduledAtAfter(LocalDateTime time);
 }
