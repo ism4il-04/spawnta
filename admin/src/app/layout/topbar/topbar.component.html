@@ -1,5 +1,13 @@
 <header class="topbar">
   <div class="topbar-right">
+    <button class="topbar-btn" (click)="toggleTheme()"
+            [attr.aria-label]="isDarkTheme ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            [title]="isDarkTheme ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+      <lucide-icon [name]="isDarkTheme ? Sun : Moon" [size]="20"></lucide-icon>
+    </button>
+
+    <div class="divider"></div>
+
     <div class="admin-dropdown" *ngIf="authService.currentAdmin$ | async as admin">
       <div class="admin-avatar">
         {{ admin.firstName[0] }}{{ admin.lastName[0] }}

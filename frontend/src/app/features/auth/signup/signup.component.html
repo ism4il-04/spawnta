@@ -1,70 +1,146 @@
 <div class="auth-container">
-  <section class="auth-hero">
-    <p class="eyebrow">Join Spawnta</p>
-    <h1>Créez votre base pour explorer, rencontrer et partager.</h1>
+  <section class="auth-hero animate-fade-in-up">
+    <div class="hero-badge">
+      <span>Join Spawnta</span>
+    </div>
+    <h1>Create your base to explore, meet, and share.</h1>
     <p class="hero-text">
-      L'inscription vous ouvre l'acces a la carte, au profil voyageur, a la creation
-      d'activites et a toute l'experience communautaire de Spawnta.
+      Sign up to access the interactive map, traveler profiles, activity creation, 
+      and the full Spawnta community experience. Your next adventure starts here.
     </p>
 
-    <div class="hero-points">
-      <span>Profil personnalise</span>
-      <span>Rencontres locales</span>
-      <span>Trips collaboratifs</span>
+    <div class="hero-features">
+      <div class="feature-item">
+        <span>Personalized profile</span>
+      </div>
+      <div class="feature-item">
+        <span>Local meetups</span>
+      </div>
+      <div class="feature-item">
+        <span>Collaborative trips</span>
+      </div>
     </div>
   </section>
 
-  <mat-card class="auth-card">
-    <mat-card-header>
-      <p class="card-kicker">Inscription</p>
-      <mat-card-title>Create your account</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-        <div class="name-row">
-          <mat-form-field appearance="outline">
-            <mat-label>First Name</mat-label>
-            <input matInput formControlName="firstName">
-            <mat-error *ngIf="signupForm.get('firstName')?.hasError('required')">Required</mat-error>
-          </mat-form-field>
+  <div class="auth-card-container animate-slide-in-right">
+    <div class="modern-card auth-card">
+      <div class="card-header">
+        <div class="card-badge">Sign up</div>
+        <h2 class="card-title">Create your account</h2>
+        <p class="card-subtitle">Get started with a free account today</p>
+      </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Last Name</mat-label>
-            <input matInput formControlName="lastName">
-            <mat-error *ngIf="signupForm.get('lastName')?.hasError('required')">Required</mat-error>
-          </mat-form-field>
-        </div>
+      <div class="card-body">
+        <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="modern-form">
+          
+          <div class="form-row">
+            <div class="modern-form-field">
+              <label class="form-label" for="firstName">First name</label>
+              <input 
+                id="firstName"
+                class="form-input"
+                [class.error]="signupForm.get('firstName')?.invalid && signupForm.get('firstName')?.touched"
+                formControlName="firstName"
+                type="text"
+                placeholder="John">
+              <span class="form-error" *ngIf="signupForm.get('firstName')?.invalid && signupForm.get('firstName')?.touched">
+                Required
+              </span>
+            </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email">
-          <mat-error *ngIf="signupForm.get('email')?.hasError('required')">Email is required</mat-error>
-          <mat-error *ngIf="signupForm.get('email')?.hasError('email')">Invalid email</mat-error>
-        </mat-form-field>
+            <div class="modern-form-field">
+              <label class="form-label" for="lastName">Last name</label>
+              <input 
+                id="lastName"
+                class="form-input"
+                [class.error]="signupForm.get('lastName')?.invalid && signupForm.get('lastName')?.touched"
+                formControlName="lastName"
+                type="text"
+                placeholder="Doe">
+              <span class="form-error" *ngIf="signupForm.get('lastName')?.invalid && signupForm.get('lastName')?.touched">
+                Required
+              </span>
+            </div>
+          </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="password" type="password">
-          <mat-error *ngIf="signupForm.get('password')?.hasError('required')">Password is required</mat-error>
-          <mat-error *ngIf="signupForm.get('password')?.hasError('minlength')">Min 6 characters</mat-error>
-        </mat-form-field>
+          <div class="modern-form-field">
+            <label class="form-label" for="email">Email address</label>
+            <input 
+              id="email"
+              class="form-input"
+              [class.error]="signupForm.get('email')?.invalid && signupForm.get('email')?.touched"
+              formControlName="email"
+              type="email"
+              placeholder="you@example.com"
+              autocomplete="email">
+            <span class="form-error" *ngIf="signupForm.get('email')?.hasError('required') && signupForm.get('email')?.touched">
+              Email is required
+            </span>
+            <span class="form-error" *ngIf="signupForm.get('email')?.hasError('email') && signupForm.get('email')?.touched">
+              Please enter a valid email
+            </span>
+          </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Confirm Password</mat-label>
-          <input matInput formControlName="confirmPassword" type="password">
-          <mat-error *ngIf="signupForm.get('confirmPassword')?.hasError('required')">Please confirm your password</mat-error>
-          <mat-error *ngIf="passwordMismatch">Passwords do not match</mat-error>
-        </mat-form-field>
+          <div class="modern-form-field">
+            <label class="form-label" for="password">Password</label>
+            <input 
+              id="password"
+              class="form-input"
+              [class.error]="signupForm.get('password')?.invalid && signupForm.get('password')?.touched"
+              formControlName="password"
+              type="password"
+              placeholder="Min. 6 characters"
+              autocomplete="new-password">
+            <span class="form-error" *ngIf="signupForm.get('password')?.hasError('required') && signupForm.get('password')?.touched">
+              Password is required
+            </span>
+            <span class="form-error" *ngIf="signupForm.get('password')?.hasError('minlength') && signupForm.get('password')?.touched">
+              Password must be at least 6 characters
+            </span>
+          </div>
 
-        <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="signupForm.invalid || loading">
-            {{ loading ? 'Creating account...' : 'Sign Up' }}
-          </button>
-        </div>
-      </form>
-    </mat-card-content>
-    <mat-card-footer>
-      <p>Already have an account? <a routerLink="/login">Login</a></p>
-    </mat-card-footer>
-  </mat-card>
+          <div class="modern-form-field">
+            <label class="form-label" for="confirmPassword">Confirm Password</label>
+            <input 
+              id="confirmPassword"
+              class="form-input"
+              [class.error]="(signupForm.get('confirmPassword')?.invalid || passwordMismatch) && signupForm.get('confirmPassword')?.touched"
+              formControlName="confirmPassword"
+              type="password"
+              placeholder="Confirm your password"
+              autocomplete="new-password">
+            <span class="form-error" *ngIf="signupForm.get('confirmPassword')?.hasError('required') && signupForm.get('confirmPassword')?.touched">
+              Please confirm your password
+            </span>
+            <span class="form-error" *ngIf="passwordMismatch && signupForm.get('confirmPassword')?.touched">
+              Passwords do not match
+            </span>
+          </div>
+
+          <div class="form-actions">
+            <button 
+              type="submit" 
+              class="btn btn-primary btn-lg btn-full"
+              [disabled]="signupForm.invalid || loading">
+              <span *ngIf="!loading">
+                <i class="material-icons">person_add</i>
+                Sign up
+              </span>
+              <span *ngIf="loading" class="loading-content">
+                <div class="spinner"></div>
+                Creating account...
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card-footer">
+        <p class="footer-text">
+          Already have an account? 
+          <a routerLink="/login" class="footer-link">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,13 +1,13 @@
 <section class="subscription-page">
   <header class="subscription-header">
     <div>
-      <span class="section-kicker">Abonnement</span>
-      <h1>Choisissez votre plan Spawnta</h1>
-      <p>Des options simples pour passer de la decouverte a une experience premium.</p>
+      <span class="section-kicker">Subscription</span>
+      <h1>Choose your Spawnta plan</h1>
+      <p>Simple options to elevate your experience from discovery to premium.</p>
     </div>
 
     <div class="current-plan" *ngIf="isLoggedIn">
-      <span>Plan actuel</span>
+      <span>Current Plan</span>
       <strong>{{ currentTier }}</strong>
       <mat-icon *ngIf="isProcessingPayment" class="processing-spinner">sync</mat-icon>
     </div>
@@ -19,8 +19,8 @@
       <div class="double-bounce2"></div>
     </div>
     <div class="processing-text">
-      <h3>Finalisation de votre abonnement</h3>
-      <p>Nous synchronisons vos nouveaux avantages, un instant...</p>
+      <h3>Finalizing your subscription</h3>
+      <p>We are syncing your new benefits, just a moment...</p>
     </div>
   </div>
 
@@ -33,13 +33,13 @@
 
   <div class="status-panel error" *ngIf="plansError && !loadingPlans">
     <mat-icon>error_outline</mat-icon>
-    <span>Les plans ne sont pas disponibles.</span>
-    <button type="button" class="text-button" (click)="loadPlans()">Reessayer</button>
+    <span>Plans are currently unavailable.</span>
+    <button type="button" class="text-button" (click)="loadPlans()">Retry</button>
   </div>
 
   <div class="status-panel empty" *ngIf="!loadingPlans && !plansError && !plans.length">
     <mat-icon>inventory_2</mat-icon>
-    <span>Aucun plan n'est encore charge en base.</span>
+    <span>No subscription plans loaded yet.</span>
   </div>
 
   <div class="plans-grid" *ngIf="!loadingPlans && plans.length">
@@ -50,8 +50,8 @@
           <mat-icon>{{ plan.tier === 'PROFESSIONAL' ? 'workspace_premium' : plan.tier === 'STARTER' ? 'bolt' : 'explore'
             }}</mat-icon>
         </div>
-        <span class="plan-badge" *ngIf="plan.tier === 'STARTER'">Populaire</span>
-        <span class="plan-badge current-badge" *ngIf="isCurrentPlan(plan)">Actuel</span>
+        <span class="plan-badge" *ngIf="plan.tier === 'STARTER'">Popular</span>
+        <span class="plan-badge current-badge" *ngIf="isCurrentPlan(plan)">Current</span>
       </div>
 
       <h2>{{ plan.name }}</h2>
@@ -64,7 +64,7 @@
           </span>
           <strong class="current-price">{{ (plan.discountedPrice || plan.monthlyPrice).toFixed(2) }} EUR</strong>
         </div>
-        <span>/ mois</span>
+        <span>/ month</span>
       </div>
 
       <div class="discount-badge" *ngIf="plan.discountReason">
@@ -90,12 +90,13 @@
 
   <footer class="subscription-footer">
     <div class="cancellation-area" *ngIf="isLoggedIn && currentTier !== 'FREE'">
-      <p>Vous souhaitez arreter ?</p>
-      <button class="cancel-link" (click)="confirmCancel()">Résilier mon abonnement</button>
+      <p>Want to stop?</p>
+      <button class="cancel-link" (click)="confirmCancel()">Cancel my subscription</button>
     </div>
     <div class="links">
-      <a routerLink="/profile" *ngIf="isLoggedIn">Voir mon profil</a>
-      <a routerLink="/login" *ngIf="!isLoggedIn">Connexion</a>
+      <a routerLink="/profile" *ngIf="isLoggedIn">View my profile</a>
+      <a routerLink="/login" *ngIf="!isLoggedIn">Sign in</a>
     </div>
+
   </footer>
 </section>

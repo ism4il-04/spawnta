@@ -116,10 +116,10 @@ export class CreateActivityComponent implements OnChanges {
       // Logic for TRIP (start vs dest)
       if (!this.activityForm.get('startLatitude')?.value) {
         this.activityForm.patchValue({ startLatitude: lat, startLongitude: lng });
-        this.snackBar.open('📍 Trip start point set!', 'OK', { duration: 2500 });
+        this.snackBar.open('Trip start point set!', 'OK', { duration: 2500 });
       } else {
         this.activityForm.patchValue({ destLatitude: lat, destLongitude: lng });
-        this.snackBar.open('🏁 Trip destination set!', 'OK', { duration: 2500 });
+        this.snackBar.open('Trip destination set!', 'OK', { duration: 2500 });
       }
     }
   }

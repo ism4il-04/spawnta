@@ -23,7 +23,7 @@ import { TopbarComponent } from '../topbar/topbar.component';
     .admin-layout-container {
       display: flex;
       min-height: 100vh;
-      background: #f8fafc;
+      background: var(--background);
     }
 
     .main-content-wrapper {

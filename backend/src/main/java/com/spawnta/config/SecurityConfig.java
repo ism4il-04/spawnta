@@ -66,13 +66,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-            "http://localhost:4200",   // frontend dev
-            "http://localhost:4300",   // admin dev
-            "http://localhost:3000",   // alternative frontend port
-            "http://127.0.0.1:4200",   // alternative localhost
-            "http://127.0.0.1:4300",   // alternative localhost
-            "http://127.0.0.1:3000"    // alternative localhost
+        // Autorise toutes les origines localhost et 127.0.0.1 sur n'importe quel port pour k8s et dev
+        config.setAllowedOriginPatterns(List.of(
+            "http://localhost",
+            "http://localhost:*",
+            "http://127.0.0.1",
+            "http://127.0.0.1:*"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

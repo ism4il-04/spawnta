@@ -161,7 +161,8 @@ export class CheckInComponent implements OnInit, OnDestroy {
       next: () => {
         this.loading = false;
         this.success = true;
-        this.snackBar.open('🎉 Attendance confirmed successfully via QR!', 'Close', { duration: 4000 });
+        this.snackBar.open('Attendance confirmed successfully via QR!', 'Close', { duration: 4000 });
+
       },
       error: (err) => {
         this.loading = false;
@@ -182,7 +183,8 @@ export class CheckInComponent implements OnInit, OnDestroy {
           next: () => {
             this.loading = false;
             this.success = true;
-            this.snackBar.open('🎉 Geolocation check-in successful!', 'Close', { duration: 4000 });
+            this.snackBar.open('Geolocation check-in successful!', 'Close', { duration: 4000 });
+
           },
           error: (err) => {
             this.loading = false;

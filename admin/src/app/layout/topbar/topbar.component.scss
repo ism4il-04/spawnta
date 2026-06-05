@@ -1,7 +1,7 @@
 .topbar {
   height: 72px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -17,10 +17,36 @@
   gap: 0.5rem;
 }
 
+.topbar-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  position: relative;
+
+  &:hover {
+    background: var(--bg-hover, var(--background));
+    color: var(--text-main);
+  }
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 0.5rem;
+}
+
 .admin-avatar {
   width: 36px;
   height: 36px;
-  background: #0f172a;
+  background: var(--primary);
   color: white;
   border-radius: 50%;
   display: flex;

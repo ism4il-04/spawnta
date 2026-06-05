@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: spawnta-app
+  namespace: argocd
+spec:
+  project: spawnta-project
+  source:
+    repoURL: https://github.com/ism4il-04/spawnta.git
+    targetRevision: feature/phase5-user-premium
+    path: kubernetes
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  ignoreDifferences:
+  - group: ""
+    kind: Secret
+    name: spawnta-secrets
+    jsonPointers:
+    - /data
+

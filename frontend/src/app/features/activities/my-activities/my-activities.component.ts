@@ -139,7 +139,8 @@ export class MyActivitiesComponent implements OnInit {
         this.pendingJoinMap[activityId] = (this.pendingJoinMap[activityId] || [])
           .filter(p => p.id !== participant.id);
         this.approvingJoinId = null;
-        this.snackBar.open(`✔️ ${participant.firstName} approved!`, 'Done', { duration: 3000 });
+        this.snackBar.open(`${participant.firstName} approved!`, 'Done', { duration: 3000 });
+
         // Refresh activity to update participant count
         this.loadActivities();
       },
@@ -157,7 +158,8 @@ export class MyActivitiesComponent implements OnInit {
         this.pendingCheckInsMap[activityId] = (this.pendingCheckInsMap[activityId] || [])
           .filter(a => a.attendanceId !== attendance.attendanceId);
         this.confirmingCheckInId = null;
-        this.snackBar.open(`✔️ Presence confirmed for ${attendance.firstName}!`, 'Done', { duration: 3000 });
+        this.snackBar.open(`Presence confirmed for ${attendance.firstName}!`, 'Done', { duration: 3000 });
+
       },
       error: (err: any) => {
         this.confirmingCheckInId = null;
