@@ -60,9 +60,19 @@
       <h2>{{ plan.name }}</h2>
       <p class="description">{{ plan.description }}</p>
 
-      <div class="price-row">
-        <strong>{{ monthlyPrice(plan) }} EUR</strong>
+      <div class="price-row" [class.has-discount]="plan.discountedPrice && plan.discountedPrice < plan.monthlyPrice">
+        <div class="price-stack">
+          <span class="old-price" *ngIf="plan.discountedPrice && plan.discountedPrice < plan.monthlyPrice">
+            {{ monthlyPrice(plan) }} EUR
+          </span>
+          <strong class="current-price">{{ (plan.discountedPrice || plan.monthlyPrice).toFixed(2) }} EUR</strong>
+        </div>
         <span>/ mois</span>
+      </div>
+
+      <div class="discount-badge" *ngIf="plan.discountReason">
+        <mat-icon>celebration</mat-icon>
+        <span>{{ plan.discountReason }}</span>
       </div>
 
       <ul class="features-list">

@@ -30,18 +30,21 @@ public class ActivityService {
     private final UserRepository userRepository;
     private final ChatService chatService;
     private final AttendanceService attendanceService;
+    private final BadgeService badgeService;
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public ActivityService(ActivityRepository activityRepository,
                            ActivityParticipantRepository participantRepository,
                            UserRepository userRepository,
                            ChatService chatService,
-                           AttendanceService attendanceService) {
+                           AttendanceService attendanceService,
+                           BadgeService badgeService) {
         this.activityRepository = activityRepository;
         this.participantRepository = participantRepository;
         this.userRepository = userRepository;
         this.chatService = chatService;
         this.attendanceService = attendanceService;
+        this.badgeService = badgeService;
     }
 
     @Transactional
@@ -93,6 +96,9 @@ public class ActivityService {
 
         // Auto-create Group Chat
         chatService.createGroupChat(activity);
+
+        // Trigger badge check for host (Activity Master, Community Leader)
+        badgeService.checkBadgeCriteria(host.getId());
 
         return mapToResponse(activity);
     }

@@ -35,6 +35,7 @@ public class AttendanceService {
     private final GamificationService gamificationService;
     private final OutboxEventRepository outboxEventRepository;
     private final QrCodeService qrCodeService;
+    private final BadgeService badgeService;
     private final ActivityRatingRepository ratingRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -47,6 +48,7 @@ public class AttendanceService {
                              GamificationService gamificationService,
                              OutboxEventRepository outboxEventRepository,
                              QrCodeService qrCodeService,
+                             BadgeService badgeService,
                              ActivityRatingRepository ratingRepository) {
         this.attendanceRepository = attendanceRepository;
         this.evidenceRepository = evidenceRepository;
@@ -57,6 +59,7 @@ public class AttendanceService {
         this.gamificationService = gamificationService;
         this.outboxEventRepository = outboxEventRepository;
         this.qrCodeService = qrCodeService;
+        this.badgeService = badgeService;
         this.ratingRepository = ratingRepository;
     }
 
@@ -209,6 +212,7 @@ public class AttendanceService {
         ActivityAttendance saved = attendanceRepository.save(attendance);
 
         gamificationService.awardXp(userId, 100, "Participated in: " + activity.getTitle());
+        badgeService.checkBadgeCriteria(userId);
         createAttendanceConfirmedOutboxEvent(saved);
 
         return saved;
@@ -241,6 +245,9 @@ public class AttendanceService {
 
             // Award XP: +100 XP for attending an activity
             gamificationService.awardXp(participantId, 100, "Participated in: " + activity.getTitle());
+
+            // Trigger badge check for participant
+            badgeService.checkBadgeCriteria(participantId);
 
             // Write transactional outbox event for Kafka
             createAttendanceConfirmedOutboxEvent(attendance);

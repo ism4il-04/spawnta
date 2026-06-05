@@ -1,6 +1,16 @@
 <div class="feed-container">
-  <h2><mat-icon>auto_awesome</mat-icon> Pour vous</h2>
+  <div class="feed-header">
+    <h2><mat-icon>auto_awesome</mat-icon> Pour vous</h2>
+    <button mat-icon-button (click)="refresh()" [disabled]="loading" title="Actualiser les recommandations">
+      <mat-icon [class.spinning]="loading">refresh</mat-icon>
+    </button>
+  </div>
   
+  <div *ngIf="loading" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Génération de vos recommandations...</p>
+  </div>
+
   <div *ngIf="feedError && !loading" class="empty-state">
     Erreur lors du chargement. <button mat-button color="primary" (click)="refresh()">Réessayer</button>
   </div>
@@ -12,17 +22,24 @@
 
   <div class="feed-grid" *ngIf="!loading && feed.length">
     <mat-card *ngFor="let item of feed" class="feed-card">
+      <div class="reason-badge" *ngIf="item.reason">
+        <mat-icon>stars</mat-icon>
+        <span>{{ item.reason }}</span>
+      </div>
       <mat-card-header>
         <img mat-card-avatar [src]="item.hostAvatarUrl || 'assets/default-avatar.svg'" alt="Host">
         <mat-card-title>{{ item.title }}</mat-card-title>
         <mat-card-subtitle>{{ item.hostName }} • {{ item.category }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <p>{{ item.description }}</p>
+        <p class="description">{{ item.description }}</p>
         <p class="date"><mat-icon>event</mat-icon> {{ item.scheduledAt | date:'medium' }}</p>
       </mat-card-content>
       <mat-card-actions>
-        <a mat-button color="primary" routerLink="/map">Voir sur la carte</a>
+        <button mat-button color="primary" (click)="onActivityClick(item)">
+          <mat-icon>map</mat-icon>
+          Voir sur la carte
+        </button>
       </mat-card-actions>
     </mat-card>
   </div>

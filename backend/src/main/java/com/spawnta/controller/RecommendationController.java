@@ -64,11 +64,13 @@ public class RecommendationController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        List<Activity> feed = recommendationService.getPersonalizedFeed(user.getId());
+        List<ActivityRecommendation> feed = recommendationService.getPersonalizedFeedWithRecs(user.getId());
 
         List<Map<String, Object>> response = feed.stream()
-                .map(a -> {
+                .map(r -> {
+                    Activity a = r.getActivity();
                     Map<String, Object> map = new HashMap<>();
+                    map.put("recommendationId", r.getId());
                     map.put("activityId", a.getId());
                     map.put("title", a.getTitle());
                     map.put("description", a.getDescription() != null ? a.getDescription() : "");
@@ -76,6 +78,7 @@ public class RecommendationController {
                     map.put("scheduledAt", a.getScheduledAt().toString());
                     map.put("hostName", a.getHost().getFirstName() + " " + a.getHost().getLastName());
                     map.put("hostAvatarUrl", a.getHost().getAvatarUrl() != null ? a.getHost().getAvatarUrl() : "");
+                    map.put("reason", r.getReason());
                     return map;
                 })
                 .collect(Collectors.toList());

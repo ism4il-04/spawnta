@@ -18,5 +18,7 @@ public class SubscriptionPlanDTO {
     private String name;
     private String description;
     private BigDecimal monthlyPrice;
+    private BigDecimal discountedPrice;
+    private String discountReason;
     private Set<String> features;
 }
