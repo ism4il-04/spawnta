@@ -56,7 +56,7 @@ public class ActivityService {
         if (!host.isPremium()) {
             LocalDateTime oneWeekAgo = LocalDateTime.now().minusWeeks(1);
             long recentCount = activityRepository.countByHostIdAndCreatedAtAfter(host.getId(), oneWeekAgo);
-            if (recentCount >= 2) {
+            if (recentCount >= 10) { // TODO: revert to 2 in production
                 throw new IllegalStateException("Free users can only create 2 activities per week. Upgrade to Premium for unlimited creations.");
             }
         }

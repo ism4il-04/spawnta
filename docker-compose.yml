@@ -82,6 +82,7 @@ services:
         condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      SPRING_FLYWAY_ENABLED: false
       DB_HOST: postgres
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}

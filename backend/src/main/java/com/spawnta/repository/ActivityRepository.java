@@ -80,5 +80,8 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
     List<Activity> findByHostId(Long hostId);
 
+    @Query("SELECT DISTINCT a FROM Activity a LEFT JOIN FETCH a.participants WHERE a.host.id = :hostId")
+    List<Activity> findByHostIdWithParticipants(Long hostId);
+
     List<Activity> findAllByScheduledAtAfter(LocalDateTime time);
 }
