@@ -135,14 +135,4 @@ public class AttendanceController {
 
         return ResponseEntity.ok(attendanceService.getPendingAttendances(activityId, user.getId()));
     }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleForbidden(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-    }
 }

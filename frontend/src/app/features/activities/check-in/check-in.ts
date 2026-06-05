@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -30,7 +30,6 @@ export class CheckInComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private attendanceService = inject(AttendanceService);
   private snackBar = inject(MatSnackBar);
-  private cdr = inject(ChangeDetectorRef);
 
   activityId!: number;
   loading = false;
@@ -63,7 +62,6 @@ export class CheckInComponent implements OnInit, OnDestroy {
   private verifyEligibility(): void {
     this.loading = true;
     this.loadingMessage = 'Checking eligibility...';
-    this.cdr.detectChanges();
     this.attendanceService.getMyParticipationStatus(this.activityId)
       .pipe(timeout(10000))
       .subscribe({
@@ -74,13 +72,11 @@ export class CheckInComponent implements OnInit, OnDestroy {
           if (status.host) {
             this.blocked = true;
             this.blockMessage = 'Hosts do not need to check in. Please show your activity QR code from the map details panel for participants to scan.';
-            this.cdr.detectChanges();
             return;
           }
 
           if (status.attendanceStatus === 'CONFIRMED') {
             this.blocked = true;
-            this.cdr.detectChanges();
             return;
           }
 
@@ -90,20 +86,17 @@ export class CheckInComponent implements OnInit, OnDestroy {
               ? 'Check-in is currently unavailable. You must check in within the activity time window.'
               : 'You must join this activity before validating your presence.';
           }
-          this.cdr.detectChanges();
         },
         error: () => {
           this.loading = false;
           this.blocked = true;
           this.blockMessage = 'Unable to verify eligibility. Please try again.';
-          this.cdr.detectChanges();
         }
       });
   }
 
   setMethod(method: 'QR' | 'GPS'): void {
     this.activeMethod = method;
-    this.cdr.detectChanges();
     if (method !== 'QR') {
       this.stopScanner();
     }
@@ -111,7 +104,6 @@ export class CheckInComponent implements OnInit, OnDestroy {
 
   startScanner(): void {
     this.isScannerActive = true;
-    this.cdr.detectChanges();
     setTimeout(() => {
       try {
         this.html5Qrcode = new Html5Qrcode('reader');
@@ -125,7 +117,7 @@ export class CheckInComponent implements OnInit, OnDestroy {
             this.stopScanner();
             this.onQrTokenScanned(decodedText);
           },
-          () => {}
+          () => { }
         ).catch(err => {
           console.warn('Environment camera failed, trying user camera...', err);
           return this.html5Qrcode!.start(
@@ -138,25 +130,22 @@ export class CheckInComponent implements OnInit, OnDestroy {
               this.stopScanner();
               this.onQrTokenScanned(decodedText);
             },
-            () => {}
+            () => { }
           );
         }).catch(err => {
           console.error('Camera startup error', err);
           this.isScannerActive = false;
-          this.cdr.detectChanges();
           this.snackBar.open('Unable to access camera. Please allow permission.', 'Close', { duration: 4000 });
         });
       } catch (e) {
         console.error(e);
         this.isScannerActive = false;
-        this.cdr.detectChanges();
       }
     }, 100);
   }
 
   stopScanner(): void {
     this.isScannerActive = false;
-    this.cdr.detectChanges();
     if (this.html5Qrcode) {
       if (this.html5Qrcode.isScanning) {
         this.html5Qrcode.stop().catch(err => console.error('Error stopping scanner', err));
@@ -168,17 +157,14 @@ export class CheckInComponent implements OnInit, OnDestroy {
   private onQrTokenScanned(token: string): void {
     this.loading = true;
     this.loadingMessage = 'Validating QR token...';
-    this.cdr.detectChanges();
     this.attendanceService.checkInViaQr(this.activityId, token).subscribe({
       next: () => {
         this.loading = false;
         this.success = true;
-        this.cdr.detectChanges();
         this.snackBar.open('🎉 Attendance confirmed successfully via QR!', 'Close', { duration: 4000 });
       },
       error: (err) => {
         this.loading = false;
-        this.cdr.detectChanges();
         this.snackBar.open(err.error?.error || 'QR Validation failed. Invalid or expired token.', 'Close', { duration: 5000 });
       }
     });
@@ -187,30 +173,25 @@ export class CheckInComponent implements OnInit, OnDestroy {
   confirmCheckInGps(): void {
     this.loading = true;
     this.loadingMessage = 'Retrieving GPS position...';
-    this.cdr.detectChanges();
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         this.loadingMessage = 'Validating location coordinates...';
-        this.cdr.detectChanges();
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         this.attendanceService.confirmCheckIn(this.activityId, lat, lng).subscribe({
           next: () => {
             this.loading = false;
             this.success = true;
-            this.cdr.detectChanges();
             this.snackBar.open('🎉 Geolocation check-in successful!', 'Close', { duration: 4000 });
           },
           error: (err) => {
             this.loading = false;
-            this.cdr.detectChanges();
             this.snackBar.open(err.error?.error || 'Validation failed. Ensure you are close to the location.', 'Close', { duration: 5000 });
           }
         });
       },
       () => {
         this.loading = false;
-        this.cdr.detectChanges();
         this.snackBar.open('Geolocation permission is required for GPS check-in.', 'Close', { duration: 4000 });
       }
     );

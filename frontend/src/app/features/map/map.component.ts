@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
 import { CreateActivityComponent } from './create-activity/create-activity.component';
 import { ActivityDetailComponent } from './activity-detail/activity-detail.component';
 import { Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-map',
@@ -75,6 +75,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
   radiusCircle: L.Circle | null = null;
   userLocation: L.LatLng | null = null;
   private radiusSubject = new Subject<number>();
+  private readonly destroy$ = new Subject<void>();
 
   panelMode: 'CREATE' | 'DETAIL' | 'NONE' = 'NONE';
   selectedActivity: ActivityResponse | null = null;
@@ -115,13 +116,18 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
     document.addEventListener('joinActivity', this.activityDetailListener as EventListener);
     document.addEventListener('createAtLocation', this.createAtLocationListener as EventListener);
 
-    this.radiusSubject.pipe(debounceTime(300)).subscribe(() => this.loadActivities());
+    this.radiusSubject.pipe(
+      debounceTime(300),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.loadActivities());
   }
 
   ngOnDestroy() {
     document.removeEventListener('joinActivity', this.activityDetailListener as EventListener);
     document.removeEventListener('createAtLocation', this.createAtLocationListener as EventListener);
     this.radiusSubject.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewChecked() {

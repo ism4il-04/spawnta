@@ -60,14 +60,4 @@ public class ActivityRatingController {
     public ResponseEntity<List<ActivityRatingViewDto>> getActivityRatings(@PathVariable Long activityId) {
         return ResponseEntity.ok(ratingService.getActivityRatingViews(activityId));
     }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleForbidden(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-    }
 }

@@ -69,19 +69,4 @@ public class ProfileController {
     ) {
         return ResponseEntity.ok(profileService.removeGalleryPhoto(email, photoUrl));
     }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(IOException.class)
-    public ResponseEntity<Map<String, String>> handleIoError(IOException ex) {
-        return ResponseEntity.internalServerError().body(Map.of("error", "File upload failed: " + ex.getMessage()));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
-        return ResponseEntity.status(500).body(Map.of("error", "Server Error: " + ex.getMessage()));
-    }
 }

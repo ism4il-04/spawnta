@@ -98,36 +98,4 @@ public class ActivityController {
         String email = authentication.getName();
         return ResponseEntity.ok(activityService.getPendingParticipants(id, email));
     }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
-    }
-    
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
-        FieldError firstError = ex.getBindingResult().getFieldErrors().stream().findFirst().orElse(null);
-        String message;
-        
-        if (firstError != null) {
-            String field = firstError.getField();
-            String defaultMessage = firstError.getDefaultMessage();
-            
-            // Custom messages for specific fields
-            if ("scheduledAt".equals(field)) {
-                message = "The activity date and time must be in the future. Please select a future date.";
-            } else {
-                message = field + ": " + defaultMessage;
-            }
-        } else {
-            message = "Invalid activity data";
-        }
-        
-        return ResponseEntity.badRequest().body(Map.of("error", message));
-    }
 }

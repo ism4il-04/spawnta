@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { finalize, Subscription as RxSubscription, interval, take, switchMap, filter, of } from 'rxjs';
+import { finalize, Subscription as RxSubscription, interval, take, switchMap, filter, of, Subject, takeUntil } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../core/services/auth.service';
@@ -24,7 +24,7 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
-  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroy$ = new Subject<void>();
 
   plans: SubscriptionPlan[] = [];
   currentSubscription: UserSubscription | null = null;
@@ -43,13 +43,14 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopPolling();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private checkCheckoutStatus(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['checkout'] === 'success') {
         this.isProcessingPayment = true;
-        this.cdr.detectChanges();
         this.snackBar.open('Paiement reussi ! Finalisation de votre abonnement...', 'Fermer', { duration: 5000 });
         this.startPollingSubscription();
       } else if (params['checkout'] === 'cancel') {
@@ -62,7 +63,6 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
     const initialTier = this.currentTier;
     this.stopPolling();
     this.isProcessingPayment = true;
-    this.cdr.detectChanges();
 
     // Fast polling: every 2 seconds for a smoother "real-time" feel
     this.pollingSubscription = interval(2000).pipe(
@@ -76,7 +76,6 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
       next: subscription => {
         this.currentSubscription = subscription;
         this.isProcessingPayment = false;
-        this.cdr.detectChanges();
         this.snackBar.open('🚀 Félicitations ! Votre abonnement est maintenant actif.', 'Super !', {
           duration: 5000,
           panelClass: ['success-snackbar']
@@ -93,7 +92,6 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
       complete: () => {
         if (this.isProcessingPayment) {
           this.isProcessingPayment = false;
-          this.cdr.detectChanges();
           this.snackBar.open('La validation prend un peu de temps, mais votre paiement est bien reçu !', 'OK', { duration: 6000 });
         }
       }
@@ -117,23 +115,19 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
 
   loadPlans(): void {
     this.loadingPlans = true;
-    this.cdr.detectChanges();
     this.subscriptionService.getPlans().pipe(
       finalize(() => {
         this.loadingPlans = false;
-        this.cdr.detectChanges();
         console.log('Plans loaded:', this.plans);
       })
     ).subscribe({
       next: (plans) => {
         this.plans = this.sortPlans(plans);
         this.plansError = false;
-        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error loading plans:', error);
         this.plansError = true;
-        this.cdr.detectChanges();
         this.snackBar.open('Erreur lors du chargement des plans.', 'Réessayer', { duration: 5000 })
           .onAction().subscribe(() => this.loadPlans());
       }
@@ -146,16 +140,13 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
     }
 
     this.loadingCurrent = true;
-    this.cdr.detectChanges();
     this.subscriptionService.getCurrentSubscription().pipe(
       finalize(() => {
         this.loadingCurrent = false;
-        this.cdr.detectChanges();
       })
     ).subscribe({
       next: subscription => {
         this.currentSubscription = subscription;
-        this.cdr.detectChanges();
       },
       error: error => {
         if (error.status !== 404) {
@@ -176,11 +167,9 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
     }
 
     this.upgradeTier = plan.tier;
-    this.cdr.detectChanges();
     this.subscriptionService.upgradeSubscription(plan.tier).pipe(
       finalize(() => {
         this.upgradeTier = null;
-        this.cdr.detectChanges();
       })
     ).subscribe({
       next: response => {

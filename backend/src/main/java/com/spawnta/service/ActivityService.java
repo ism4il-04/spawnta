@@ -113,6 +113,10 @@ public class ActivityService {
         ActivityType activityType,
         LocalDate scheduledDate
     ) {
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            throw new IllegalArgumentException("Invalid coordinates. Latitude must be between -90 and 90, longitude between -180 and 180.");
+        }
+
         double radiusMeters = radiusKm * 1000;
         LocalDateTime scheduledFrom = scheduledDate != null ? scheduledDate.atStartOfDay() : null;
         LocalDateTime scheduledTo = scheduledDate != null ? scheduledDate.atTime(LocalTime.MAX) : null;

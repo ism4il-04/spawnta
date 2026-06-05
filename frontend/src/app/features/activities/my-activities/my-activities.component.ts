@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,7 +32,6 @@ import { AttendanceService } from '../../../core/services/attendance.service';
   styleUrls: ['./my-activities.component.scss']
 })
 export class MyActivitiesComponent implements OnInit {
-  private cdr = inject(ChangeDetectorRef);
   loading = true;
   hostedActivities: MyActivityResponse[] = [];
   joinedActivities: MyActivityResponse[] = [];
@@ -60,7 +59,7 @@ export class MyActivitiesComponent implements OnInit {
     private activityService: ActivityService,
     private attendanceService: AttendanceService,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadActivities();
@@ -68,17 +67,14 @@ export class MyActivitiesComponent implements OnInit {
 
   loadActivities(): void {
     this.loading = true;
-    this.cdr.detectChanges();
     this.activityService.getMyActivities().subscribe({
       next: (activities) => {
         this.hostedActivities = activities.filter(a => a.participation.host);
         this.joinedActivities = activities.filter(a => !a.participation.host);
         this.loading = false;
-        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
-        this.cdr.detectChanges();
         this.snackBar.open('Failed to load activities', 'Close', { duration: 4000 });
       }
     });
@@ -87,11 +83,9 @@ export class MyActivitiesComponent implements OnInit {
   toggleExpand(activityId: number): void {
     if (this.expandedActivityId === activityId) {
       this.expandedActivityId = null;
-      this.cdr.detectChanges();
       return;
     }
     this.expandedActivityId = activityId;
-    this.cdr.detectChanges();
     this.loadParticipantsFor(activityId);
     this.loadPendingCheckInsFor(activityId);
     this.loadPendingJoinsFor(activityId);
@@ -100,15 +94,12 @@ export class MyActivitiesComponent implements OnInit {
   private loadParticipantsFor(activityId: number): void {
     if (this.participantsMap[activityId]) return;
     this.loadingParticipants[activityId] = true;
-    this.cdr.detectChanges();
     this.activityService.getPendingParticipants(activityId).subscribe({
-      next: () => { 
-        this.loadingParticipants[activityId] = false; 
-        this.cdr.detectChanges();
+      next: () => {
+        this.loadingParticipants[activityId] = false;
       },
-      error: () => { 
-        this.loadingParticipants[activityId] = false; 
-        this.cdr.detectChanges();
+      error: () => {
+        this.loadingParticipants[activityId] = false;
       }
     });
   }
@@ -116,16 +107,13 @@ export class MyActivitiesComponent implements OnInit {
   private loadPendingCheckInsFor(activityId: number): void {
     if (this.pendingCheckInsMap[activityId]) return;
     this.loadingCheckIns[activityId] = true;
-    this.cdr.detectChanges();
     this.attendanceService.getPendingAttendances(activityId).subscribe({
       next: (data) => {
         this.pendingCheckInsMap[activityId] = data;
         this.loadingCheckIns[activityId] = false;
-        this.cdr.detectChanges();
       },
-      error: () => { 
-        this.loadingCheckIns[activityId] = false; 
-        this.cdr.detectChanges();
+      error: () => {
+        this.loadingCheckIns[activityId] = false;
       }
     });
   }
@@ -133,36 +121,30 @@ export class MyActivitiesComponent implements OnInit {
   private loadPendingJoinsFor(activityId: number): void {
     if (this.pendingJoinMap[activityId]) return;
     this.loadingJoins[activityId] = true;
-    this.cdr.detectChanges();
     this.activityService.getPendingParticipants(activityId).subscribe({
       next: (data) => {
         this.pendingJoinMap[activityId] = data;
         this.loadingJoins[activityId] = false;
-        this.cdr.detectChanges();
       },
-      error: () => { 
-        this.loadingJoins[activityId] = false; 
-        this.cdr.detectChanges();
+      error: () => {
+        this.loadingJoins[activityId] = false;
       }
     });
   }
 
   approveJoin(activityId: number, participant: ActivityParticipantResponse): void {
     this.approvingJoinId = participant.id;
-    this.cdr.detectChanges();
     this.activityService.approveParticipant(activityId, participant.id).subscribe({
       next: () => {
         this.pendingJoinMap[activityId] = (this.pendingJoinMap[activityId] || [])
           .filter(p => p.id !== participant.id);
         this.approvingJoinId = null;
-        this.cdr.detectChanges();
         this.snackBar.open(`✔️ ${participant.firstName} approved!`, 'Done', { duration: 3000 });
         // Refresh activity to update participant count
         this.loadActivities();
       },
       error: (err: any) => {
         this.approvingJoinId = null;
-        this.cdr.detectChanges();
         this.snackBar.open(err.error?.error || 'Approval failed', 'Close', { duration: 4000 });
       }
     });
@@ -170,18 +152,15 @@ export class MyActivitiesComponent implements OnInit {
 
   confirmCheckIn(activityId: number, attendance: any): void {
     this.confirmingCheckInId = attendance.attendanceId;
-    this.cdr.detectChanges();
     this.attendanceService.hostConfirmAttendance(activityId, [attendance.userId]).subscribe({
       next: () => {
         this.pendingCheckInsMap[activityId] = (this.pendingCheckInsMap[activityId] || [])
           .filter(a => a.attendanceId !== attendance.attendanceId);
         this.confirmingCheckInId = null;
-        this.cdr.detectChanges();
         this.snackBar.open(`✔️ Presence confirmed for ${attendance.firstName}!`, 'Done', { duration: 3000 });
       },
       error: (err: any) => {
         this.confirmingCheckInId = null;
-        this.cdr.detectChanges();
         this.snackBar.open(err.error?.error || 'Confirmation failed', 'Close', { duration: 4000 });
       }
     });
