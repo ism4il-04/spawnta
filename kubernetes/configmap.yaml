@@ -8,6 +8,7 @@ data:
   REDIS_HOST: "redis"
   KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
   SPRING_PROFILES_ACTIVE: "prod"
+  FRONTEND_URL: "http://localhost"
   SPRING_FLYWAY_ENABLED: "true"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
   CLOUDINARY_CLOUD_NAME: "your_cloud_name"

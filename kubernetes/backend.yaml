@@ -61,6 +61,11 @@ spec:
             secretKeyRef:
               name: spawnta-secrets
               key: JWT_SECRET
+        - name: FRONTEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: spawnta-config
+              key: FRONTEND_URL
         - name: CLOUDINARY_CLOUD_NAME
           valueFrom:
             configMapKeyRef:

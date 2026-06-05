@@ -175,16 +175,16 @@ export class ActivityDetailComponent implements OnChanges {
     const message = isApproval ? this.introMessage.trim() : undefined;
 
     if (isApproval && !message) {
-      this.snackBar.open('Please enter a message for the host.', 'OK', { duration: 3000 });
+      this.snackBar.open('✍️ Please enter a message for the host.', 'OK', { duration: 3000 });
       return;
     }
 
     this.activityService.join(this.activity.id, message).subscribe({
       next: () => {
         const successMsg = isApproval 
-          ? 'Request sent! The host will review your message.' 
-          : 'You have successfully joined the activity!';
-        this.snackBar.open(successMsg, 'OK', { duration: 4000 });
+          ? '📩 Request sent! The host will review your message.' 
+          : '🎉 You have successfully joined the activity!';
+        this.snackBar.open(successMsg, 'Great', { duration: 4000 });
         this.activity.participantCount++;
         this.introMessage = '';
       },
@@ -203,7 +203,7 @@ export class ActivityDetailComponent implements OnChanges {
         this.pendingParticipants = this.pendingParticipants.filter(item => item.id !== participant.id);
         this.approvingId = null;
         this.activity.participantCount++;
-        this.snackBar.open(`Approved ${participant.firstName} successfully!`, 'Done', { duration: 3000 });
+        this.snackBar.open(`✔️ Approved ${participant.firstName} successfully!`, 'Done', { duration: 3000 });
       },
       error: (err: any) => {
         this.approvingId = null;
@@ -245,7 +245,7 @@ export class ActivityDetailComponent implements OnChanges {
       next: () => {
         this.pendingAttendances = this.pendingAttendances.filter(item => item.attendanceId !== attendance.attendanceId);
         this.confirmingAttendanceId = null;
-        this.snackBar.open(`Attendance confirmed for ${attendance.firstName}!`, 'Done', { duration: 3000 });
+        this.snackBar.open(`✔️ Attendance confirmed for ${attendance.firstName}!`, 'Done', { duration: 3000 });
       },
       error: (err: any) => {
         this.confirmingAttendanceId = null;

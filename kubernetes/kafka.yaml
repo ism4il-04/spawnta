@@ -69,6 +69,8 @@ spec:
           value: "1"
         - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
           value: "true"
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx512M -Xms512M"
 ---
 apiVersion: v1
 kind: Service
