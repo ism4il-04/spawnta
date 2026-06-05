@@ -1,24 +1,54 @@
+/* ══════════════════════════════════════════════
+   SPAWNTA — RECOMMENDATIONS FEED (Premium Dark)
+   ══════════════════════════════════════════════ */
+
 .feed-container {
-  padding: 16px;
+  padding: var(--space-md);
+  animation: fadeIn var(--transition-smooth);
 }
 
 .feed-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  align-items: flex-start;
+  margin-bottom: var(--space-lg);
 
-  h2 {
+  .header-text {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #ff9800;
-    margin: 0;
+    flex-direction: column;
+    gap: 4px;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      color: var(--text-primary);
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: -0.01em;
+      
+      mat-icon {
+        font-size: 1.4rem;
+        width: 1.4rem;
+        height: 1.4rem;
+        color: var(--warning);
+      }
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+  }
+
+  button {
+    color: var(--text-secondary) !important;
     
-    mat-icon {
-      font-size: 28px;
-      width: 28px;
-      height: 28px;
+    &:hover {
+      color: var(--text-primary) !important;
+      background: var(--bg-surface-2) !important;
     }
   }
 
@@ -36,105 +66,169 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 60px 0;
-  color: #666;
+  gap: var(--space-md);
+  padding: var(--space-2xl) 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
 }
 
 .empty-state {
   text-align: center;
-  padding: 40px;
-  color: #666;
-  font-style: italic;
+  padding: var(--space-2xl);
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+
+  button {
+    color: var(--accent) !important;
+    font-weight: 600;
+    
+    &:hover {
+      background: var(--bg-surface-2) !important;
+    }
+  }
 }
 
 .feed-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-md);
 }
 
 .feed-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: border-color var(--transition-fast), transform var(--transition-fast) !important;
   overflow: hidden;
-  border-radius: 12px;
-  border: 1px solid #eee;
   
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    border-color: var(--border-default) !important;
   }
 
-  .reason-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: rgba(255, 152, 0, 0.1);
-    color: #f57c00;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    z-index: 2;
-
-    mat-icon {
-      font-size: 14px;
-      width: 14px;
-      height: 14px;
-    }
+  .reason-tag {
+    display: block;
+    width: fit-content;
+    background: var(--accent-subtle);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+    border: 1px solid var(--border-accent);
   }
 
   mat-card-header {
-    padding-top: 16px;
-    margin-bottom: 12px;
+    padding: var(--space-md) var(--space-md) 0 !important;
+    margin-bottom: var(--space-sm);
+
+    ::ng-deep .mat-mdc-card-header-text {
+      min-width: 0;
+      flex: 1;
+    }
+
+    mat-card-title {
+      font-size: 0.95rem !important;
+      font-weight: 600 !important;
+      color: var(--text-primary) !important;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      display: flex;
+      flex-direction: column;
+    }
+
+    mat-card-subtitle {
+      font-size: 0.75rem !important;
+      color: var(--text-secondary) !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    img[mat-card-avatar] {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-default);
+      object-fit: cover;
+    }
   }
 
   mat-card-content {
     flex: 1;
+    padding: 0 var(--space-md) var(--space-md) !important;
     
     .description {
-      color: #444;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
       line-height: 1.5;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      margin-bottom: 16px;
+      margin-bottom: var(--space-md);
     }
     
     .date {
       display: flex;
       align-items: center;
       gap: 6px;
-      color: #666;
-      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-size: 0.78rem;
       margin: 0;
       font-weight: 500;
       
       mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        color: #999;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+        color: var(--text-tertiary);
       }
     }
   }
 
-  mat-card-actions {
-    border-top: 1px solid #f5f5f5;
-    padding: 8px 16px;
+  .card-actions-row {
+    border-top: 1px solid var(--border-subtle) !important;
+    padding: var(--space-sm) var(--space-md) !important;
+    background: var(--bg-surface-2);
     
-    button {
+    .action-btn {
       width: 100%;
       display: flex;
       justify-content: center;
-      gap: 8px;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary) !important;
+      border: 1px solid var(--border-default) !important;
+      border-radius: var(--radius-md) !important;
+      transition: all var(--transition-fast) !important;
+      background: transparent !important;
+      height: 36px !important;
+      
+      &:hover {
+        background: var(--bg-surface) !important;
+        border-color: var(--border-strong) !important;
+        color: var(--text-primary) !important;
+      }
+
+      mat-icon {
+        font-size: 1.1rem;
+        width: 1.1rem;
+        height: 1.1rem;
+        color: var(--accent);
+      }
     }
   }
 }

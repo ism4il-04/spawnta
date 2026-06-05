@@ -4,14 +4,14 @@
   margin-top: var(--space-lg);
   
   .forgot-link {
-    color: var(--primary-blue);
+    color: var(--accent);
     font-size: 0.875rem;
     font-weight: 500;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color var(--transition-fast) ease;
     
     &:hover {
-      color: var(--blue-600);
+      color: var(--accent-hover);
       text-decoration: underline;
     }
   }

@@ -1,18 +1,23 @@
-<div class="auth-container">
-  <mat-card class="auth-card">
-    <mat-card-header>
-      <mat-card-title>
+<div class="auth-container single-card-layout">
+  <div class="modern-card auth-card">
+    <div class="card-header">
+      <div class="card-badge success-badge">Success</div>
+      <h2 class="card-title">
         <mat-icon class="success-icon">mark_email_unread</mat-icon>
         Check your inbox!
-      </mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <p>We sent a verification link to:</p>
+      </h2>
+      <p class="card-subtitle">We sent a verification link to activate your account</p>
+    </div>
+    
+    <div class="card-body">
       <p class="email-highlight">{{ email }}</p>
       <p class="hint">Click the link in the email to activate your account. Check your spam folder if you don't see it.</p>
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button color="primary" (click)="goToLogin()">Go to Login</button>
-    </mat-card-actions>
-  </mat-card>
+      
+      <div class="form-actions">
+        <button class="btn btn-primary btn-lg btn-full" (click)="goToLogin()">
+          Go to Login
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

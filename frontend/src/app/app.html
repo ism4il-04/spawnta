@@ -1,11 +1,11 @@
 <div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
 
-  <!-- ══════════ SIDEBAR ══════════ -->
+  <!-- ══════════ SIDEBAR (Desktop) ══════════ -->
   <aside class="sidebar" role="navigation" aria-label="Main menu">
 
     <!-- Brand -->
     <div class="sidebar-brand">
-      <span class="brand-globe">🌍</span>
+     
       <span class="brand-text">Spawnta</span>
     </div>
 
@@ -52,6 +52,8 @@
         <span class="nav-label">Subscription</span>
       </a>
 
+      <div class="nav-separator" *ngIf="!authService.isLoggedIn()"></div>
+
       <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active"
          class="nav-item" id="nav-connexion">
         <mat-icon class="nav-icon">login</mat-icon>
@@ -84,11 +86,18 @@
         <mat-icon class="search-icon">search</mat-icon>
         <input id="topbar-search-input" type="search" class="search-input"
                placeholder="Search activities, locations…" autocomplete="off">
+        <span class="search-kbd">⌘K</span>
       </div>
 
       <div class="topbar-end">
 
         <app-notifications-dropdown *ngIf="authService.isLoggedIn()"></app-notifications-dropdown>
+
+        <button class="icon-btn" (click)="toggleTheme()" id="btn-theme-toggle"
+                [attr.aria-label]="isLightTheme ? 'Switch to Dark Mode' : 'Switch to Light Mode'"
+                [title]="isLightTheme ? 'Switch to Dark Mode' : 'Switch to Light Mode'">
+          <mat-icon>{{ isLightTheme ? 'dark_mode' : 'light_mode' }}</mat-icon>
+        </button>
 
         <button class="icon-btn" id="btn-settings" aria-label="Settings">
           <mat-icon>settings</mat-icon>
@@ -105,21 +114,25 @@
 
           <div *ngIf="userMenuOpen" class="user-dropdown" role="menu">
             <div class="dropdown-header">
-              <strong>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</strong>
+              <span class="dropdown-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
               <span class="dropdown-email">{{ currentUser?.email }}</span>
             </div>
-            <hr class="dropdown-divider">
+            <div class="dropdown-divider"></div>
             <button class="dropdown-item" role="menuitem"
                     (click)="navigateToProfile()" id="menu-profil">
-              <mat-icon>person</mat-icon> My Profile
+              <mat-icon>person</mat-icon>
+              <span>My Profile</span>
             </button>
             <button class="dropdown-item" role="menuitem"
                     (click)="navigateToSubscription()" id="menu-abonnement">
-              <mat-icon>workspace_premium</mat-icon> Subscription
+              <mat-icon>workspace_premium</mat-icon>
+              <span>Subscription</span>
             </button>
+            <div class="dropdown-divider"></div>
             <button class="dropdown-item logout-item" role="menuitem"
                     (click)="logout()" id="menu-deconnexion">
-              <mat-icon>logout</mat-icon> Log out
+              <mat-icon>logout</mat-icon>
+              <span>Log out</span>
             </button>
           </div>
         </div>
@@ -141,6 +154,36 @@
     </main>
 
   </div>
+
+  <!-- ══════════ MOBILE BOTTOM NAV ══════════ -->
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="mobile-nav-item">
+      <mat-icon>home</mat-icon>
+      <span>Home</span>
+    </a>
+    <a routerLink="/map" routerLinkActive="active" class="mobile-nav-item">
+      <mat-icon>map</mat-icon>
+      <span>Map</span>
+    </a>
+    <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active" class="mobile-nav-item">
+      <div class="nav-icon-wrap">
+        <mat-icon>chat_bubble_outline</mat-icon>
+        <span class="nav-badge" *ngIf="(chatService.unreadCount$ | async) as count">
+          {{ count > 0 ? count : null }}
+        </span>
+      </div>
+      <span>Messages</span>
+    </a>
+    <a *ngIf="authService.isLoggedIn()" routerLink="/profile" routerLinkActive="active" class="mobile-nav-item">
+      <mat-icon>person_outline</mat-icon>
+      <span>Profile</span>
+    </a>
+    <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active" class="mobile-nav-item">
+      <mat-icon>login</mat-icon>
+      <span>Login</span>
+    </a>
+  </nav>
+
 </div>
 
 <!-- Toast Notifications Container -->

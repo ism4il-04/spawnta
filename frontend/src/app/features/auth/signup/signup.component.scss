@@ -17,9 +17,9 @@
 // Component-specific overrides
 .password-strength {
   .strength-text {
-    &.weak { color: var(--error-500); }
-    &.medium { color: var(--warning-500); }
-    &.strong { color: var(--lime-400); }
-    &.very-strong { color: var(--success-500); }
+    &.weak { color: var(--danger); }
+    &.medium { color: var(--warning); }
+    &.strong { color: var(--accent); }
+    &.very-strong { color: var(--success); }
   }
 }

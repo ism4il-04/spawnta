@@ -1,40 +1,76 @@
-.verify-container {
+.auth-container.single-card-layout {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 1rem;
+  min-height: calc(100vh - 140px);
+  padding: var(--space-lg);
 }
 
-.verify-card {
+.auth-card {
   width: 100%;
-  max-width: 420px;
-  text-align: center;
+  max-width: 440px;
+  animation: scaleIn var(--transition-smooth);
+}
+
+.success-badge {
+  background: var(--success-subtle) !important;
+  color: var(--success) !important;
+}
+
+.error-badge {
+  background: var(--danger-subtle) !important;
+  color: var(--danger) !important;
+}
+
+.success-icon {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--success);
+  vertical-align: middle;
+  margin-right: 0.5rem;
+}
+
+.error-icon {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--danger);
+  vertical-align: middle;
+  margin-right: 0.5rem;
 }
 
 .centered {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 2rem 1rem;
+  gap: var(--space-md);
+  padding: var(--space-2xl) var(--space-lg) !important;
 }
 
-.success-icon {
-  font-size: 2rem;
-  color: #4caf50;
-  vertical-align: middle;
-  margin-right: 0.5rem;
+.status-text {
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
-.error-icon {
-  font-size: 2rem;
-  color: #f44336;
-  vertical-align: middle;
-  margin-right: 0.5rem;
+.status-desc {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: center;
+  margin: var(--space-md) 0 var(--space-lg);
 }
 
-mat-card-actions {
-  justify-content: center;
-  padding-bottom: 1rem;
+.error-msg {
+  color: var(--danger);
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  padding: var(--space-md);
+  background: var(--danger-subtle);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.form-actions {
+  margin-top: var(--space-lg);
 }

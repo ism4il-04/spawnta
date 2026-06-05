@@ -25,16 +25,16 @@
 }
 
 .card {
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
   display: flex;
   flex-direction: column;
 
   .card-header {
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -42,13 +42,13 @@
     .card-title {
       font-size: 1.125rem;
       font-weight: 600;
-      color: #0f172a;
+      color: var(--text-main);
       margin: 0;
     }
 
     .view-all {
       font-size: 0.875rem;
-      color: #3b82f6;
+      color: var(--accent);
       text-decoration: none;
       display: flex;
       align-items: center;
@@ -80,13 +80,13 @@
 
   .mod-label {
     font-size: 0.875rem;
-    color: #64748b;
+    color: var(--text-muted);
     font-weight: 500;
   }
 
   .progress-container {
     height: 12px;
-    background: #f1f5f9;
+    background: var(--background);
     border-radius: 6px;
     position: relative;
     display: flex;
@@ -94,7 +94,7 @@
 
     .progress-bar {
       height: 100%;
-      background: #3b82f6;
+      background: var(--accent);
       border-radius: 6px;
       transition: width 0.5s ease-out;
 
@@ -109,7 +109,7 @@
       top: -1.25rem;
       font-size: 0.875rem;
       font-weight: 600;
-      color: #0f172a;
+      color: var(--text-main);
     }
   }
 }
@@ -118,7 +118,7 @@
   h3 {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 1rem;
@@ -136,18 +136,18 @@
     align-items: center;
     gap: 0.75rem;
     padding: 1.25rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--background);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    color: #475569;
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s;
     text-decoration: none;
 
     &:hover {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
-      color: #0f172a;
+      background: var(--bg-hover, var(--background));
+      border-color: var(--border);
+      color: var(--text-main);
       transform: translateY(-2px);
     }
 
@@ -212,23 +212,23 @@
     p {
       margin: 0;
       font-size: 0.875rem;
-      color: #334155;
+      color: var(--text-main);
       line-height: 1.4;
 
       strong {
-        color: #0f172a;
+        color: var(--text-main);
         font-weight: 600;
       }
     }
 
     .desc {
       font-size: 0.8125rem;
-      color: #64748b;
+      color: var(--text-muted);
     }
 
     .time {
       font-size: 0.75rem;
-      color: #94a3b8;
+      color: var(--text-muted);
     }
   }
 }
@@ -241,15 +241,15 @@
   th {
     text-align: left;
     padding: 0.75rem 1rem;
-    color: #64748b;
+    color: var(--text-muted);
     font-weight: 600;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border);
   }
 
   td {
     padding: 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
 
     &.details {
       max-width: 250px;
@@ -260,8 +260,8 @@
   }
 
   .pill.action {
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--background);
+    color: var(--text-muted);
     font-weight: 600;
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
@@ -277,7 +277,7 @@
   justify-content: center;
   min-height: 400px;
   gap: 1rem;
-  color: #64748b;
+  color: var(--text-muted);
 
   &.error {
     color: #ef4444;
@@ -312,15 +312,15 @@
 }
 
 .btn-primary {
-  background: #0f172a;
+  background: var(--primary);
   color: white;
   border: none;
-  &:hover { background: #1e293b; }
+  &:hover { background: var(--primary-hover); }
 }
 
 .btn-secondary {
-  background: white;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-  &:hover { background: #f8fafc; border-color: #cbd5e1; }
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  &:hover { background: var(--bg-hover, var(--background)); border-color: var(--border); }
 }

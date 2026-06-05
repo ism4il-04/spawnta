@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterOutlet } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AdminAuthService } from './core/admin-auth.service';
 
-import { LucideAngularModule, Shield, Mail, Lock, LogIn, RefreshCw } from 'lucide-angular';
+import { LucideAngularModule, Shield, Mail, Lock, LogIn, RefreshCw, Sun, Moon } from 'lucide-angular';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +13,7 @@ import { LucideAngularModule, Shield, Mail, Lock, LogIn, RefreshCw } from 'lucid
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   readonly authService = inject(AdminAuthService);
   private readonly router = inject(Router);
 
@@ -22,6 +22,32 @@ export class App {
   readonly Lock = Lock;
   readonly LogIn = LogIn;
   readonly RefreshCw = RefreshCw;
+  readonly Sun = Sun;
+  readonly Moon = Moon;
+
+  isDarkTheme = false;
+
+  ngOnInit(): void {
+    const savedTheme = localStorage.getItem('spawnta-admin-theme');
+    if (savedTheme === 'dark') {
+      this.isDarkTheme = true;
+      document.body.classList.add('dark-theme');
+    } else {
+      this.isDarkTheme = false;
+      document.body.classList.remove('dark-theme');
+    }
+  }
+
+  toggleTheme(): void {
+    this.isDarkTheme = !this.isDarkTheme;
+    if (this.isDarkTheme) {
+      document.body.classList.add('dark-theme');
+      localStorage.setItem('spawnta-admin-theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-theme');
+      localStorage.setItem('spawnta-admin-theme', 'light');
+    }
+  }
 
   email = 'admin@spawnta.com';
   password = 'demo1234';

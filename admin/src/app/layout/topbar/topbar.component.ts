@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Search, Bell, User, Settings, HelpCircle } from 'lucide-angular';
+import { LucideAngularModule, Search, Bell, User, Settings, HelpCircle, Sun, Moon } from 'lucide-angular';
 import { AdminAuthService } from '../../core/admin-auth.service';
 import { AdminDashboardService } from '../../core/admin-dashboard.service';
 
@@ -21,11 +21,26 @@ export class TopbarComponent implements OnInit {
   readonly User = User;
   readonly Settings = Settings;
   readonly HelpCircle = HelpCircle;
+  readonly Sun = Sun;
+  readonly Moon = Moon;
 
   notificationCount = 0;
+  isDarkTheme = false;
+
+  toggleTheme(): void {
+    this.isDarkTheme = !this.isDarkTheme;
+    if (this.isDarkTheme) {
+      document.body.classList.add('dark-theme');
+      localStorage.setItem('spawnta-admin-theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-theme');
+      localStorage.setItem('spawnta-admin-theme', 'light');
+    }
+  }
 
   ngOnInit(): void {
     this.loadNotificationCount();
+    this.isDarkTheme = document.body.classList.contains('dark-theme');
   }
 
   private loadNotificationCount(): void {

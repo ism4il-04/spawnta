@@ -1,37 +1,50 @@
-.auth-container {
+.auth-container.single-card-layout {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 1rem;
+  min-height: calc(100vh - 140px);
+  padding: var(--space-lg);
 }
 
 .auth-card {
   width: 100%;
-  max-width: 420px;
-  text-align: center;
+  max-width: 440px;
+  animation: scaleIn var(--transition-smooth);
+}
+
+.success-badge {
+  background: var(--success-subtle) !important;
+  color: var(--success) !important;
 }
 
 .success-icon {
-  font-size: 2rem;
-  color: #4caf50;
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--success);
   vertical-align: middle;
   margin-right: 0.5rem;
 }
 
 .email-highlight {
   font-weight: 600;
-  font-size: 1.1rem;
-  color: var(--mat-primary-color, #3f51b5);
-  margin: 0.5rem 0;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  word-break: break-all;
 }
 
 .hint {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin-bottom: var(--space-xl);
 }
 
-mat-card-actions {
-  justify-content: center;
-  padding-bottom: 1rem;
+.form-actions {
+  margin-top: var(--space-lg);
 }
