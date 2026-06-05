@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild, NgZone, inject, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
 import { ActivityService, ActivityResponse } from '../../core/services/activity.service';
@@ -101,6 +102,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   private readonly ngZone = inject(NgZone);
   protected readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
 
   constructor(
     private activityService: ActivityService,
@@ -223,6 +225,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
       next: (data: ActivityResponse[]) => {
         this.activities = data;
         this.updateMarkers();
+        this.checkRouteParams();
       },
       error: (err: any) => {
         console.error('Failed to load activities', err);
@@ -572,5 +575,19 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.snackBar.open('🎉 Activity created successfully!', 'Hooray', { duration: 4000 });
     this.closePanel();
     this.loadActivities();
+  }
+
+  private checkRouteParams() {
+    const activityId = this.route.snapshot.queryParamMap.get('activityId');
+    if (activityId) {
+      const act = this.activities.find(a => a.id === +activityId);
+      if (act) {
+        // Center map on activity if it's not already in view
+        if (act.latitude && act.longitude) {
+          this.map.setView([act.latitude, act.longitude], 14);
+        }
+        this.openDetail(act);
+      }
+    }
   }
 }

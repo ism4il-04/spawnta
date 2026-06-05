@@ -1,7 +1,10 @@
 package com.spawnta.subscription.controller;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +24,7 @@ import com.spawnta.subscription.entity.UserSubscription;
 import com.spawnta.subscription.repository.SubscriptionPlanRepository;
 import com.spawnta.subscription.repository.UserSubscriptionRepository;
 import com.spawnta.subscription.service.StripeService;
+import com.spawnta.subscription.service.SubscriptionDiscountService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,17 +44,20 @@ public class SubscriptionController {
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final UserRepository userRepository;
+    private final SubscriptionDiscountService discountService;
     
     public SubscriptionController(
             StripeService stripeService,
             SubscriptionPlanRepository subscriptionPlanRepository,
             UserSubscriptionRepository userSubscriptionRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            SubscriptionDiscountService discountService
     ) {
         this.stripeService = stripeService;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
         this.userSubscriptionRepository = userSubscriptionRepository;
         this.userRepository = userRepository;
+        this.discountService = discountService;
     }
     
     /**
@@ -58,10 +65,16 @@ public class SubscriptionController {
      */
     @GetMapping("/plans")
     @Operation(summary = "Get all subscription plans")
-    public ResponseEntity<List<SubscriptionPlanDTO>> getPlans() {
+    public ResponseEntity<List<SubscriptionPlanDTO>> getPlans(Authentication authentication) {
+        User user = null;
+        if (authentication != null && authentication.isAuthenticated()) {
+            user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        }
+
+        final User finalUser = user;
         List<SubscriptionPlanDTO> plans = subscriptionPlanRepository.findAll()
                 .stream()
-                .map(this::mapPlanToDTO)
+                .map(plan -> mapPlanToDTO(plan, finalUser))
                 .toList();
         return ResponseEntity.ok(plans);
     }
@@ -86,12 +99,12 @@ public class SubscriptionController {
                     .orElse(null);
             
             return ResponseEntity.ok(UserSubscriptionDTO.builder()
-                    .plan(freePlan != null ? mapPlanToDTO(freePlan) : null)
+                    .plan(freePlan != null ? mapPlanToDTO(freePlan, user) : null)
                     .status("ACTIVE")
                     .build());
         }
         
-        return ResponseEntity.ok(mapSubscriptionToDTO(subscription));
+        return ResponseEntity.ok(mapSubscriptionToDTO(subscription, user));
     }
     
     /**
@@ -192,13 +205,29 @@ public class SubscriptionController {
     /**
      * Map SubscriptionPlan entity to DTO
      */
-    private SubscriptionPlanDTO mapPlanToDTO(com.spawnta.subscription.entity.SubscriptionPlan plan) {
+    private SubscriptionPlanDTO mapPlanToDTO(SubscriptionPlan plan, User user) {
+        BigDecimal discountedPrice = plan.getMonthlyPrice();
+        String discountReason = null;
+
+        if (user != null && plan.getMonthlyPrice().compareTo(BigDecimal.ZERO) > 0) {
+            int discountPercent = discountService.calculateTotalDiscountPercentage(user);
+            if (discountPercent > 0) {
+                BigDecimal discountAmount = plan.getMonthlyPrice()
+                        .multiply(BigDecimal.valueOf(discountPercent))
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                discountedPrice = plan.getMonthlyPrice().subtract(discountAmount);
+                discountReason = discountService.getDiscountReason(user);
+            }
+        }
+
         return SubscriptionPlanDTO.builder()
                 .id(plan.getId())
                 .tier(plan.getTier().getId())
                 .name(plan.getName())
                 .description(plan.getDescription())
                 .monthlyPrice(plan.getMonthlyPrice())
+                .discountedPrice(discountedPrice)
+                .discountReason(discountReason)
                 .features(plan.getFeatures())
                 .build();
     }
@@ -206,11 +235,11 @@ public class SubscriptionController {
     /**
      * Map UserSubscription entity to DTO
      */
-    private UserSubscriptionDTO mapSubscriptionToDTO(UserSubscription subscription) {
+    private UserSubscriptionDTO mapSubscriptionToDTO(UserSubscription subscription, User user) {
         return UserSubscriptionDTO.builder()
                 .id(subscription.getId())
-                .plan(mapPlanToDTO(subscription.getPlan()))
-                .status(subscription.getStatus().toString())
+                .plan(mapPlanToDTO(subscription.getPlan(), user))
+                .status(subscription.getStatus().name())
                 .startDate(subscription.getStartDate())
                 .endDate(subscription.getEndDate())
                 .renewalDate(subscription.getRenewalDate())

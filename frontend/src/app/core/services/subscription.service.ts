@@ -8,6 +8,8 @@ export interface SubscriptionPlan {
   name: string;
   description: string;
   monthlyPrice: number;
+  discountedPrice?: number;
+  discountReason?: string;
   features: string[];
 }
 

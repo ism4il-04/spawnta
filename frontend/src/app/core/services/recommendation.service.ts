@@ -14,6 +14,7 @@ export interface Recommendation {
 }
 
 export interface FeedActivity {
+  recommendationId: number;
   activityId: number;
   title: string;
   description: string;
@@ -21,6 +22,7 @@ export interface FeedActivity {
   scheduledAt: string;
   hostName: string;
   hostAvatarUrl: string;
+  reason: string;
 }
 
 export interface UserNotification {
@@ -38,9 +40,9 @@ export interface UserNotification {
 export class RecommendationService {
   private apiUrl = 'http://localhost:8080/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  generateRecommendations(latitude: number, longitude: number): Observable<Recommendation[]> {
+  generateRecommendations(latitude?: number | null, longitude?: number | null): Observable<Recommendation[]> {
     return this.http.post<Recommendation[]>(`${this.apiUrl}/recommendations/generate`, { latitude, longitude });
   }
 

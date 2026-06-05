@@ -85,6 +85,11 @@ public class RecommendationService {
     }
 
     @Transactional(readOnly = true)
+    public List<ActivityRecommendation> getPersonalizedFeedWithRecs(Long userId) {
+        return recommendationRepository.findByUserIdAndClickedFalseOrderByScoreDesc(userId);
+    }
+
+    @Transactional(readOnly = true)
     public List<Activity> getPersonalizedFeed(Long userId) {
         List<ActivityRecommendation> recs = recommendationRepository.findByUserIdAndClickedFalseOrderByScoreDesc(userId);
         return recs.stream()
