@@ -186,6 +186,20 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
     });
   }
 
+  confirmCancel(): void {
+    if (confirm('Êtes-vous sûr de vouloir résilier votre abonnement ? Vous perdrez vos avantages premium à la fin de la période actuelle.')) {
+      this.subscriptionService.cancelSubscription('User requested cancellation via UI').subscribe({
+        next: () => {
+          this.snackBar.open('Abonnement résilié avec succès.', 'OK', { duration: 5000 });
+          this.loadCurrentSubscription();
+        },
+        error: (err) => {
+          this.snackBar.open(err.error?.error || 'Erreur lors de la résiliation.', 'Fermer', { duration: 5000 });
+        }
+      });
+    }
+  }
+
   isCurrentPlan(plan: SubscriptionPlan): boolean {
     return plan.tier.toUpperCase() === this.currentTier;
   }

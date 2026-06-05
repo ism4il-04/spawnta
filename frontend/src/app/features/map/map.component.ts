@@ -79,6 +79,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   panelMode: 'CREATE' | 'DETAIL' | 'NONE' = 'NONE';
   selectedActivity: ActivityResponse | null = null;
+  editActivity: ActivityResponse | null = null;
   tempMarker: L.Marker | null = null;
   private selectionMarker: L.Marker | null = null;
   private pendingLocation: { lat: number; lng: number } | null = null;
@@ -460,6 +461,9 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   openCreate() {
+    this.editActivity = null;
+    this.selectedActivity = null;
+
     // Use GPS location directly when + is clicked
     const fallback = () => {
       const center = this.map ? this.map.getCenter() : L.latLng(48.8566, 2.3522);
@@ -545,20 +549,41 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.selectionMarker.bindPopup(popup).openPopup();
   }
 
+  openEdit(activity: ActivityResponse) {
+    this.panelMode = 'CREATE';
+    this.editActivity = activity;
+    this.selectedActivity = null;
+    this.sidenav.open();
+
+    // Place temp marker at current location
+    if (activity.activityType === 'MEETUP' && activity.latitude && activity.longitude) {
+      this.placeTempMarker(activity.latitude, activity.longitude);
+    } else if (activity.startLatitude && activity.startLongitude) {
+      this.map.setView([activity.startLatitude, activity.startLongitude], 13);
+    }
+  }
+
   openDetail(activity: ActivityResponse) {
     this.selectedActivity = activity;
+    this.editActivity = null;
     this.panelMode = 'DETAIL';
     this.sidenav.open();
 
     if (this.map) {
       this.map.getContainer().style.cursor = '';
+      const lat = activity.latitude || activity.startLatitude;
+      const lng = activity.longitude || activity.startLongitude;
+      if (lat && lng) {
+        this.map.setView([lat, lng], 14);
+      }
     }
   }
 
   closePanel() {
-    if (this.panelMode === 'DETAIL') this.sidenav.close();
+    if (this.panelMode === 'DETAIL' || this.panelMode === 'CREATE') this.sidenav.close();
     this.panelMode = 'NONE';
     this.selectedActivity = null;
+    this.editActivity = null;
     this.isFormVisible = true;
 
     if (this.tempMarker && this.map) { this.map.removeLayer(this.tempMarker); this.tempMarker = null; }
@@ -579,8 +604,20 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   onActivityCreated(activity: any) {
     this.snackBar.open('🎉 Activity created successfully!', 'Hooray', { duration: 4000 });
-    this.closePanel();
     this.loadActivities();
+    this.openDetail(activity);
+  }
+
+  onActivityUpdated(activity: any) {
+    this.snackBar.open('✅ Activity updated!', 'OK', { duration: 3000 });
+    this.loadActivities();
+    this.openDetail(activity);
+  }
+
+  onActivityDeleted() {
+    this.snackBar.open('Activity deleted.', 'OK', { duration: 3000 });
+    this.loadActivities();
+    this.closePanel();
   }
 
   private checkRouteParams() {

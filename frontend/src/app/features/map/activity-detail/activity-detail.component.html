@@ -1,7 +1,17 @@
 <div class="detail-container">
 
   <div class="header-section">
-    <h2 class="activity-title">{{ activity.title }}</h2>
+    <div class="title-row">
+      <h2 class="activity-title">{{ activity.title }}</h2>
+      <div class="host-mgmt-actions" *ngIf="isHost">
+        <button mat-icon-button color="primary" matTooltip="Modifier l'activité" (click)="onEdit()">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" matTooltip="Supprimer l'activité" (click)="onDelete()">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
     <p class="activity-location" *ngIf="activity.address">
       <mat-icon>location_on</mat-icon>
       <span>{{ activity.address }}</span>

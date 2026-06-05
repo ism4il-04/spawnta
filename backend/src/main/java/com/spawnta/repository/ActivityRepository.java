@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
@@ -82,6 +83,10 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
     @Query("SELECT DISTINCT a FROM Activity a LEFT JOIN FETCH a.participants WHERE a.host.id = :hostId")
     List<Activity> findByHostIdWithParticipants(Long hostId);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Activity a WHERE a.id = :id")
+    Optional<Activity> findByIdWithLock(@Param("id") Long id);
 
     List<Activity> findAllByScheduledAtAfter(LocalDateTime time);
 }

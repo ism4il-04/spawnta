@@ -1,7 +1,7 @@
 <div class="modern-modal-overlay">
   <div class="modern-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Host an Activity</h2>
+      <h2 class="modal-title">{{ editActivity ? 'Edit Activity' : 'Host an Activity' }}</h2>
       <button type="button" class="modal-close" (click)="cancel.emit()">
         <i class="material-icons">close</i>
       </button>
@@ -47,7 +47,8 @@
               <select 
                 id="activityType"
                 class="form-select"
-                formControlName="activityType">
+                formControlName="activityType"
+                [attr.disabled]="editActivity ? true : null">
                 <option value="">Select</option>
                 <option value="MEETUP">Local Meetup</option>
                 <option value="TRIP">Trip / Excursion</option>
@@ -219,20 +220,14 @@
         </div>
       </div>
 
-      <!-- Modal Actions -->
-      <div class="modal-actions">
-        <button type="button" class="btn btn-outline" (click)="cancel.emit()">
-          Cancel
-        </button>
-        <button type="submit" class="btn btn-primary" [disabled]="activityForm.invalid || loading">
-          <span *ngIf="!loading">
-            <i class="material-icons">add</i>
-            Host Activity
-          </span>
-          <span *ngIf="loading" class="loading-content">
-            <div class="spinner"></div>
-            Creating...
-          </span>
+      <div class="form-footer">
+        <button type="button" class="btn btn-outline" (click)="cancel.emit()">Cancel</button>
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="activityForm.invalid || loading">
+          <span *ngIf="!loading">{{ editActivity ? 'Save Changes' : 'Create Activity' }}</span>
+          <div class="spinner" *ngIf="loading"></div>
         </button>
       </div>
     </form>

@@ -12,7 +12,7 @@
     </div>
     <div class="panel-content">
       <app-activity-detail *ngIf="panelMode === 'DETAIL' && selectedActivity" [activity]="selectedActivity"
-        (closePanel)="closePanel()">
+        (closePanel)="closePanel()" (editActivity)="openEdit($event)" (deleted)="onActivityDeleted()">
       </app-activity-detail>
     </div>
   </mat-sidenav>
@@ -133,7 +133,8 @@
 
     <!-- Create Activity Modal (centered on screen) -->
     <app-create-activity #createCmp *ngIf="panelMode === 'CREATE'" [hidden]="!isFormVisible"
-      (created)="onActivityCreated($event)" (cancel)="closePanel()" (hide)="hideCreateForm()">
+      [editActivity]="editActivity" (created)="onActivityCreated($event)" (updated)="onActivityUpdated($event)"
+      (cancel)="closePanel()" (hide)="hideCreateForm()">
     </app-create-activity>
   </mat-sidenav-content>
 

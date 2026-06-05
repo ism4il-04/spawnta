@@ -86,12 +86,13 @@ public class RecommendationService {
 
     @Transactional(readOnly = true)
     public List<ActivityRecommendation> getPersonalizedFeedWithRecs(Long userId) {
-        return recommendationRepository.findByUserIdAndClickedFalseOrderByScoreDesc(userId);
+        // Return both clicked and unclicked, but unclicked first, then by score
+        return recommendationRepository.findByUserIdOrderByClickedAscScoreDesc(userId);
     }
 
     @Transactional(readOnly = true)
     public List<Activity> getPersonalizedFeed(Long userId) {
-        List<ActivityRecommendation> recs = recommendationRepository.findByUserIdAndClickedFalseOrderByScoreDesc(userId);
+        List<ActivityRecommendation> recs = getPersonalizedFeedWithRecs(userId);
         return recs.stream()
                 .map(ActivityRecommendation::getActivity)
                 .collect(Collectors.toList());

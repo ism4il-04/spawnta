@@ -285,6 +285,14 @@ public class ChatService {
     }
 
     @Transactional
+    public void deleteChatByActivityId(Long activityId) {
+        chatRepository.findByActivityId(activityId).ifPresent(chat -> {
+            log.info("Deleting group chat for activity ID: {}", activityId);
+            chatRepository.delete(chat);
+        });
+    }
+
+    @Transactional
     public void blockPrivateChat(Long chatId, Long userId) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
@@ -405,72 +413,90 @@ public class ChatService {
         List<com.spawnta.dto.ChatResponse> responses = new ArrayList<>();
 
         for (Chat chat : chats) {
-            String title = "";
-            String avatarUrl = null;
+            try {
+                String title = "";
+                String avatarUrl = null;
 
-            if (chat.getType() == ChatType.GROUP) {
-                title = chat.getActivity().getTitle();
-            } else {
-                // Find other participant
-                User other = chat.getParticipants().stream()
-                        .map(ChatParticipant::getUser)
-                        .filter(u -> !u.getId().equals(user.getId()))
-                        .findFirst()
-                        .orElse(null);
-                if (other != null) {
-                    title = other.getFirstName() + " " + other.getLastName();
-                    avatarUrl = other.getAvatarUrl();
+                if (chat.getType() == ChatType.GROUP) {
+                    title = (chat.getActivity() != null) ? chat.getActivity().getTitle() : "Cancelled Activity";
                 } else {
-                    title = "Deleted User";
+                    // Find other participant safely
+                    User other = null;
+                    if (chat.getParticipants() != null) {
+                        other = chat.getParticipants().stream()
+                                .filter(cp -> cp.getUser() != null)
+                                .map(ChatParticipant::getUser)
+                                .filter(u -> !u.getId().equals(user.getId()))
+                                .findFirst()
+                                .orElse(null);
+                    }
+
+                    if (other != null) {
+                        title = (other.getFirstName() != null ? other.getFirstName() : "") + " " + 
+                                (other.getLastName() != null ? other.getLastName() : "");
+                        if (title.trim().isEmpty()) title = "User " + other.getId();
+                        avatarUrl = other.getAvatarUrl();
+                    } else {
+                        title = "Deleted User";
+                    }
                 }
-            }
 
-            // Get last message
-            String lastMessage = "";
-            LocalDateTime lastMessageTime = null;
-            String lastMessageSender = null;
+                // Get last message safely
+                String lastMessage = "";
+                LocalDateTime lastMessageTime = null;
+                String lastMessageSender = null;
 
-            org.springframework.data.domain.Page<Message> lastMsgs = messageRepository
-                    .findAllByChatIdAndStatusOrderByCreatedAtDesc(chat.getId(), MessageStatus.ACTIVE, org.springframework.data.domain.PageRequest.of(0, 1));
-            if (lastMsgs.hasContent()) {
-                Message msg = lastMsgs.getContent().get(0);
-                lastMessage = msg.getContent();
-                lastMessageTime = msg.getCreatedAt();
-                if (msg.getSender() != null) {
-                    lastMessageSender = msg.getSender().getFirstName() + " " + msg.getSender().getLastName();
-                } else {
-                    lastMessageSender = "Deleted User";
+                org.springframework.data.domain.Page<Message> lastMsgs = messageRepository
+                        .findAllByChatIdAndStatusOrderByCreatedAtDesc(chat.getId(), MessageStatus.ACTIVE, org.springframework.data.domain.PageRequest.of(0, 1));
+                
+                if (lastMsgs != null && lastMsgs.hasContent()) {
+                    Message msg = lastMsgs.getContent().get(0);
+                    lastMessage = msg.getContent() != null ? msg.getContent() : "";
+                    lastMessageTime = msg.getCreatedAt();
+                    if (msg.getSender() != null) {
+                        lastMessageSender = (msg.getSender().getFirstName() != null ? msg.getSender().getFirstName() : "") + " " + 
+                                           (msg.getSender().getLastName() != null ? msg.getSender().getLastName() : "");
+                        if (lastMessageSender.trim().isEmpty()) lastMessageSender = "User " + msg.getSender().getId();
+                    } else {
+                        lastMessageSender = "Deleted User";
+                    }
                 }
+
+                boolean notificationsEnabled = true;
+                String participantStatus = "ACTIVE";
+
+                if (chat.getParticipants() != null) {
+                    ChatParticipant self = chat.getParticipants().stream()
+                            .filter(cp -> cp.getUser() != null && cp.getUser().getId().equals(user.getId()))
+                            .findFirst()
+                            .orElse(null);
+                    
+                    if (self != null) {
+                        notificationsEnabled = self.isNotificationsEnabled();
+                        participantStatus = self.getStatus() != null ? self.getStatus().name() : "ACTIVE";
+                    }
+                }
+
+                responses.add(new com.spawnta.dto.ChatResponse(
+                    chat.getId(),
+                    chat.getType() != null ? chat.getType().name() : "GROUP",
+                    chat.getActivity() != null ? chat.getActivity().getId() : null,
+                    chat.getActivity() != null ? chat.getActivity().getTitle() : null,
+                    chat.getStatus() != null ? chat.getStatus().name() : "ACTIVE",
+                    chat.getCreatedAt() != null ? chat.getCreatedAt() : LocalDateTime.now(),
+                    title,
+                    avatarUrl,
+                    lastMessage,
+                    lastMessageTime,
+                    lastMessageSender,
+                    notificationsEnabled,
+                    chat.getBlockedByUserId(),
+                    participantStatus
+                ));
+            } catch (Exception e) {
+                log.error("Error mapping chat ID {} to response for user {}", chat.getId(), email, e);
+                // Skip this individual chat instead of failing the whole request
             }
-
-            boolean notificationsEnabled = chat.getParticipants().stream()
-                    .filter(cp -> cp.getUser().getId().equals(user.getId()))
-                    .map(ChatParticipant::isNotificationsEnabled)
-                    .findFirst()
-                    .orElse(true);
-
-            String participantStatus = chat.getParticipants().stream()
-                    .filter(cp -> cp.getUser().getId().equals(user.getId()))
-                    .map(cp -> cp.getStatus().name())
-                    .findFirst()
-                    .orElse("ACTIVE");
-
-            responses.add(new com.spawnta.dto.ChatResponse(
-                chat.getId(),
-                chat.getType().name(),
-                chat.getActivity() != null ? chat.getActivity().getId() : null,
-                chat.getActivity() != null ? chat.getActivity().getTitle() : null,
-                chat.getStatus().name(),
-                chat.getCreatedAt(),
-                title,
-                avatarUrl,
-                lastMessage,
-                lastMessageTime,
-                lastMessageSender,
-                notificationsEnabled,
-                chat.getBlockedByUserId(),
-                participantStatus
-            ));
         }
         return responses;
     }

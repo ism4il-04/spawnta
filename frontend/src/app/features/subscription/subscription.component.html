@@ -43,15 +43,12 @@
   </div>
 
   <div class="plans-grid" *ngIf="!loadingPlans && plans.length">
-    <article
-      class="plan-card"
-      *ngFor="let plan of plans"
-      [class.featured]="plan.tier === 'STARTER'"
-      [class.current]="isCurrentPlan(plan)"
-    >
+    <article class="plan-card" *ngFor="let plan of plans" [class.featured]="plan.tier === 'STARTER'"
+      [class.current]="isCurrentPlan(plan)">
       <div class="plan-top">
         <div class="plan-icon">
-          <mat-icon>{{ plan.tier === 'PROFESSIONAL' ? 'workspace_premium' : plan.tier === 'STARTER' ? 'bolt' : 'explore' }}</mat-icon>
+          <mat-icon>{{ plan.tier === 'PROFESSIONAL' ? 'workspace_premium' : plan.tier === 'STARTER' ? 'bolt' : 'explore'
+            }}</mat-icon>
         </div>
         <span class="plan-badge" *ngIf="plan.tier === 'STARTER'">Populaire</span>
         <span class="plan-badge current-badge" *ngIf="isCurrentPlan(plan)">Actuel</span>
@@ -82,13 +79,9 @@
         </li>
       </ul>
 
-      <button
-        type="button"
-        class="plan-action"
-        [class.secondary]="plan.tier === 'FREE' || isCurrentPlan(plan)"
+      <button type="button" class="plan-action" [class.secondary]="plan.tier === 'FREE' || isCurrentPlan(plan)"
         [disabled]="plan.tier === 'FREE' || isCurrentPlan(plan) || upgradeTier === plan.tier"
-        (click)="selectPlan(plan)"
-      >
+        (click)="selectPlan(plan)">
         <mat-icon>{{ isCurrentPlan(plan) ? 'verified' : 'arrow_forward' }}</mat-icon>
         <span>{{ actionLabel(plan) }}</span>
       </button>
@@ -96,7 +89,13 @@
   </div>
 
   <footer class="subscription-footer">
-    <a routerLink="/profile" *ngIf="isLoggedIn">Voir mon profil</a>
-    <a routerLink="/login" *ngIf="!isLoggedIn">Connexion</a>
+    <div class="cancellation-area" *ngIf="isLoggedIn && currentTier !== 'FREE'">
+      <p>Vous souhaitez arreter ?</p>
+      <button class="cancel-link" (click)="confirmCancel()">Résilier mon abonnement</button>
+    </div>
+    <div class="links">
+      <a routerLink="/profile" *ngIf="isLoggedIn">Voir mon profil</a>
+      <a routerLink="/login" *ngIf="!isLoggedIn">Connexion</a>
+    </div>
   </footer>
 </section>

@@ -19,8 +19,8 @@ import { qrCodeImageSrc } from '../../../core/utils/qr-code.util';
   selector: 'app-activity-detail',
   standalone: true,
   imports: [
-    CommonModule, 
-    MatButtonModule, 
+    CommonModule,
+    MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
@@ -37,6 +37,8 @@ import { qrCodeImageSrc } from '../../../core/utils/qr-code.util';
 export class ActivityDetailComponent implements OnChanges {
   @Input() activity!: ActivityResponse;
   @Output() closePanel = new EventEmitter<void>();
+  @Output() editActivity = new EventEmitter<ActivityResponse>();
+  @Output() deleted = new EventEmitter<number>();
 
   get activityTimeStatus(): { status: string; detail: string; cssClass: string } {
     if (!this.activity || !this.activity.scheduledAt) {
@@ -117,15 +119,15 @@ export class ActivityDetailComponent implements OnChanges {
       return { status: 'Finished', detail, cssClass: 'status-finished' };
     }
   }
-  
+
   pendingParticipants: ActivityParticipantResponse[] = [];
   loadingPending = false;
   approvingId: number | null = null;
-  
+
   pendingAttendances: any[] = [];
   loadingAttendances = false;
   confirmingAttendanceId: number | null = null;
-  
+
   // Custom intro message state
   introMessage = '';
   hostQrCode: string | null = null;
@@ -140,7 +142,7 @@ export class ActivityDetailComponent implements OnChanges {
     private attendanceService: AttendanceService,
     private router: Router,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['activity']?.currentValue) {
@@ -179,10 +181,10 @@ export class ActivityDetailComponent implements OnChanges {
       return;
     }
 
-    this.activityService.join(this.activity.id, message).subscribe({
+    this.activityService.joinActivity(this.activity.id, message).subscribe({
       next: () => {
-        const successMsg = isApproval 
-          ? '📩 Request sent! The host will review your message.' 
+        const successMsg = isApproval
+          ? '📩 Request sent! The host will review your message.'
           : '🎉 You have successfully joined the activity!';
         this.snackBar.open(successMsg, 'Great', { duration: 4000 });
         this.activity.participantCount++;
@@ -200,17 +202,34 @@ export class ActivityDetailComponent implements OnChanges {
     this.approvingId = participant.id;
     this.activityService.approveParticipant(this.activity.id, participant.id).subscribe({
       next: () => {
-        this.pendingParticipants = this.pendingParticipants.filter(item => item.id !== participant.id);
+        this.snackBar.open(`✔️ ${participant.firstName} approved!`, 'Done', { duration: 3000 });
+        this.pendingParticipants = this.pendingParticipants.filter(p => p.id !== participant.id);
         this.approvingId = null;
         this.activity.participantCount++;
-        this.snackBar.open(`✔️ Approved ${participant.firstName} successfully!`, 'Done', { duration: 3000 });
       },
       error: (err: any) => {
         this.approvingId = null;
-        const errMsg = err.error?.error || 'Failed to approve participant.';
-        this.snackBar.open(errMsg, 'Close', { duration: 4000 });
+        this.snackBar.open(err.error?.error || 'Approval failed', 'Close', { duration: 4000 });
       }
     });
+  }
+
+  onEdit() {
+    this.editActivity.emit(this.activity);
+  }
+
+  onDelete() {
+    if (confirm('Are you sure you want to delete this activity? This cannot be undone.')) {
+      this.activityService.deleteActivity(this.activity.id).subscribe({
+        next: () => {
+          this.snackBar.open('🗑️ Activity deleted successfully.', 'OK', { duration: 3000 });
+          this.deleted.emit(this.activity.id);
+        },
+        error: (err: any) => {
+          this.snackBar.open(err.error?.error || 'Failed to delete activity.', 'Close', { duration: 4000 });
+        }
+      });
+    }
   }
 
   private loadPendingParticipants() {

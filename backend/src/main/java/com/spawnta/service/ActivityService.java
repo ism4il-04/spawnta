@@ -1,11 +1,6 @@
 package com.spawnta.service;
 
-import com.spawnta.dto.ActivityParticipantResponse;
-import com.spawnta.dto.ActivityParticipationStatusDto;
-import com.spawnta.dto.ActivityResponse;
-import com.spawnta.dto.CreateActivityRequest;
-import com.spawnta.dto.JoinActivityRequest;
-import com.spawnta.dto.MyActivityResponse;
+import com.spawnta.dto.*;
 import com.spawnta.entity.*;
 import com.spawnta.repository.ActivityParticipantRepository;
 import com.spawnta.repository.ActivityRepository;
@@ -31,6 +26,8 @@ public class ActivityService {
     private final ChatService chatService;
     private final AttendanceService attendanceService;
     private final BadgeService badgeService;
+    private final EmailService emailService;
+    private final NotificationService notificationService;
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public ActivityService(ActivityRepository activityRepository,
@@ -38,13 +35,17 @@ public class ActivityService {
                            UserRepository userRepository,
                            ChatService chatService,
                            AttendanceService attendanceService,
-                           BadgeService badgeService) {
+                           BadgeService badgeService,
+                           EmailService emailService,
+                           NotificationService notificationService) {
         this.activityRepository = activityRepository;
         this.participantRepository = participantRepository;
         this.userRepository = userRepository;
         this.chatService = chatService;
         this.attendanceService = attendanceService;
         this.badgeService = badgeService;
+        this.emailService = emailService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -97,10 +98,108 @@ public class ActivityService {
         // Auto-create Group Chat
         chatService.createGroupChat(activity);
 
-        // Trigger badge check for host (Activity Master, Community Leader)
-        badgeService.checkBadgeCriteria(host.getId());
+        // Trigger hosting badge check for host
+        badgeService.checkHostingBadges(host.getId());
 
         return mapToResponse(activity);
+    }
+
+    @Transactional
+    public ActivityResponse updateActivity(Long id, UpdateActivityRequest request, String userEmail) {
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
+
+        if (!activity.getHost().getEmail().equals(userEmail)) {
+            throw new IllegalStateException("Only the host can update this activity");
+        }
+
+        // Track critical changes for notification
+        StringBuilder changes = new StringBuilder();
+        boolean criticalChange = false;
+
+        if (!activity.getScheduledAt().equals(request.scheduledAt())) {
+            criticalChange = true;
+            changes.append("- Date/Time changed to: ").append(request.scheduledAt()).append("\n");
+        }
+
+        if (request.address() != null && !request.address().equals(activity.getAddress())) {
+            criticalChange = true;
+            changes.append("- Location changed to: ").append(request.address()).append("\n");
+        }
+
+        activity.setTitle(request.title());
+        activity.setDescription(request.description());
+        activity.setParticipationMode(request.participationMode() != null ? request.participationMode() : ParticipationMode.DIRECT);
+        activity.setMaxParticipants(request.maxParticipants());
+        activity.setScheduledAt(request.scheduledAt());
+        activity.setDurationMinutes(request.durationMinutes());
+        activity.setCategory(request.category());
+        activity.setAddress(request.address());
+
+        if (activity.getActivityType() == ActivityType.MEETUP) {
+            if (request.latitude() != null && request.longitude() != null) {
+                activity.setLocation(createPoint(request.longitude(), request.latitude()));
+            }
+        } else if (activity.getActivityType() == ActivityType.TRIP) {
+            if (request.startLatitude() != null && request.startLongitude() != null) {
+                activity.setStartLocation(createPoint(request.startLongitude(), request.startLatitude()));
+            }
+            if (request.destLatitude() != null && request.destLongitude() != null) {
+                activity.setDestination(createPoint(request.destLongitude(), request.destLatitude()));
+            }
+        }
+
+        activity = activityRepository.save(activity);
+
+        // Notify participants of critical changes
+        if (criticalChange) {
+            String title = activity.getTitle();
+            String changeList = changes.toString();
+            activity.getParticipants().stream()
+                .filter(p -> p.getStatus() == ParticipationStatus.APPROVED)
+                .forEach(p -> {
+                    notificationService.sendNotification(
+                        p.getUser().getId(),
+                        NotificationType.SYSTEM,
+                        "Activity Updated: " + title,
+                        "Important changes: \n" + changeList,
+                        id,
+                        null
+                    );
+                    emailService.sendActivityUpdatedNotification(p.getUser().getEmail(), title, changeList);
+                });
+        }
+
+        return mapToResponse(activity);
+    }
+
+    @Transactional
+    public void deleteActivity(Long id, String userEmail) {
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
+
+        if (!activity.getHost().getEmail().equals(userEmail)) {
+            throw new IllegalStateException("Only the host can delete this activity");
+        }
+
+        // Notify participants before deletion
+        String title = activity.getTitle();
+        activity.getParticipants().stream()
+            .filter(p -> p.getStatus() == ParticipationStatus.APPROVED)
+            .forEach(p -> {
+                notificationService.sendNotification(
+                    p.getUser().getId(),
+                    NotificationType.SYSTEM,
+                    "Activity Cancelled: " + title,
+                    "The activity has been cancelled by the host.",
+                    null, // activity will be deleted
+                    null
+                );
+                emailService.sendActivityCancelledNotification(p.getUser().getEmail(), title);
+            });
+
+        chatService.deleteChatByActivityId(id);
+        activityRepository.delete(activity);
     }
 
     @Transactional(readOnly = true)
@@ -146,10 +245,12 @@ public class ActivityService {
         );
         
         // Combine and sort by scheduled time
-        meetups.addAll(trips);
-        return meetups.stream()
+        List<Activity> allActivities = new ArrayList<>(meetups);
+        allActivities.addAll(trips);
+        
+        return allActivities.stream()
             .distinct() // in case some activities matched both somehow
-            .sorted((a1, a2) -> a1.getScheduledAt().compareTo(a2.getScheduledAt()))
+            .sorted(Comparator.comparing(Activity::getScheduledAt))
             .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
@@ -163,7 +264,8 @@ public class ActivityService {
 
     @Transactional
     public void joinActivity(Long activityId, String userEmail, JoinActivityRequest request) {
-        Activity activity = activityRepository.findById(activityId)
+        // Use lock to prevent overbooking during concurrent join requests
+        Activity activity = activityRepository.findByIdWithLock(activityId)
             .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
             
         User user = userRepository.findByEmail(userEmail)
@@ -177,7 +279,7 @@ public class ActivityService {
             throw new IllegalStateException("The host is already part of the activity");
         }
 
-        // Check capacity
+        // Check capacity under lock
         if (activity.getMaxParticipants() != null) {
             long approvedCount = participantRepository.countByActivityIdAndStatus(activityId, ParticipationStatus.APPROVED);
             if (approvedCount >= activity.getMaxParticipants()) {
@@ -203,7 +305,8 @@ public class ActivityService {
 
     @Transactional
     public void approveParticipant(Long activityId, Long participantId, String hostEmail) {
-        Activity activity = activityRepository.findById(activityId)
+        // Use lock to prevent overbooking during concurrent approvals
+        Activity activity = activityRepository.findByIdWithLock(activityId)
             .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
             
         if (!activity.getHost().getEmail().equals(hostEmail)) {
@@ -217,10 +320,15 @@ public class ActivityService {
             throw new IllegalArgumentException("Participant does not belong to this activity");
         }
 
+        if (participant.getStatus() == ParticipationStatus.APPROVED) {
+            return; // Already approved
+        }
+
+        // Check capacity under lock
         if (activity.getMaxParticipants() != null) {
             long approvedCount = participantRepository.countByActivityIdAndStatus(activityId, ParticipationStatus.APPROVED);
             if (approvedCount >= activity.getMaxParticipants()) {
-                throw new IllegalStateException("Activity is full");
+                throw new IllegalStateException("Activity is full. You cannot approve more participants.");
             }
         }
 

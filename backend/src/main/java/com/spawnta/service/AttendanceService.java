@@ -169,8 +169,22 @@ public class AttendanceService {
         }
 
         attendance.setCheckInTime(now);
-        attendance.setStatus(AttendanceStatus.PENDING);
-        attendance.setConfirmedAt(null);
+        
+        // AUTO-CONFIRMATION LOGIC:
+        // If the user is within a very tight radius (e.g. 100m), we auto-confirm to reduce host bottleneck.
+        double distanceMeters = activityLoc.distance(checkinLoc) * 111320; // very rough approx, but enough for a 100m threshold
+        
+        if (distanceMeters < 100.0) {
+            attendance.setStatus(AttendanceStatus.CONFIRMED);
+            attendance.setConfirmedAt(now);
+            // XP and badges for auto-confirmed GPS
+            gamificationService.awardXp(userId, 100, "Participated in: " + activity.getTitle() + " (Auto-verified GPS)");
+            badgeService.checkAttendanceBadges(userId);
+        } else {
+            attendance.setStatus(AttendanceStatus.PENDING);
+            attendance.setConfirmedAt(null);
+        }
+        
         ActivityAttendance saved = attendanceRepository.save(attendance);
 
         AttendanceEvidence evidence = new AttendanceEvidence(saved, "GPS_VERIFIED", checkinLoc);
@@ -212,7 +226,7 @@ public class AttendanceService {
         ActivityAttendance saved = attendanceRepository.save(attendance);
 
         gamificationService.awardXp(userId, 100, "Participated in: " + activity.getTitle());
-        badgeService.checkBadgeCriteria(userId);
+        badgeService.checkAttendanceBadges(userId);
         createAttendanceConfirmedOutboxEvent(saved);
 
         return saved;
@@ -246,8 +260,8 @@ public class AttendanceService {
             // Award XP: +100 XP for attending an activity
             gamificationService.awardXp(participantId, 100, "Participated in: " + activity.getTitle());
 
-            // Trigger badge check for participant
-            badgeService.checkBadgeCriteria(participantId);
+            // Trigger attendance badge checks for participant
+            badgeService.checkAttendanceBadges(participantId);
 
             // Write transactional outbox event for Kafka
             createAttendanceConfirmedOutboxEvent(attendance);

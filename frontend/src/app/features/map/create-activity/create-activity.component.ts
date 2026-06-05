@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
-import { ActivityService } from '../../../core/services/activity.service';
+import { ActivityResponse, ActivityService } from '../../../core/services/activity.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -31,8 +31,10 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './create-activity.component.html',
   styleUrls: ['./create-activity.component.scss']
 })
-export class CreateActivityComponent {
+export class CreateActivityComponent implements OnChanges {
+  @Input() editActivity: ActivityResponse | null = null;
   @Output() created = new EventEmitter<any>();
+  @Output() updated = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
   @Output() hide = new EventEmitter<void>(); // Nouveau: pour cacher le formulaire
 
@@ -65,6 +67,44 @@ export class CreateActivityComponent {
       destLatitude: [null],
       destLongitude: [null],
       address: ['']
+    });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['editActivity'] && this.editActivity) {
+      this.fillFormForEdit(this.editActivity);
+    }
+  }
+
+  private fillFormForEdit(activity: ActivityResponse): void {
+    const scheduled = new Date(activity.scheduledAt);
+    const durationTotal = activity.durationMinutes || 0;
+    const days = Math.floor(durationTotal / (24 * 60));
+    const hours = Math.floor((durationTotal % (24 * 60)) / 60);
+    const mins = durationTotal % 60;
+
+    const pad = (num: number) => num.toString().padStart(2, '0');
+    const timeStr = `${pad(scheduled.getHours())}:${pad(scheduled.getMinutes())}`;
+
+    this.activityForm.patchValue({
+      title: activity.title,
+      description: activity.description,
+      activityType: activity.activityType,
+      participationMode: activity.participationMode,
+      maxParticipants: activity.maxParticipants,
+      scheduledAt: scheduled,
+      scheduledTime: timeStr,
+      durationDays: days,
+      durationHours: hours,
+      durationMins: mins,
+      category: activity.category,
+      latitude: activity.latitude,
+      longitude: activity.longitude,
+      startLatitude: activity.startLatitude,
+      startLongitude: activity.startLongitude,
+      destLatitude: activity.destLatitude,
+      destLongitude: activity.destLongitude,
+      address: activity.address
     });
   }
 
@@ -119,18 +159,35 @@ export class CreateActivityComponent {
     delete payload.durationHours;
     delete payload.durationMins;
 
-    this.activityService.create(payload).subscribe({
-      next: (res: any) => {
-        this.loading = false;
-        this.created.emit(res);
-      },
-      error: (err: any) => {
-        this.loading = false;
-        console.error('Failed to create activity', err);
-        const errMsg = err?.error?.error || 'Failed to create activity. Please pick a future date and try again.';
-        this.snackBar.open(errMsg, 'Close', { duration: 5000 });
-      }
-    });
+    if (this.editActivity) {
+      this.activityService.updateActivity(this.editActivity.id, payload).subscribe({
+        next: (res: any) => {
+          this.loading = false;
+          this.updated.emit(res);
+          this.snackBar.open('✅ Activity updated!', 'OK', { duration: 3000 });
+        },
+        error: (err: any) => {
+          this.loading = false;
+          console.error('Failed to update activity', err);
+          const errMsg = err?.error?.error || 'Failed to update activity.';
+          this.snackBar.open(errMsg, 'Close', { duration: 5000 });
+        }
+      });
+    } else {
+      this.activityService.createActivity(payload).subscribe({
+        next: (res: any) => {
+          this.loading = false;
+          this.created.emit(res);
+          this.snackBar.open('🎉 Activity created!', 'OK', { duration: 3000 });
+        },
+        error: (err: any) => {
+          this.loading = false;
+          console.error('Failed to create activity', err);
+          const errMsg = err?.error?.error || 'Failed to create activity. Please pick a future date and try again.';
+          this.snackBar.open(errMsg, 'Close', { duration: 5000 });
+        }
+      });
+    }
   }
 
   private toLocalDateTime(dateValue: unknown, timeValue: unknown): string {

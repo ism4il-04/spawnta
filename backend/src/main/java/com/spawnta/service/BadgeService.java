@@ -72,51 +72,49 @@ public class BadgeService {
     }
 
     @Transactional
-    public void checkBadgeCriteria(Long userId) {
+    public void checkAttendanceBadges(Long userId) {
+        long confirmedCount = attendanceRepository.countByParticipantIdAndStatus(userId, AttendanceStatus.CONFIRMED);
+
+        // 1. Explorer (1 confirmed activity completed)
+        if (confirmedCount >= 1) awardBadge(userId, "Explorer");
+
+        // 2. Social Butterfly (5 confirmed activities)
+        if (confirmedCount >= 5) awardBadge(userId, "Social Butterfly");
+
+        // 3. Reliable (10 confirmed activities)
+        if (confirmedCount >= 10) awardBadge(userId, "Reliable");
+
+        // 4. Trailblazer (20 confirmed activities)
+        if (confirmedCount >= 20) awardBadge(userId, "Trailblazer");
+    }
+
+    @Transactional
+    public void checkHostingBadges(Long userId) {
+        long hostedCount = activityRepository.countByHostId(userId);
+
+        // 5. Activity Master (Host 5 activities)
+        if (hostedCount >= 5) awardBadge(userId, "Activity Master");
+
+        // 6. Community Leader (Host 15 activities)
+        if (hostedCount >= 15) awardBadge(userId, "Community Leader");
+    }
+
+    @Transactional
+    public void checkLevelBadges(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
 
-        long confirmedCount = attendanceRepository.countByParticipantIdAndStatus(userId, AttendanceStatus.CONFIRMED);
-        long hostedCount = activityRepository.countByHostId(userId);
-
-        // 1. Explorer (1 confirmed activity completed)
-        if (confirmedCount >= 1) {
-            awardBadge(userId, "Explorer");
-        }
-
-        // 2. Social Butterfly (5 confirmed activities)
-        if (confirmedCount >= 5) {
-            awardBadge(userId, "Social Butterfly");
-        }
-
-        // 3. Reliable (10 confirmed activities)
-        if (confirmedCount >= 10) {
-            awardBadge(userId, "Reliable");
-        }
-
-        // 4. Trailblazer (20 confirmed activities)
-        if (confirmedCount >= 20) {
-            awardBadge(userId, "Trailblazer");
-        }
-
-        // 5. Activity Master (Host 5 activities)
-        if (hostedCount >= 5) {
-            awardBadge(userId, "Activity Master");
-        }
-
-        // 6. Community Leader (Host 15 activities)
-        if (hostedCount >= 15) {
-            awardBadge(userId, "Community Leader");
-        }
-
         // 7. Adventurer (Reach level 10)
-        if (user.getLevel() >= 10) {
-            awardBadge(userId, "Adventurer");
-        }
+        if (user.getLevel() >= 10) awardBadge(userId, "Adventurer");
 
         // 8. Veteran (Reach level 25)
-        if (user.getLevel() >= 25) {
-            awardBadge(userId, "Veteran");
-        }
+        if (user.getLevel() >= 25) awardBadge(userId, "Veteran");
+    }
+
+    @Transactional
+    public void checkBadgeCriteria(Long userId) {
+        checkAttendanceBadges(userId);
+        checkHostingBadges(userId);
+        checkLevelBadges(userId);
     }
 }

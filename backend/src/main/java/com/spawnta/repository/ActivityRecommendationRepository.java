@@ -9,4 +9,5 @@ public interface ActivityRecommendationRepository extends JpaRepository<Activity
     Optional<ActivityRecommendation> findByUserIdAndActivityId(Long userId, Long activityId);
     List<ActivityRecommendation> findByUserIdOrderByScoreDesc(Long userId);
     List<ActivityRecommendation> findByUserIdAndClickedFalseOrderByScoreDesc(Long userId);
+    List<ActivityRecommendation> findByUserIdOrderByClickedAscScoreDesc(Long userId);
 }

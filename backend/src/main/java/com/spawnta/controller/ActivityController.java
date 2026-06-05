@@ -1,19 +1,14 @@
 package com.spawnta.controller;
 
-import com.spawnta.dto.ActivityParticipantResponse;
-import com.spawnta.dto.ActivityResponse;
-import com.spawnta.dto.CreateActivityRequest;
-import com.spawnta.dto.JoinActivityRequest;
-import com.spawnta.dto.MyActivityResponse;
+import com.spawnta.dto.*;
 import com.spawnta.entity.ActivityType;
 import com.spawnta.entity.ParticipationMode;
 import com.spawnta.service.ActivityService;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -35,8 +30,25 @@ public class ActivityController {
             @Valid @RequestBody CreateActivityRequest request,
             Authentication authentication) {
         String email = authentication.getName();
-        ActivityResponse response = activityService.createActivity(request, email);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(activityService.createActivity(request, email));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ActivityResponse> updateActivity(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateActivityRequest request,
+            Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(activityService.updateActivity(id, request, email));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteActivity(
+            @PathVariable Long id,
+            Authentication authentication) {
+        String email = authentication.getName();
+        activityService.deleteActivity(id, email);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
@@ -47,7 +59,7 @@ public class ActivityController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) ParticipationMode participationMode,
             @RequestParam(required = false) ActivityType activityType,
-            @RequestParam(required = false) LocalDate scheduledDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate scheduledDate) {
         List<ActivityResponse> activities = activityService.findNearby(
             lat,
             lng,
