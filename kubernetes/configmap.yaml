@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spawnta-config
+data:
+  POSTGRES_DB: "spawnta"
+  POSTGRES_USER: "spawnta"
+  REDIS_HOST: "redis"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  SPRING_PROFILES_ACTIVE: "prod"
+  SPRING_FLYWAY_ENABLED: "true"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+  CLOUDINARY_CLOUD_NAME: "your_cloud_name"
+  MAIL_HOST: "smtp.gmail.com"
+  MAIL_PORT: "587"
+  MAIL_USERNAME: "aymanesaber13@gmail.com"
+  STRIPE_PUBLISHABLE_KEY: "pk_test_51TdfYkDbEM70iy3oLOfze4PmXGvT8ExthArz5Eq41DB17cMZKv4paIsRcErfBz8vCVTgdXGLKLeaPcd5DIocPmD100lcA3RCD9"
