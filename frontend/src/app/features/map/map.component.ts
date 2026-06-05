@@ -154,7 +154,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
           this.placeTempMarker(lat, lng);
           if (this.createCmp) {
             this.createCmp.setLocation(lat, lng);
-            this.snackBar.open('📍 Location updated!', 'OK', { duration: 1500 });
+            this.snackBar.open('Location updated!', 'OK', { duration: 1500 });
           }
         } else if (this.panelMode !== 'DETAIL') {
           // Show selection popup with "Create activity here" button
@@ -461,7 +461,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
     };
 
     if (navigator.geolocation) {
-      this.snackBar.open('📍 Getting your location...', '', { duration: 2000 });
+      this.snackBar.open('Getting your location...', '', { duration: 2000 });
       navigator.geolocation.getCurrentPosition(
         (pos) => this.ngZone.run(() =>
           this.startCreateAtLocation(pos.coords.latitude, pos.coords.longitude)
@@ -572,7 +572,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   onActivityCreated(activity: any) {
-    this.snackBar.open('🎉 Activity created successfully!', 'Hooray', { duration: 4000 });
+    this.snackBar.open('Activity created successfully!', 'OK', { duration: 4000 });
     this.closePanel();
     this.loadActivities();
   }

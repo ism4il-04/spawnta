@@ -50,10 +50,10 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
       if (params['checkout'] === 'success') {
         this.isProcessingPayment = true;
         this.cdr.detectChanges();
-        this.snackBar.open('Paiement reussi ! Finalisation de votre abonnement...', 'Fermer', { duration: 5000 });
+        this.snackBar.open('Payment successful! Finalizing your subscription...', 'Close', { duration: 5000 });
         this.startPollingSubscription();
       } else if (params['checkout'] === 'cancel') {
-        this.snackBar.open('Paiement annule.', 'Fermer', { duration: 4000 });
+        this.snackBar.open('Payment cancelled.', 'Close', { duration: 4000 });
       }
     });
   }
@@ -77,7 +77,7 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
         this.currentSubscription = subscription;
         this.isProcessingPayment = false;
         this.cdr.detectChanges();
-        this.snackBar.open('🚀 Félicitations ! Votre abonnement est maintenant actif.', 'Super !', {
+        this.snackBar.open('Congratulations! Your subscription is now active.', 'OK', {
           duration: 5000,
           panelClass: ['success-snackbar']
         });
@@ -94,7 +94,7 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
         if (this.isProcessingPayment) {
           this.isProcessingPayment = false;
           this.cdr.detectChanges();
-          this.snackBar.open('La validation prend un peu de temps, mais votre paiement est bien reçu !', 'OK', { duration: 6000 });
+          this.snackBar.open('Validation is taking a moment, but your payment has been received!', 'OK', { duration: 6000 });
         }
       }
     });
@@ -134,7 +134,7 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
         console.error('Error loading plans:', error);
         this.plansError = true;
         this.cdr.detectChanges();
-        this.snackBar.open('Erreur lors du chargement des plans.', 'Réessayer', { duration: 5000 })
+        this.snackBar.open('Error loading plans.', 'Retry', { duration: 5000 })
           .onAction().subscribe(() => this.loadPlans());
       }
     });
@@ -159,7 +159,7 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
       },
       error: error => {
         if (error.status !== 404) {
-          this.snackBar.open('Abonnement actuel indisponible.', 'Fermer', { duration: 4000 });
+          this.snackBar.open('Current subscription unavailable.', 'Close', { duration: 4000 });
         }
       }
     });
@@ -188,11 +188,11 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
           window.location.href = response.checkoutUrl;
           return;
         }
-        this.snackBar.open('Session Stripe créée, mais URL de paiement manquante.', 'Fermer', { duration: 4000 });
+        this.snackBar.open('Stripe session created, but payment URL is missing.', 'Close', { duration: 4000 });
       },
       error: error => {
-        const message = error?.error?.error ?? 'Impossible d\'initier le paiement.';
-        this.snackBar.open(message, 'Fermer', { duration: 5000 });
+        const message = error?.error?.error ?? 'Unable to initiate payment.';
+        this.snackBar.open(message, 'Close', { duration: 5000 });
       }
     });
   }
@@ -203,15 +203,15 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
 
   actionLabel(plan: SubscriptionPlan): string {
     if (this.isCurrentPlan(plan)) {
-      return 'Plan actuel';
+      return 'Current plan';
     }
     if (plan.tier === 'FREE') {
-      return 'Inclus';
+      return 'Included';
     }
     if (!this.authService.isLoggedIn()) {
-      return 'Se connecter';
+      return 'Sign in';
     }
-    return this.upgradeTier === plan.tier ? 'Préparation...' : 'Choisir ce plan';
+    return this.upgradeTier === plan.tier ? 'Processing...' : 'Choose this plan';
   }
 
   monthlyPrice(plan: SubscriptionPlan): string {

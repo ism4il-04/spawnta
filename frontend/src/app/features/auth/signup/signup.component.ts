@@ -90,21 +90,21 @@ export class SignupComponent {
   getPasswordStrengthText(): string {
     const strength = this.getPasswordStrength();
     switch (strength) {
-      case 'weak': return 'Faible';
-      case 'medium': return 'Moyen';
-      case 'strong': return 'Fort';
-      case 'very-strong': return 'Très fort';
+      case 'weak': return 'Weak';
+      case 'medium': return 'Medium';
+      case 'strong': return 'Strong';
+      case 'very-strong': return 'Very strong';
       default: return '';
     }
   }
 
   private formatSignupError(err: any): string {
     if (!err) {
-      return 'Une erreur inconnue est survenue.';
+      return 'An unknown error occurred.';
     }
 
     if (err.status === 0) {
-      return 'Impossible de joindre le backend. Vérifiez que http://localhost:8080 est en cours d’exécution.';
+      return 'Unable to reach the backend. Check that http://localhost:8080 is running.';
     }
 
     if (err.error?.error) {
@@ -116,7 +116,7 @@ export class SignupComponent {
     }
 
     if (err.status && err.statusText) {
-      return `Erreur ${err.status} : ${err.statusText}`;
+      return `Error ${err.status}: ${err.statusText}`;
     }
 
     return 'Registration failed';
