@@ -2,7 +2,9 @@
   <!-- Header -->
   <div class="profile-header">
     <h1>Mon Profil</h1>
-    <button mat-stroked-button color="warn" (click)="logout()">Déconnexion</button>
+    <div class="header-actions">
+      <button mat-stroked-button color="warn" (click)="logout()">Déconnexion</button>
+    </div>
   </div>
 
   <div class="profile-grid" *ngIf="profile; else loadingProfileTemplate">

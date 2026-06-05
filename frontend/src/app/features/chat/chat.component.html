@@ -16,13 +16,8 @@
       </div>
 
       <!-- Chat list items -->
-      <div
-        *ngFor="let chat of chats()"
-        class="chat-item"
-        [class.active]="selectedChat()?.id === chat.id"
-        [class.blocked]="chat.status === 'BLOCKED'"
-        (click)="selectChat(chat)"
-      >
+      <div *ngFor="let chat of chats()" class="chat-item" [class.active]="selectedChat()?.id === chat.id"
+        [class.blocked]="chat.status === 'BLOCKED'" (click)="selectChat(chat)">
         <div class="chat-avatar">
           <img *ngIf="chat.avatarUrl" [src]="chat.avatarUrl" [alt]="chat.title" />
           <span *ngIf="!chat.avatarUrl" class="avatar-letter">
@@ -75,45 +70,25 @@
 
         <div class="chat-header-actions">
           <!-- Block / Unblock private chat -->
-          <button
-            class="icon-btn"
-            *ngIf="chat.type === 'PRIVATE' && chat.status !== 'BLOCKED'"
-            (click)="blockConversation()"
-            title="Block conversation"
-          >
+          <button class="icon-btn" *ngIf="chat.type === 'PRIVATE' && chat.status !== 'BLOCKED'"
+            (click)="blockConversation()" title="Block conversation">
             <span class="material-icons">block</span>
           </button>
-          <button
-            class="icon-btn"
-            *ngIf="chat.type === 'PRIVATE' && chat.status === 'BLOCKED'"
-            (click)="unblockConversation()"
-            title="Unblock conversation"
-          >
+          <button class="icon-btn" *ngIf="chat.type === 'PRIVATE' && chat.status === 'BLOCKED'"
+            (click)="unblockConversation()" title="Unblock conversation">
             <span class="material-icons">lock_open</span>
           </button>
 
           <!-- Leave group chat -->
-          <button
-            class="icon-btn"
-            *ngIf="chat.type === 'GROUP' && chat.participantStatus !== 'LEFT'"
-            (click)="leaveConversation()"
-            title="Leave group"
-          >
+          <button class="icon-btn" *ngIf="chat.type === 'GROUP' && chat.participantStatus !== 'LEFT'"
+            (click)="leaveConversation()" title="Leave group">
             <span class="material-icons">exit_to_app</span>
           </button>
 
           <!-- Notifications toggle -->
-          <button
-            class="icon-btn"
-            (click)="toggleNotifications()"
-            [title]="chat.notificationsEnabled ? 'Mute notifications' : 'Enable notifications'"
-          >
+          <button class="icon-btn" (click)="toggleNotifications()"
+            [title]="chat.notificationsEnabled ? 'Mute notifications' : 'Enable notifications'">
             <span class="material-icons">{{ chat.notificationsEnabled ? 'notifications' : 'notifications_off' }}</span>
-          </button>
-
-          <!-- More options -->
-          <button class="icon-btn" title="More options">
-            <span class="material-icons">more_vert</span>
           </button>
 
           <!-- Delete -->
@@ -157,20 +132,17 @@
           <!-- Date separator -->
           <div
             *ngIf="i === 0 || (messages()[i - 1].createdAt | date: 'yyyy-MM-dd') !== (msg.createdAt | date: 'yyyy-MM-dd')"
-            class="date-separator"
-          >
+            class="date-separator">
             <span>{{ msg.createdAt | date: 'd MMMM yyyy' }}</span>
           </div>
 
-          <div
-            class="message-row"
-            [class.own]="msg.senderId === activeUserId()"
-            [class.other]="msg.senderId !== activeUserId()"
-          >
+          <div class="message-row" [class.own]="msg.senderId === activeUserId()"
+            [class.other]="msg.senderId !== activeUserId()">
             <!-- Avatar (other user only) -->
             <div *ngIf="msg.senderId !== activeUserId()" class="msg-avatar">
               <img *ngIf="msg.senderAvatarUrl" [src]="msg.senderAvatarUrl" [alt]="msg.senderName" />
-              <span *ngIf="!msg.senderAvatarUrl" class="avatar-letter-xs">{{ msg.senderName.charAt(0).toUpperCase() }}</span>
+              <span *ngIf="!msg.senderAvatarUrl" class="avatar-letter-xs">{{ msg.senderName.charAt(0).toUpperCase()
+                }}</span>
             </div>
 
             <div class="msg-body">
@@ -184,12 +156,8 @@
 
                 <!-- Message options -->
                 <div class="msg-options">
-                  <button
-                    *ngIf="msg.senderId === activeUserId() || isModerator()"
-                    class="msg-option-btn"
-                    (click)="deleteMessage(msg.id)"
-                    title="Delete"
-                  >
+                  <button *ngIf="msg.senderId === activeUserId() || isModerator()" class="msg-option-btn"
+                    (click)="deleteMessage(msg.id)" title="Delete">
                     <span class="material-icons">delete_outline</span>
                   </button>
                 </div>
@@ -208,24 +176,16 @@
       </div>
 
       <!-- ── Input Bar ── -->
-      <div class="message-input-bar" [class.disabled]="chat.status === 'BLOCKED' || chat.participantStatus === 'LEFT'" *ngIf="chat.participantStatus !== 'LEFT'">
-        <textarea
-          class="message-textarea"
-          [(ngModel)]="newMessageText"
+      <div class="message-input-bar" [class.disabled]="chat.status === 'BLOCKED' || chat.participantStatus === 'LEFT'"
+        *ngIf="chat.participantStatus !== 'LEFT'">
+        <textarea class="message-textarea" [(ngModel)]="newMessageText"
           placeholder="Write a message... (Enter to send, Shift+Enter for new line)"
-          [disabled]="chat.status === 'BLOCKED'"
-          [maxlength]="maxMessageLength"
-          (keydown.enter)="$event.preventDefault(); sendMessage()"
-          (keydown.shift.enter)="$event.stopPropagation()"
-          rows="1"
-        ></textarea>
+          [disabled]="chat.status === 'BLOCKED'" [maxlength]="maxMessageLength"
+          (keydown.enter)="$event.preventDefault(); sendMessage()" (keydown.shift.enter)="$event.stopPropagation()"
+          rows="1"></textarea>
 
-        <button
-          class="send-btn"
-          (click)="sendMessage()"
-          [disabled]="!newMessageText.trim() || chat.status === 'BLOCKED'"
-          title="Send"
-        >
+        <button class="send-btn" (click)="sendMessage()"
+          [disabled]="!newMessageText.trim() || chat.status === 'BLOCKED'" title="Send">
           <span class="material-icons">send</span>
         </button>
       </div>

@@ -80,19 +80,9 @@
     <!-- Topbar -->
     <header class="app-topbar" role="banner">
 
-      <div class="topbar-search">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input id="topbar-search-input" type="search" class="search-input"
-               placeholder="Search activities, locations…" autocomplete="off">
-      </div>
-
       <div class="topbar-end">
 
         <app-notifications-dropdown *ngIf="authService.isLoggedIn()"></app-notifications-dropdown>
-
-        <button class="icon-btn" id="btn-settings" aria-label="Settings">
-          <mat-icon>settings</mat-icon>
-        </button>
 
         <!-- Logged-in: avatar + dropdown -->
         <div *ngIf="authService.isLoggedIn()" class="user-menu-wrapper">
