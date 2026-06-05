@@ -18,3 +18,10 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+  ignoreDifferences:
+  - group: ""
+    kind: Secret
+    name: spawnta-secrets
+    jsonPointers:
+    - /data
+
