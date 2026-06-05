@@ -116,6 +116,27 @@ spec:
             secretKeyRef:
               name: spawnta-secrets
               key: STRIPE_WEBHOOK_SECRET
+        # ── Admin Seed ────────────────────────────────────
+        - name: ADMIN_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: spawnta-config
+              key: ADMIN_EMAIL
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: spawnta-secrets
+              key: ADMIN_PASSWORD
+        - name: ADMIN_FIRSTNAME
+          valueFrom:
+            configMapKeyRef:
+              name: spawnta-config
+              key: ADMIN_FIRSTNAME
+        - name: ADMIN_LASTNAME
+          valueFrom:
+            configMapKeyRef:
+              name: spawnta-config
+              key: ADMIN_LASTNAME
 ---
 apiVersion: v1
 kind: Service

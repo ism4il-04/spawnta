@@ -16,3 +16,8 @@ data:
   MAIL_PORT: "587"
   MAIL_USERNAME: "aymanesaber13@gmail.com"
   STRIPE_PUBLISHABLE_KEY: "pk_test_51TdfYkDbEM70iy3oLOfze4PmXGvT8ExthArz5Eq41DB17cMZKv4paIsRcErfBz8vCVTgdXGLKLeaPcd5DIocPmD100lcA3RCD9"
+  # ── Admin Seed ──────────────────────────────────────────
+  # Non-sensitive admin account config; password lives in spawnta-secrets
+  ADMIN_EMAIL: "aymanesaber13@gmail.com"
+  ADMIN_FIRSTNAME: "Admin"
+  ADMIN_LASTNAME: "Spawnta"
