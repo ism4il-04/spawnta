@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, NgZone } from '@angular/core';
+import { Component, OnInit, inject, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -20,6 +20,7 @@ export class RecommendationsFeedComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private ngZone = inject(NgZone);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   feed: FeedActivity[] = [];
   loading = false;
@@ -32,6 +33,7 @@ export class RecommendationsFeedComponent implements OnInit {
   loadFeed(): void {
     this.loading = true;
     this.feedError = false;
+    this.cdr.detectChanges();
     this.recService.getPersonalizedFeed().subscribe({
       next: (f) => {
         this.feed = f;
@@ -39,10 +41,12 @@ export class RecommendationsFeedComponent implements OnInit {
         if (f.length === 0) {
           this.generateRecommendationsThenReload();
         }
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
         this.feedError = true;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -50,6 +54,7 @@ export class RecommendationsFeedComponent implements OnInit {
   /** Feed is built from generated recommendations — run generate once when empty */
   private generateRecommendationsThenReload(): void {
     this.loading = true;
+    this.cdr.detectChanges();
     if (!navigator.geolocation) {
       this.runGeneration(null, null);
       return;
@@ -76,16 +81,19 @@ export class RecommendationsFeedComponent implements OnInit {
           next: (f) => {
             this.feed = f;
             this.loading = false;
+            this.cdr.detectChanges();
           },
           error: () => {
             this.loading = false;
             this.feedError = true;
+            this.cdr.detectChanges();
           }
         });
       },
       error: () => {
         this.loading = false;
         this.feedError = true;
+        this.cdr.detectChanges();
         this.snackBar.open('Unable to generate recommendations', 'Close', { duration: 4000 });
       }
     });
