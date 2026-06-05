@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, NgZone, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, NgZone, inject, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
@@ -42,7 +42,7 @@ import { debounceTime } from 'rxjs/operators';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit, OnDestroy {
+export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('sidenav') sidenav!: MatSidenav;
   @ViewChild('createCmp') createCmp!: CreateActivityComponent;
 
@@ -78,7 +78,9 @@ export class MapComponent implements OnInit, OnDestroy {
   panelMode: 'CREATE' | 'DETAIL' | 'NONE' = 'NONE';
   selectedActivity: ActivityResponse | null = null;
   tempMarker: L.Marker | null = null;
-  isFormVisible = true; // Nouveau: contrôle la visibilité du formulaire
+  private selectionMarker: L.Marker | null = null;
+  private pendingLocation: { lat: number; lng: number } | null = null;
+  isFormVisible = true;
 
   // Toggle states
   isSearchPanelCollapsed = false;
@@ -87,9 +89,14 @@ export class MapComponent implements OnInit, OnDestroy {
     const customEvent = e as CustomEvent<number>;
     const actId = customEvent.detail;
     const act = this.activities.find(a => a.id === actId);
-    if (act) {
-      this.openDetail(act);
-    }
+    if (act) { this.openDetail(act); }
+  };
+
+  private readonly createAtLocationListener = (e: Event) => {
+    const customEvent = e as CustomEvent<{ lat: number; lng: number }>;
+    this.ngZone.run(() => {
+      this.startCreateAtLocation(customEvent.detail.lat, customEvent.detail.lng);
+    });
   };
 
   private readonly ngZone = inject(NgZone);
@@ -102,20 +109,25 @@ export class MapComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.locateUser(true); // silent initial load
+    this.locateUser(true);
     document.addEventListener('joinActivity', this.activityDetailListener as EventListener);
+    document.addEventListener('createAtLocation', this.createAtLocationListener as EventListener);
 
-    // Setup debounced radius change
-    this.radiusSubject.pipe(
-      debounceTime(300)
-    ).subscribe(() => {
-      this.loadActivities();
-    });
+    this.radiusSubject.pipe(debounceTime(300)).subscribe(() => this.loadActivities());
   }
 
   ngOnDestroy() {
     document.removeEventListener('joinActivity', this.activityDetailListener as EventListener);
+    document.removeEventListener('createAtLocation', this.createAtLocationListener as EventListener);
     this.radiusSubject.complete();
+  }
+
+  ngAfterViewChecked() {
+    // Once *ngIf renders createCmp, flush any pending location set
+    if (this.pendingLocation && this.createCmp) {
+      this.createCmp.setLocation(this.pendingLocation.lat, this.pendingLocation.lng);
+      this.pendingLocation = null;
+    }
   }
 
   onMapReady(map: L.Map) {
@@ -129,36 +141,22 @@ export class MapComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Handle clicks for activity creation
+    // Map click: in CREATE mode update location, otherwise show "+ here" popup
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       this.ngZone.run(() => {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
         if (this.panelMode === 'CREATE') {
-          const lat = e.latlng.lat;
-          const lng = e.latlng.lng;
-
-          if (this.tempMarker) {
-            this.map.removeLayer(this.tempMarker);
-          }
-
-          // Use custom marker icon for temp marker too!
-          const tempIcon = L.divIcon({
-            className: 'custom-leaflet-marker-wrapper',
-            html: `
-              <div class="custom-leaflet-marker" style="background-color: #3b82f6; border-color: #3b82f644; transform: scale(1.1);">
-                <i class="material-icons marker-icon" style="font-size: 16px; color: white;">add_location</i>
-              </div>
-            `,
-            iconSize: [36, 36],
-            iconAnchor: [18, 18]
-          });
-
-          this.tempMarker = L.marker([lat, lng], { icon: tempIcon }).addTo(this.map);
-
+          // Update location marker and form
+          this.placeTempMarker(lat, lng);
           if (this.createCmp) {
             this.createCmp.setLocation(lat, lng);
+            this.snackBar.open('📍 Location updated!', 'OK', { duration: 1500 });
           }
-
-          this.snackBar.open('Location selected on map.', 'OK', { duration: 2000 });
+        } else if (this.panelMode !== 'DETAIL') {
+          // Show selection popup with "Create activity here" button
+          this.showSelectionPopup(lat, lng);
         }
       });
     });
@@ -453,13 +451,89 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   openCreate() {
-    this.panelMode = 'CREATE';
-    this.isFormVisible = true; // Afficher le formulaire
-    // Ne pas ouvrir le sidenav - le formulaire s'affichera au centre
-    if (this.map) {
-      this.map.getContainer().style.cursor = 'crosshair';
+    // Use GPS location directly when + is clicked
+    const fallback = () => {
+      const center = this.map ? this.map.getCenter() : L.latLng(48.8566, 2.3522);
+      this.startCreateAtLocation(center.lat, center.lng);
+    };
+
+    if (navigator.geolocation) {
+      this.snackBar.open('📍 Getting your location...', '', { duration: 2000 });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => this.ngZone.run(() =>
+          this.startCreateAtLocation(pos.coords.latitude, pos.coords.longitude)
+        ),
+        () => this.ngZone.run(fallback),
+        { timeout: 5000, maximumAge: 30000 }
+      );
+    } else {
+      fallback();
     }
-    this.snackBar.open('Click anywhere on the map to set activity location.', 'Got it', { duration: 4000 });
+  }
+
+  startCreateAtLocation(lat: number, lng: number) {
+    // Clear any selection popup
+    if (this.selectionMarker && this.map) {
+      this.map.removeLayer(this.selectionMarker);
+      this.selectionMarker = null;
+    }
+
+    this.panelMode = 'CREATE';
+    this.isFormVisible = true;
+    if (this.map) this.map.getContainer().style.cursor = 'crosshair';
+
+    this.placeTempMarker(lat, lng);
+    this.pendingLocation = { lat, lng };
+    // ngAfterViewChecked will call createCmp.setLocation() once *ngIf renders it
+  }
+
+  placeTempMarker(lat: number, lng: number) {
+    if (this.tempMarker && this.map) this.map.removeLayer(this.tempMarker);
+    const icon = L.divIcon({
+      className: 'custom-leaflet-marker-wrapper',
+      html: `
+        <div class="custom-leaflet-marker" style="background-color:#3b82f6;border-color:#3b82f644;transform:scale(1.1);">
+          <i class="material-icons marker-icon" style="font-size:16px;color:white;">add_location</i>
+        </div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+    this.tempMarker = L.marker([lat, lng], { icon }).addTo(this.map);
+  }
+
+  showSelectionPopup(lat: number, lng: number) {
+    if (this.selectionMarker && this.map) {
+      this.map.removeLayer(this.selectionMarker);
+      this.selectionMarker = null;
+    }
+
+    const selIcon = L.divIcon({
+      className: 'custom-leaflet-marker-wrapper',
+      html: `
+        <div class="custom-leaflet-marker" style="background-color:#64748b;border-color:#64748b44;">
+          <i class="material-icons marker-icon" style="font-size:16px;color:white;">location_on</i>
+        </div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36]
+    });
+
+    this.selectionMarker = L.marker([lat, lng], { icon: selIcon }).addTo(this.map);
+
+    const popup = L.popup({
+      closeButton: false,
+      className: 'create-here-popup',
+      offset: [0, -38],
+      autoPan: false
+    }).setContent(`
+      <button class="create-here-btn"
+        onclick="document.dispatchEvent(new CustomEvent('createAtLocation',{detail:{lat:${lat},lng:${lng}}}))"
+      >
+        <i class="material-icons" style="font-size:18px;vertical-align:middle;">add_circle</i>
+        &nbsp;Create activity here
+      </button>
+    `);
+
+    this.selectionMarker.bindPopup(popup).openPopup();
   }
 
   openDetail(activity: ActivityResponse) {
@@ -473,20 +547,14 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   closePanel() {
-    if (this.panelMode === 'DETAIL') {
-      this.sidenav.close();
-    }
+    if (this.panelMode === 'DETAIL') this.sidenav.close();
     this.panelMode = 'NONE';
     this.selectedActivity = null;
-    this.isFormVisible = true; // Réinitialiser la visibilité
+    this.isFormVisible = true;
 
-    if (this.tempMarker && this.map) {
-      this.map.removeLayer(this.tempMarker);
-      this.tempMarker = null;
-    }
-    if (this.map) {
-      this.map.getContainer().style.cursor = '';
-    }
+    if (this.tempMarker && this.map) { this.map.removeLayer(this.tempMarker); this.tempMarker = null; }
+    if (this.selectionMarker && this.map) { this.map.removeLayer(this.selectionMarker); this.selectionMarker = null; }
+    if (this.map) this.map.getContainer().style.cursor = '';
   }
 
   hideCreateForm() {

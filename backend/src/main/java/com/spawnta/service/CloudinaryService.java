@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 @Service
@@ -40,7 +41,7 @@ public class CloudinaryService {
                 "public_id",   publicId,
                 "overwrite",   true,
                 "resource_type", "image",
-                "eager", new Transformation().width(400).height(400).crop("fill").quality("auto")
+                "eager", Arrays.asList(new Transformation().width(400).height(400).crop("fill").quality("auto"))
             )
         );
         return (String) result.get("secure_url");
@@ -56,7 +57,7 @@ public class CloudinaryService {
             ObjectUtils.asMap(
                 "public_id",     publicId,
                 "resource_type", "image",
-                "eager", new Transformation().width(1200).quality("auto:good")
+                "eager", Arrays.asList(new Transformation().width(1200).quality("auto:good"))
             )
         );
         return (String) result.get("secure_url");

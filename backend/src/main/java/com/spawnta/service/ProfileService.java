@@ -6,6 +6,8 @@ import com.spawnta.dto.UserProfileResponse;
 import com.spawnta.entity.User;
 import com.spawnta.repository.UserRepository;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +16,8 @@ import java.io.IOException;
 
 @Service
 public class ProfileService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProfileService.class);
 
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
@@ -52,10 +56,20 @@ public class ProfileService {
 
     @Transactional
     public UserProfileResponse uploadAvatar(String email, MultipartFile file) throws IOException {
-        User user = findUser(email);
-        String url = cloudinaryService.uploadAvatar(file, email);
-        user.setAvatarUrl(url);
-        return toResponse(userRepository.save(user));
+        log.info("[Avatar] Upload started for user: {}, file: {}, size: {} bytes", email, file.getOriginalFilename(), file.getSize());
+        try {
+            User user = findUser(email);
+            String url = cloudinaryService.uploadAvatar(file, email);
+            log.info("[Avatar] Upload success for user: {}, url: {}", email, url);
+            user.setAvatarUrl(url);
+            return toResponse(userRepository.save(user));
+        } catch (IOException e) {
+            log.error("[Avatar] Cloudinary upload FAILED for user: {} — {}", email, e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("[Avatar] Unexpected error for user: {} — {}", email, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Transactional

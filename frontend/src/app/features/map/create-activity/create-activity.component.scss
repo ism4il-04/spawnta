@@ -11,8 +11,8 @@
   justify-content: center;
   z-index: 3000;
   padding: 2rem;
-  pointer-events: auto; /* L'overlay capture les clics pour cacher le formulaire */
-  cursor: pointer;
+  pointer-events: none; /* Clics passent à travers vers la carte Leaflet */
+  cursor: crosshair;
 }
 
 .modern-modal {

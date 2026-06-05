@@ -50,6 +50,7 @@ export class ChatService {
   private readonly authService = inject(AuthService);
   private readonly toastService = inject(NotificationToastService);
   private readonly router = inject(Router);
+  private readonly ngZone = inject(NgZone);
 
   private readonly apiUrl = 'http://localhost:8080/api/chats';
   private stompClient: Client | null = null;
