@@ -68,19 +68,8 @@ jobs:
     environment: production
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Set image tag
         run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
-
-      - name: Copy compose files to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.yml,docker-compose.prod.yml"
-          target: "/home/ec2-user/spawnta"
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -90,7 +79,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/ec2-user/spawnta
-            export IMAGE_TAG=${{ env.IMAGE_TAG }}
             docker compose \
               -f docker-compose.yml \
               -f docker-compose.prod.yml \
