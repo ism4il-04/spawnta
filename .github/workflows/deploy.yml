@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 env:
-  DOCKERHUB_USERNAME: i5m4il
+  DOCKERHUB_USERNAME: aymanesbe3
 
 jobs:
 
@@ -19,7 +19,7 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set image tag

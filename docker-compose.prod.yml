@@ -1,21 +1,21 @@
 services:
 
   backend:
-    image: i5m4il/spawnta-backend:${IMAGE_TAG:-latest}
+    image: aymanesbe3/spawnta-backend:${IMAGE_TAG:-latest}
     build: !reset null
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
   frontend:
-    image: i5m4il/spawnta-frontend:${IMAGE_TAG:-latest}
+    image: aymanesbe3/spawnta-frontend:${IMAGE_TAG:-latest}
     build: !reset null
 
   admin:
-    image: i5m4il/spawnta-admin:${IMAGE_TAG:-latest}
+    image: aymanesbe3/spawnta-admin:${IMAGE_TAG:-latest}
     build: !reset null
 
   nginx:
-    image: i5m4il/spawnta-nginx:${IMAGE_TAG:-latest}
+    image: aymanesbe3/spawnta-nginx:${IMAGE_TAG:-latest}
     ports:
       - "80:80"
       - "443:443"
