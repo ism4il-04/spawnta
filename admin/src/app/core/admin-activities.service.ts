@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface AdminActivity {
   id: number;
@@ -35,8 +36,7 @@ export interface AdminActivitiesFilters {
   providedIn: 'root'
 })
 export class AdminActivitiesService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/activities';
-
+private readonly apiUrl = `${environment.apiUrl}/api/admin/activities`;
   constructor(private http: HttpClient) {}
 
   getActivities(filters: AdminActivitiesFilters = {}): Observable<AdminActivitiesResponse> {

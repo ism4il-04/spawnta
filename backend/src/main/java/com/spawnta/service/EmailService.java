@@ -19,7 +19,7 @@ public class EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
-    @Value("${frontend.url:http://localhost:4200}")
+    @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendUrl;
 
     @Value("${spring.mail.host:}")

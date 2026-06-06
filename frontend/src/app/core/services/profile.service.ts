@@ -33,7 +33,7 @@ export interface UpdateProfileRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
-  private apiUrl = 'http://localhost:8080/api/users/me';
+  private apiUrl = '/api/users/me';
 
   constructor(private http: HttpClient) {}
 

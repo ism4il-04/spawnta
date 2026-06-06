@@ -68,7 +68,7 @@ export interface CreateActivityRequest {
   providedIn: 'root'
 })
 export class ActivityService {
-  private apiUrl = 'http://localhost:8080/api/activities';
+  private apiUrl = '/api/activities';
 
   constructor(private http: HttpClient) {}
 

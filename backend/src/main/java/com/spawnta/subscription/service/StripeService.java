@@ -447,6 +447,11 @@ public class StripeService {
         userSubscription.setEndDate(LocalDateTime.now());
         userSubscriptionRepository.save(userSubscription);
         
+        // Downgrade user to FREE tier immediately
+        user.setSubscriptionTier(SubscriptionTier.FREE.name());
+        userRepository.save(user);
+        logger.info("Downgraded user {} to FREE tier", user.getId());
+        
         logger.info("Cancelled subscription for user: {}", user.getId());
     }
     

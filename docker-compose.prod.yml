@@ -3,19 +3,27 @@ services:
   backend:
     image: aymanesbe3/spawnta-backend:${IMAGE_TAG:-latest}
     build: !reset null
+    ports: !reset []
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_FLYWAY_ENABLED: "true"
 
   frontend:
     image: aymanesbe3/spawnta-frontend:${IMAGE_TAG:-latest}
     build: !reset null
+    ports: !reset []
 
   admin:
     image: aymanesbe3/spawnta-admin:${IMAGE_TAG:-latest}
     build: !reset null
+    ports:
+      - "4300:80"
 
   nginx:
     image: aymanesbe3/spawnta-nginx:${IMAGE_TAG:-latest}
+    build:
+      context: ./devops/nginx
+      dockerfile: Dockerfile
     ports:
       - "80:80"
       - "443:443"
@@ -26,7 +34,6 @@ services:
       - backend
       - frontend
       - admin
-
   certbot:
     image: certbot/certbot
     volumes:
