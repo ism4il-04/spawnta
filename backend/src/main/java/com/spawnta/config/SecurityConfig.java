@@ -67,14 +67,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         // Autorise toutes les origines localhost et 127.0.0.1 sur n'importe quel port pour k8s et dev
-        config.setAllowedOriginPatterns(List.of(
-            "http://localhost",
-            "http://localhost:*",
-            "http://127.0.0.1",
-            "http://127.0.0.1:*",
-            "http://13.61.24.138",
-            "https://13.61.24.138"
-        ));
+       config.setAllowedOriginPatterns(List.of(
+    "http://localhost",
+    "http://localhost:*",
+    "http://127.0.0.1",
+    "http://127.0.0.1:*",
+    "http://13.61.24.138",
+    "http://13.61.24.138:*",
+    "https://13.61.24.138"
+));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
