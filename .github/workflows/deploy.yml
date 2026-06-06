@@ -78,6 +78,14 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          debug: true
           script: |
-            echo "connected"
+            cd /home/ec2-user/spawnta
+            docker compose \
+              -f docker-compose.yml \
+              -f docker-compose.prod.yml \
+              pull
+            docker compose \
+              -f docker-compose.yml \
+              -f docker-compose.prod.yml \
+              up -d --remove-orphans
+            docker image prune -f
