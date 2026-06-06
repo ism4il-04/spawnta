@@ -3,16 +3,19 @@ services:
   backend:
     image: aymanesbe3/spawnta-backend:${IMAGE_TAG:-latest}
     build: !reset null
+    ports: !reset []
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
   frontend:
     image: aymanesbe3/spawnta-frontend:${IMAGE_TAG:-latest}
     build: !reset null
+    ports: !reset []
 
   admin:
     image: aymanesbe3/spawnta-admin:${IMAGE_TAG:-latest}
     build: !reset null
+    ports: !reset []
 
   nginx:
     image: aymanesbe3/spawnta-nginx:${IMAGE_TAG:-latest}
