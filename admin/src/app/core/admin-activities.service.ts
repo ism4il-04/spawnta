@@ -36,8 +36,7 @@ export interface AdminActivitiesFilters {
   providedIn: 'root'
 })
 export class AdminActivitiesService {
-private readonly apiUrl = `${environment.apiUrl}/api/auth`;
-
+private readonly apiUrl = `${environment.apiUrl}/api/admin/activities`;
   constructor(private http: HttpClient) {}
 
   getActivities(filters: AdminActivitiesFilters = {}): Observable<AdminActivitiesResponse> {

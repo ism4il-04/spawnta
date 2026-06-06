@@ -43,7 +43,7 @@ export interface UserFilters {
   providedIn: 'root'
 })
 export class AdminUsersService {
-  private readonly apiUrl = `${environment.apiUrl}/api/auth`;
+private readonly apiUrl = `${environment.apiUrl}/api/admin/users`;
   constructor(private http: HttpClient) {}
 
   getUsers(filters: UserFilters): Observable<AdminUsersResponse> {

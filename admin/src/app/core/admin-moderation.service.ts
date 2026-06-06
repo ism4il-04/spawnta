@@ -51,7 +51,7 @@ export interface AdminModeration {
 })
 export class AdminModerationService {
 
-  private readonly apiUrl = `${environment.apiUrl}/api/auth`;
+private readonly apiUrl = `${environment.apiUrl}/api/admin/moderation`;
   constructor(private http: HttpClient) {}
 
   getReports(status = 'all'): Observable<AdminModeration> {
