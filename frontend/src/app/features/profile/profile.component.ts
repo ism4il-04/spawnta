@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, finalize } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
@@ -53,6 +53,7 @@ export class ProfileComponent implements OnInit {
   allInterests = ALL_INTERESTS;
   loading = false;
   savingInterests = false;
+  isOwnProfile = true;
 
   // Gamification Fields
   gProfile: GamificationProfile | null = null;
@@ -66,6 +67,7 @@ export class ProfileComponent implements OnInit {
     private profileService: ProfileService,
     private authService: AuthService,
     private gamificationService: GamificationService,
+    private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
@@ -81,19 +83,39 @@ export class ProfileComponent implements OnInit {
       profilePublic: [true]
     });
 
-    this.profileService.getProfile().subscribe({
+    this.route.paramMap.subscribe(params => {
+      const userId = Number(params.get('id'));
+      this.isOwnProfile = !userId;
+      this.loadProfile(userId || null);
+    });
+  }
+
+  private loadProfile(userId: number | null): void {
+    this.loadingProfile = true;
+    this.profileLoadError = false;
+    const profile$ = userId
+      ? this.profileService.getProfileById(userId)
+      : this.profileService.getProfile();
+
+    profile$.subscribe({
       next: (p: UserProfile) => {
         this.loadingProfile = false;
         this.profile = p;
         this.selectedInterests = new Set(p.interests);
-        this.profileForm.patchValue({
-          bio: p.bio ?? '',
-          facebook: p.facebook ?? '',
-          instagram: p.instagram ?? '',
-          whatsapp: p.whatsapp ?? '',
-          profilePublic: p.profilePublic
-        });
-        this.loadGamificationData();
+        if (this.isOwnProfile) {
+          this.profileForm.patchValue({
+            bio: p.bio ?? '',
+            facebook: p.facebook ?? '',
+            instagram: p.instagram ?? '',
+            whatsapp: p.whatsapp ?? '',
+            profilePublic: p.profilePublic
+          });
+          this.loadGamificationData();
+        } else {
+          this.gProfile = null;
+          this.allBadges = [];
+          this.leaderboard = [];
+        }
         this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {

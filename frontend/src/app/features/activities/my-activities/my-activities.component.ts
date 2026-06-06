@@ -13,6 +13,7 @@ import {
   MyActivityResponse
 } from '../../../core/services/activity.service';
 import { AttendanceService } from '../../../core/services/attendance.service';
+import { qrCodeImageSrc } from '../../../core/utils/qr-code.util';
 
 @Component({
   selector: 'app-my-activities',
@@ -39,10 +40,6 @@ export class MyActivitiesComponent implements OnInit {
   // Expandable detail panels per activity
   expandedActivityId: number | null = null;
 
-  // Participants per activity (lazy loaded)
-  participantsMap: Record<number, ActivityParticipantResponse[]> = {};
-  loadingParticipants: Record<number, boolean> = {};
-
   // Pending check-ins per activity (lazy loaded)
   pendingCheckInsMap: Record<number, any[]> = {};
   loadingCheckIns: Record<number, boolean> = {};
@@ -50,6 +47,10 @@ export class MyActivitiesComponent implements OnInit {
   // Pending join requests per activity
   pendingJoinMap: Record<number, ActivityParticipantResponse[]> = {};
   loadingJoins: Record<number, boolean> = {};
+
+  // Host QR codes per activity
+  hostQrImageMap: Record<number, string> = {};
+  loadingQrMap: Record<number, boolean> = {};
 
   // Action states
   approvingJoinId: number | null = null;
@@ -86,22 +87,8 @@ export class MyActivitiesComponent implements OnInit {
       return;
     }
     this.expandedActivityId = activityId;
-    this.loadParticipantsFor(activityId);
     this.loadPendingCheckInsFor(activityId);
     this.loadPendingJoinsFor(activityId);
-  }
-
-  private loadParticipantsFor(activityId: number): void {
-    if (this.participantsMap[activityId]) return;
-    this.loadingParticipants[activityId] = true;
-    this.activityService.getPendingParticipants(activityId).subscribe({
-      next: () => {
-        this.loadingParticipants[activityId] = false;
-      },
-      error: () => {
-        this.loadingParticipants[activityId] = false;
-      }
-    });
   }
 
   private loadPendingCheckInsFor(activityId: number): void {
@@ -166,6 +153,34 @@ export class MyActivitiesComponent implements OnInit {
         this.snackBar.open(err.error?.error || 'Confirmation failed', 'Close', { duration: 4000 });
       }
     });
+  }
+
+  showHostQrCode(activityId: number): void {
+    if (this.hostQrImageMap[activityId] || this.loadingQrMap[activityId]) return;
+
+    this.loadingQrMap[activityId] = true;
+    this.attendanceService.initiateCheckIn(activityId, 0, 0).subscribe({
+      next: (res) => {
+        const qrImage = qrCodeImageSrc(res.qrCode);
+        if (!qrImage) {
+          this.snackBar.open('Unable to generate QR code.', 'Close', { duration: 4000 });
+          this.loadingQrMap[activityId] = false;
+          return;
+        }
+        this.hostQrImageMap[activityId] = qrImage;
+        this.loadingQrMap[activityId] = false;
+      },
+      error: (err: any) => {
+        this.loadingQrMap[activityId] = false;
+        this.snackBar.open(err.error?.error || 'Unable to generate QR code.', 'Close', { duration: 4000 });
+      }
+    });
+  }
+
+  getParticipantText(item: MyActivityResponse): string {
+    const count = item.activity.participantCount || 0;
+    const max = item.activity.maxParticipants;
+    return max ? `${count} / ${max} registered` : `${count} registered`;
   }
 
   getTimeStatus(item: MyActivityResponse): { label: string; cssClass: string } {

@@ -20,6 +20,7 @@ export const routes: Routes = [
   { path: 'signup-success', component: SignupSuccessComponent },
   { path: 'verify-email', component: VerifyEmailComponent },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { path: 'users/:id', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'map', component: MapComponent },
   { path: 'chat', component: ChatComponent, canActivate: [authGuard] },
   { path: 'subscription', component: SubscriptionComponent },

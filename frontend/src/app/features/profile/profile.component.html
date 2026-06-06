@@ -1,8 +1,8 @@
 <div class="profile-page">
   <!-- Header -->
   <div class="profile-header">
-    <h1>My Profile</h1>
-    <button mat-stroked-button color="warn" class="logout-btn" (click)="logout()">
+    <h1>{{ isOwnProfile ? 'My Profile' : 'Profile' }}</h1>
+    <button mat-stroked-button color="warn" class="logout-btn" *ngIf="isOwnProfile" (click)="logout()">
       <mat-icon>logout</mat-icon> Logout
     </button>
 
@@ -20,7 +20,7 @@
               alt="Avatar"
               class="avatar-img"
             />
-            <div class="avatar-upload-btn" (click)="avatarInput.click()">
+            <div class="avatar-upload-btn" *ngIf="isOwnProfile" (click)="avatarInput.click()">
               <mat-icon>photo_camera</mat-icon>
               <input #avatarInput type="file" hidden accept="image/*" (change)="onAvatarChange($event)" />
             </div>
@@ -58,7 +58,7 @@
     </mat-card>
 
     <!-- Profile Info Form -->
-    <mat-card class="info-card premium-card">
+    <mat-card class="info-card premium-card" *ngIf="isOwnProfile; else publicInfoCard">
       <mat-card-header>
         <mat-card-title>Personal Information</mat-card-title>
       </mat-card-header>
@@ -105,24 +105,46 @@
       </mat-card-content>
     </mat-card>
 
+    <ng-template #publicInfoCard>
+      <mat-card class="info-card premium-card">
+        <mat-card-header>
+          <mat-card-title>About</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="readonly-bio">{{ profile.bio || 'No bio yet.' }}</p>
+          <div class="readonly-socials">
+            <a *ngIf="profile.facebook" [href]="profile.facebook" target="_blank" rel="noopener">
+              <mat-icon>facebook</mat-icon> Facebook
+            </a>
+            <span *ngIf="profile.instagram">
+              <mat-icon>camera_alt</mat-icon> {{ profile.instagram }}
+            </span>
+            <span *ngIf="profile.whatsapp">
+              <mat-icon>phone</mat-icon> {{ profile.whatsapp }}
+            </span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </ng-template>
+
     <!-- Interests Section -->
     <mat-card class="interests-card premium-card">
       <mat-card-header>
-        <mat-card-title>Interests <span class="counter">({{ selectedInterests.size }}/10)</span></mat-card-title>
-        <mat-card-subtitle>Select up to 10 interests to personalize your feed</mat-card-subtitle>
+        <mat-card-title>Interests <span class="counter">({{ selectedInterests.size }}{{ isOwnProfile ? '/10' : '' }})</span></mat-card-title>
+        <mat-card-subtitle>{{ isOwnProfile ? 'Select up to 10 interests to personalize your feed' : 'Things they are into' }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <mat-chip-set class="interests-chips">
           <mat-chip
-            *ngFor="let interest of allInterests"
+            *ngFor="let interest of (isOwnProfile ? allInterests : profile.interests)"
             [class.selected]="isSelected(interest)"
-            (click)="toggleInterest(interest)"
+            (click)="isOwnProfile && toggleInterest(interest)"
           >
             {{ interest | titlecase }}
           </mat-chip>
         </mat-chip-set>
       </mat-card-content>
-      <mat-card-actions class="card-actions-row">
+      <mat-card-actions class="card-actions-row" *ngIf="isOwnProfile">
         <button mat-raised-button color="accent" (click)="onSaveInterests()" [disabled]="savingInterests">
           {{ savingInterests ? 'Saving...' : 'Save Interests' }}
         </button>
@@ -138,15 +160,15 @@
         <div class="gallery-grid" *ngIf="profile.gallery.length; else emptyGallery">
           <div class="gallery-item" *ngFor="let photo of profile.gallery">
             <img [src]="photo" alt="Gallery photo" />
-            <button mat-icon-button color="warn" class="remove-btn" (click)="onGalleryRemove(photo)">
+            <button mat-icon-button color="warn" class="remove-btn" *ngIf="isOwnProfile" (click)="onGalleryRemove(photo)">
               <mat-icon>delete</mat-icon>
             </button>
           </div>
         </div>
         <ng-template #emptyGallery>
-          <p class="empty-text">No photos yet. Add your first photo!</p>
+          <p class="empty-text">{{ isOwnProfile ? 'No photos yet. Add your first photo!' : 'No public photos yet.' }}</p>
         </ng-template>
-        <div class="add-photo-btn">
+        <div class="add-photo-btn" *ngIf="isOwnProfile">
           <button mat-stroked-button color="primary" type="button" (click)="galleryInput.click()">
             <mat-icon>add_photo_alternate</mat-icon> Add Photo
           </button>
@@ -156,7 +178,7 @@
     </mat-card>
 
     <!-- Badges Section -->
-    <mat-card class="badges-card premium-card">
+    <mat-card class="badges-card premium-card" *ngIf="isOwnProfile">
       <mat-card-header>
         <mat-card-title>
           <mat-icon>emoji_events</mat-icon> Badges
@@ -186,7 +208,7 @@
     </mat-card>
 
     <!-- Leaderboard Section -->
-    <mat-card class="leaderboard-card premium-card">
+    <mat-card class="leaderboard-card premium-card" *ngIf="isOwnProfile">
       <mat-card-header>
         <mat-card-title>
           <mat-icon>leaderboard</mat-icon> Leaderboard

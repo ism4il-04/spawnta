@@ -73,7 +73,9 @@
       {{ activity.hostFirstName ? activity.hostFirstName[0].toUpperCase() : 'H' }}
     </div>
     <div class="host-details">
-      <span class="host-name">{{ activity.hostFirstName }} {{ activity.hostLastName }}</span>
+      <a class="host-name profile-inline-link" [routerLink]="['/users', activity.hostId]">
+        {{ activity.hostFirstName }} {{ activity.hostLastName }}
+      </a>
       <span class="host-email">{{ activity.hostEmail }}</span>
     </div>
     <div class="host-actions" *ngIf="!isHost">
@@ -230,7 +232,9 @@
             {{ participant.firstName ? participant.firstName[0].toUpperCase() : 'P' }}
           </div>
           <div class="participant-info">
-            <span class="participant-name">{{ participant.firstName }} {{ participant.lastName }}</span>
+            <a class="participant-name profile-inline-link" [routerLink]="['/users', participant.userId]">
+              {{ participant.firstName }} {{ participant.lastName }}
+            </a>
             <span class="participant-email">{{ participant.email }}</span>
           </div>
         </div>

@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/users/me")
+@RequestMapping("/api/users")
 public class ProfileController {
 
     private final ProfileService profileService;
@@ -23,14 +23,22 @@ public class ProfileController {
         this.profileService = profileService;
     }
 
-    @GetMapping
+    @GetMapping("/me")
     public ResponseEntity<UserProfileResponse> getMyProfile(
         @AuthenticationPrincipal String email
     ) {
         return ResponseEntity.ok(profileService.getProfile(email));
     }
 
-    @PutMapping
+    @GetMapping("/{id}/profile")
+    public ResponseEntity<UserProfileResponse> getUserProfile(
+        @PathVariable Long id,
+        @AuthenticationPrincipal String email
+    ) {
+        return ResponseEntity.ok(profileService.getProfileById(id, email));
+    }
+
+    @PutMapping("/me")
     public ResponseEntity<UserProfileResponse> updateMyProfile(
         @AuthenticationPrincipal String email,
         @Valid @RequestBody UpdateProfileRequest request
@@ -38,7 +46,7 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.updateProfile(email, request));
     }
 
-    @PutMapping("/interests")
+    @PutMapping("/me/interests")
     public ResponseEntity<UserProfileResponse> updateInterests(
         @AuthenticationPrincipal String email,
         @Valid @RequestBody UpdateInterestsRequest request
@@ -46,7 +54,7 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.updateInterests(email, request));
     }
 
-    @PostMapping(value = "/avatar", consumes = "multipart/form-data")
+    @PostMapping(value = "/me/avatar", consumes = "multipart/form-data")
     public ResponseEntity<UserProfileResponse> uploadAvatar(
         @AuthenticationPrincipal String email,
         @RequestParam("file") MultipartFile file
@@ -54,7 +62,7 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.uploadAvatar(email, file));
     }
 
-    @PostMapping(value = "/gallery", consumes = "multipart/form-data")
+    @PostMapping(value = "/me/gallery", consumes = "multipart/form-data")
     public ResponseEntity<UserProfileResponse> addGalleryPhoto(
         @AuthenticationPrincipal String email,
         @RequestParam("file") MultipartFile file
@@ -62,7 +70,7 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.addGalleryPhoto(email, file));
     }
 
-    @DeleteMapping("/gallery")
+    @DeleteMapping("/me/gallery")
     public ResponseEntity<UserProfileResponse> removeGalleryPhoto(
         @AuthenticationPrincipal String email,
         @RequestParam("url") String photoUrl
