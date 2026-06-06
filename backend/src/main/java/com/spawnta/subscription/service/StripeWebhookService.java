@@ -197,7 +197,7 @@ public class StripeWebhookService {
                 stripeSubscription.getId());
             
             Optional<UserSubscription> existingActive = userSubscriptionRepository
-                    .findByUserIdAndStatus(user.getId(), SubscriptionStatus.ACTIVE);
+                    .findByUserId(user.getId());
             
             if (existingActive.isPresent()) {
                 userSubscription = existingActive.get();
