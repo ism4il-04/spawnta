@@ -6,6 +6,7 @@ services:
     ports: !reset []
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_FLYWAY_ENABLED: "true"
 
   frontend:
     image: aymanesbe3/spawnta-frontend:${IMAGE_TAG:-latest}
