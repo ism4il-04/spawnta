@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 export interface AdminUser {
   id: number;
   email: string;
@@ -43,8 +43,7 @@ export interface UserFilters {
   providedIn: 'root'
 })
 export class AdminUsersService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/users';
-
+private readonly apiUrl = `${environment.apiUrl}/api/admin/users`;
   constructor(private http: HttpClient) {}
 
   getUsers(filters: UserFilters): Observable<AdminUsersResponse> {
