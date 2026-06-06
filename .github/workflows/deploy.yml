@@ -60,7 +60,8 @@ jobs:
           tags: |
             ${{ env.DOCKERHUB_USERNAME }}/spawnta-nginx:${{ env.IMAGE_TAG }}
             ${{ env.DOCKERHUB_USERNAME }}/spawnta-nginx:latest
-deploy:
+
+  deploy:
     name: Deploy to Server
     runs-on: ubuntu-latest
     needs: build-and-push
