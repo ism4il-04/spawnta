@@ -614,6 +614,14 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.openDetail(activity);
   }
 
+  onActivityChanged(activity: ActivityResponse) {
+    this.activities = this.activities.map(item =>
+      item.id === activity.id ? activity : item
+    );
+    this.selectedActivity = activity;
+    this.updateMarkers();
+  }
+
   onActivityDeleted() {
     this.snackBar.open('Activity deleted.', 'OK', { duration: 3000 });
     this.loadActivities();

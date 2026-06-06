@@ -112,9 +112,10 @@
       </mat-form-field>
     </div>
 
-    <button mat-flat-button color="primary" class="join-btn-modern" (click)="joinActivity()">
+    <button mat-flat-button color="primary" class="join-btn-modern" (click)="joinActivity()" [disabled]="joining">
       <mat-icon>{{ activity.participationMode === 'DIRECT' ? 'bolt' : 'send' }}</mat-icon>
-      <span>{{ activity.participationMode === 'DIRECT' ? 'Join Instantly' : 'Send Request' }}</span>
+      <span *ngIf="!joining">{{ activity.participationMode === 'DIRECT' ? 'Join Instantly' : 'Send Request' }}</span>
+      <span *ngIf="joining">{{ activity.participationMode === 'DIRECT' ? 'Joining...' : 'Sending...' }}</span>
     </button>
   </div>
 
