@@ -93,8 +93,8 @@ public class SubscriptionController {
         UserSubscription subscription = userSubscriptionRepository.findByUserId(user.getId())
                 .orElse(null);
         
-        if (subscription == null) {
-            // Return a default "FREE" subscription DTO if none exists
+        // If no subscription exists OR subscription is cancelled, return FREE plan
+        if (subscription == null || subscription.getStatus() == com.spawnta.subscription.entity.SubscriptionStatus.CANCELLED) {
             SubscriptionPlan freePlan = subscriptionPlanRepository.findByTier(com.spawnta.subscription.entity.SubscriptionTier.FREE)
                     .orElse(null);
             

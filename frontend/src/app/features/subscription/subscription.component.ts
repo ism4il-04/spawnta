@@ -191,13 +191,26 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
   }
 
   confirmCancel(): void {
-    if (confirm('Êtes-vous sûr de vouloir résilier votre abonnement ? Vous perdrez vos avantages premium à la fin de la période actuelle.')) {
+    const confirmMessage = this.currentTier === 'PROFESSIONAL' 
+      ? 'Êtes-vous sûr de vouloir résilier votre abonnement Professional ? Vous serez automatiquement rétrogradé au plan FREE.'
+      : 'Êtes-vous sûr de vouloir résilier votre abonnement Starter ? Vous serez automatiquement rétrogradé au plan FREE.';
+      
+    if (confirm(confirmMessage)) {
+      const snackBarRef = this.snackBar.open('Annulation en cours...', '', { duration: 0 });
+      
       this.subscriptionService.cancelSubscription('User requested cancellation via UI').subscribe({
         next: () => {
-          this.snackBar.open('Abonnement résilié avec succès.', 'OK', { duration: 5000 });
-          this.loadCurrentSubscription();
+          snackBarRef.dismiss();
+          this.snackBar.open('Abonnement résilié avec succès. Vous êtes maintenant sur le plan FREE.', 'OK', { duration: 6000 });
+          
+          // Force complete refresh of subscription data
+          setTimeout(() => {
+            this.loadCurrentSubscription();
+            this.loadPlans();
+          }, 500);
         },
         error: (err) => {
+          snackBarRef.dismiss();
           this.snackBar.open(err.error?.error || 'Erreur lors de la résiliation.', 'Fermer', { duration: 5000 });
         }
       });

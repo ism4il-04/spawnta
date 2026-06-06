@@ -31,6 +31,10 @@
   --warning-subtle: rgba(245, 158, 11, 0.12);
   --danger: #EF4444;
   --danger-subtle: rgba(239, 68, 68, 0.12);
+  --error: #EF4444;
+  
+  /* ── Surface ── */
+  --surface-secondary: #17171C;
 
   /* ── Text ── */
   --text-primary: #FFFFFF;
@@ -106,6 +110,10 @@ body.light-theme {
   --warning-subtle: #FEF3C7;
   --danger: #DC2626;
   --danger-subtle: #FEE2E2;
+  --error: #DC2626;
+  
+  /* ── Surface ── */
+  --surface-secondary: #F1F3F5;
 
   /* ── Text ── */
   --text-primary: #111827;
