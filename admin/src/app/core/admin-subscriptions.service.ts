@@ -51,7 +51,6 @@ export interface AdminSubscriptions {
   providedIn: 'root'
 })
 export class AdminSubscriptionsService {
-  private readonly apiUrl = '/api/admin/subscriptions';
 private readonly apiUrl = `${environment.apiUrl}/api/auth`;
   constructor(private http: HttpClient) {}
 

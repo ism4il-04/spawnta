@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-private readonly apiUrl = `${environment.apiUrl}/api/auth`;
 export interface AdminActivity {
   id: number;
   title: string;
@@ -37,7 +36,7 @@ export interface AdminActivitiesFilters {
   providedIn: 'root'
 })
 export class AdminActivitiesService {
-  private readonly apiUrl = '/api/admin/activities';
+private readonly apiUrl = `${environment.apiUrl}/api/auth`;
 
   constructor(private http: HttpClient) {}
 

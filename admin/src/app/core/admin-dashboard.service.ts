@@ -46,7 +46,6 @@ export interface AdminDashboard {
 export class AdminDashboardService {
   private readonly apiUrl = `${environment.apiUrl}/api/auth`;
 
-  private readonly apiUrl = '/api/admin/dashboard';
 
   constructor(private http: HttpClient) {}
 

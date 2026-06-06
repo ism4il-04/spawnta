@@ -50,7 +50,6 @@ export interface AdminModeration {
   providedIn: 'root'
 })
 export class AdminModerationService {
-  private readonly apiUrl = '/api/admin/moderation';
 
   private readonly apiUrl = `${environment.apiUrl}/api/auth`;
   constructor(private http: HttpClient) {}

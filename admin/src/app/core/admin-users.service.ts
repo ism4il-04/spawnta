@@ -43,7 +43,6 @@ export interface UserFilters {
   providedIn: 'root'
 })
 export class AdminUsersService {
-  private readonly apiUrl = '/api/admin/users';
   private readonly apiUrl = `${environment.apiUrl}/api/auth`;
   constructor(private http: HttpClient) {}
 

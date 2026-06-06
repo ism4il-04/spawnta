@@ -19,7 +19,6 @@ export interface AdminAuthResponse {
 export class AdminAuthService {
   private readonly apiUrl = `${environment.apiUrl}/api/auth`;
 
-  private readonly apiUrl = '/api/auth';
   private readonly currentAdminSubject = new BehaviorSubject<AdminAuthResponse | null>(null);
 
   constructor(private http: HttpClient) {
