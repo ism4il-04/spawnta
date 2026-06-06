@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface ActivityResponse {
   id: number;
@@ -68,7 +69,7 @@ export interface CreateActivityRequest {
   providedIn: 'root'
 })
 export class ActivityService {
-  private apiUrl = '/api/activities';
+  private apiUrl = `${environment.apiUrl}/activities`;
 
   constructor(private http: HttpClient) {}
 

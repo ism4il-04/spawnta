@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface UserProfile {
   id: number;
@@ -33,7 +34,7 @@ export interface UpdateProfileRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
-  private apiUrl = '/api/users/me';
+  private apiUrl = `${environment.apiUrl}/users/me`;
 
   constructor(private http: HttpClient) {}
 
@@ -42,7 +43,7 @@ export class ProfileService {
   }
 
   getProfileById(userId: number): Observable<UserProfile> {
-    return this.http.get<UserProfile>(`http://localhost:8080/api/users/${userId}/profile`);
+    return this.http.get<UserProfile>(`${environment.apiUrl}/users/${userId}/profile`);
   }
 
   updateProfile(req: UpdateProfileRequest): Observable<UserProfile> {

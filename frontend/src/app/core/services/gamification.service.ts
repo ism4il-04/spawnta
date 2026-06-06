@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Badge {
   id: number;
@@ -36,7 +37,7 @@ export interface LeaderboardEntry {
 
 @Injectable({ providedIn: 'root' })
 export class GamificationService {
-  private apiUrl = '/api/gamification';
+  private apiUrl = `${environment.apiUrl}/gamification`;
 
   constructor(private http: HttpClient) {}
 
