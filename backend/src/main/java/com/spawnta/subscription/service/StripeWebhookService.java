@@ -193,23 +193,23 @@ public class StripeWebhookService {
                 .orElse(null);
 
         if (userSubscription == null) {
-            logger.info("ℹ️ No UserSubscription found for Stripe Subscription ID: {}. Checking for existing active subscription to replace.", 
+            logger.info("ℹ️ No UserSubscription found for Stripe Subscription ID: {}. Checking for existing subscription to replace.", 
                 stripeSubscription.getId());
             
-            Optional<UserSubscription> existingActive = userSubscriptionRepository
-                    .findByUserId(user.getId());
+            // First check for any existing subscription for this user (ACTIVE, CANCELLED, EXPIRED, etc.)
+            Optional<UserSubscription> existingSub = userSubscriptionRepository.findByUserId(user.getId());
             
-            if (existingActive.isPresent()) {
-                userSubscription = existingActive.get();
+            if (existingSub.isPresent()) {
+                userSubscription = existingSub.get();
+                String oldStatus = userSubscription.getStatus().name();
                 String oldStripeId = userSubscription.getStripeSubscriptionId();
                 
-                // If the old one is different from the new one, we should ideally cancel the old one on Stripe
-                if (oldStripeId != null && !oldStripeId.equals(stripeSubscription.getId())) {
-                    logger.warn("⚠️ User {} already has another active Stripe subscription: {}. Replacing with: {}", 
-                        user.getEmail(), oldStripeId, stripeSubscription.getId());
-                    // Note: In a real production app, you might want to call Stripe API to cancel the old one here
-                    // or handle pro-rata credits. For now, we just update our local record.
-                }
+                logger.info("🔄 Reactivating existing {} subscription. Old Stripe ID: {}, New Stripe ID: {}", 
+                    oldStatus, oldStripeId, stripeSubscription.getId());
+                
+                // Clear end date and cancel reason when reactivating
+                userSubscription.setEndDate(null);
+                userSubscription.setCancelReason(null);
             } else {
                 userSubscription = new UserSubscription();
                 userSubscription.setCreatedAt(LocalDateTime.now());
@@ -241,13 +241,6 @@ public class StripeWebhookService {
         userSubscription.setStartDate(startDate);
         userSubscription.setRenewalDate(renewalDate);
         userSubscription.setUpdatedAt(LocalDateTime.now());
-        
-        if (userSubscription.getId() == null) {
-            userSubscription.setCreatedAt(LocalDateTime.now());
-            logger.info("🆕 Creating NEW UserSubscription record");
-        } else {
-            logger.info("🔄 Updating EXISTING UserSubscription record (ID: {})", userSubscription.getId());
-        }
         
         userSubscriptionRepository.save(userSubscription);
         logger.info("✅ Saved UserSubscription record for user: {}", user.getEmail());

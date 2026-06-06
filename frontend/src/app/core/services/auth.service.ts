@@ -83,6 +83,12 @@ export class AuthService {
     return this.currentUserValue?.accessToken ?? null;
   }
 
+  public updateCurrentUserName(firstName: string, lastName: string): void {
+    const user = this.currentUserValue;
+    if (!user) return;
+    this.setSession({ ...user, firstName, lastName });
+  }
+
   public hasRefreshToken(): boolean {
     return !!this.currentUserValue?.refreshToken;
   }

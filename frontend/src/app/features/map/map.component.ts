@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild, NgZone, inject, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
 import { ActivityService, ActivityResponse } from '../../core/services/activity.service';
@@ -105,6 +105,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly ngZone = inject(NgZone);
   protected readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private pendingActivityId: number | null = null;
 
   constructor(
     private activityService: ActivityService,
@@ -121,6 +123,16 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
       debounceTime(300),
       takeUntil(this.destroy$)
     ).subscribe(() => this.loadActivities());
+
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const activityId = Number(params.get('activityId'));
+        this.pendingActivityId = activityId || null;
+        if (this.pendingActivityId && this.activities.length) {
+          this.openRouteActivity();
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -232,7 +244,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
       next: (data: ActivityResponse[]) => {
         this.activities = data;
         this.updateMarkers();
-        this.checkRouteParams();
+        this.openRouteActivity();
       },
       error: (err: any) => {
         console.error('Failed to load activities', err);
@@ -614,23 +626,51 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.openDetail(activity);
   }
 
+  onActivityChanged(activity: ActivityResponse) {
+    this.activities = this.activities.map(item =>
+      item.id === activity.id ? activity : item
+    );
+    this.selectedActivity = activity;
+    this.updateMarkers();
+  }
+
   onActivityDeleted() {
     this.snackBar.open('Activity deleted.', 'OK', { duration: 3000 });
     this.loadActivities();
     this.closePanel();
   }
 
-  private checkRouteParams() {
-    const activityId = this.route.snapshot.queryParamMap.get('activityId');
-    if (activityId) {
-      const act = this.activities.find(a => a.id === +activityId);
-      if (act) {
-        // Center map on activity if it's not already in view
-        if (act.latitude && act.longitude) {
-          this.map.setView([act.latitude, act.longitude], 14);
-        }
-        this.openDetail(act);
-      }
+  private openRouteActivity() {
+    const activityId = this.pendingActivityId;
+    if (!activityId) return;
+
+    const act = this.activities.find(a => a.id === activityId);
+    if (act) {
+      this.openDetail(act);
+      this.consumeActivityRouteParam();
+      return;
     }
+
+    this.activityService.getById(activityId).subscribe({
+      next: (activity) => {
+        this.activities = this.activities.some(item => item.id === activity.id)
+          ? this.activities.map(item => item.id === activity.id ? activity : item)
+          : [...this.activities, activity];
+        this.updateMarkers();
+        this.openDetail(activity);
+        this.consumeActivityRouteParam();
+      },
+      error: () => this.consumeActivityRouteParam()
+    });
+  }
+
+  private consumeActivityRouteParam() {
+    this.pendingActivityId = null;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { activityId: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 }

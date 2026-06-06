@@ -12,7 +12,8 @@
     </div>
     <div class="panel-content">
       <app-activity-detail *ngIf="panelMode === 'DETAIL' && selectedActivity" [activity]="selectedActivity"
-        (closePanel)="closePanel()" (editActivity)="openEdit($event)" (deleted)="onActivityDeleted()">
+        (closePanel)="closePanel()" (editActivity)="openEdit($event)" (deleted)="onActivityDeleted()"
+        (activityChanged)="onActivityChanged($event)">
       </app-activity-detail>
     </div>
   </mat-sidenav>

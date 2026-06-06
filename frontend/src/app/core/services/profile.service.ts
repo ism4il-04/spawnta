@@ -21,6 +21,8 @@ export interface UserProfile {
 }
 
 export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
   bio: string | null;
   facebook: string | null;
   instagram: string | null;
@@ -37,6 +39,10 @@ export class ProfileService {
 
   getProfile(): Observable<UserProfile> {
     return this.http.get<UserProfile>(this.apiUrl);
+  }
+
+  getProfileById(userId: number): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`http://localhost:8080/api/users/${userId}/profile`);
   }
 
   updateProfile(req: UpdateProfileRequest): Observable<UserProfile> {

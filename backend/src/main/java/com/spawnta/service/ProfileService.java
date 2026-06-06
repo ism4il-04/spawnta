@@ -32,9 +32,21 @@ public class ProfileService {
         return toResponse(user);
     }
 
+    public UserProfileResponse getProfileById(Long id, String requesterEmail) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        boolean requesterOwnsProfile = requesterEmail != null && requesterEmail.equals(user.getEmail());
+        if (!user.isProfilePublic() && !requesterOwnsProfile) {
+            throw new IllegalStateException("This profile is private");
+        }
+        return toResponse(user);
+    }
+
     @Transactional
     public UserProfileResponse updateProfile(String email, @Valid UpdateProfileRequest request) {
         User user = findUser(email);
+        user.setFirstName(request.firstName().trim());
+        user.setLastName(request.lastName().trim());
         user.setBio(request.bio());
         user.setFacebook(request.facebook());
         user.setInstagram(request.instagram());

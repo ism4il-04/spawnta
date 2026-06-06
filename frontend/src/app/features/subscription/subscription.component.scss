@@ -9,6 +9,50 @@
   animation: fadeIn var(--transition-smooth);
 }
 
+/* ────────────────────────────────────────────────
+   Cancellation Area
+   ──────────────────────────────────────────────── */
+.cancellation-area {
+  margin-top: var(--space-2xl);
+  padding: var(--space-xl);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  text-align: center;
+
+  p {
+    margin: 0 0 var(--space-md);
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .cancel-link {
+    display: inline-block;
+    padding: var(--space-sm) var(--space-lg);
+    background: transparent;
+    color: var(--error);
+    border: 1px solid var(--error);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background: var(--error);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
 .subscription-header {
   display: flex;
   align-items: flex-end;
@@ -463,18 +507,26 @@
 
 .subscription-footer {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
   margin-top: var(--space-2xl);
 
-  a {
-    color: var(--text-secondary);
-    font-weight: 600;
-    text-decoration: none;
-    font-size: 0.85rem;
-    transition: color var(--transition-fast);
+  .links {
+    display: flex;
+    gap: var(--space-lg);
+    align-items: center;
 
-    &:hover {
-      color: var(--text-primary);
+    a {
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--text-primary);
+      }
     }
   }
 }

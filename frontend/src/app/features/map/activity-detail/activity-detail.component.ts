@@ -39,6 +39,7 @@ export class ActivityDetailComponent implements OnChanges {
   @Output() closePanel = new EventEmitter<void>();
   @Output() editActivity = new EventEmitter<ActivityResponse>();
   @Output() deleted = new EventEmitter<number>();
+  @Output() activityChanged = new EventEmitter<ActivityResponse>();
 
   get activityTimeStatus(): { status: string; detail: string; cssClass: string } {
     if (!this.activity || !this.activity.scheduledAt) {
@@ -130,6 +131,7 @@ export class ActivityDetailComponent implements OnChanges {
 
   // Custom intro message state
   introMessage = '';
+  joining = false;
   hostQrCode: string | null = null;
   hostQrImageSrc: string | null = null;
   loadingHostQr = false;
@@ -173,6 +175,8 @@ export class ActivityDetailComponent implements OnChanges {
   }
 
   joinActivity() {
+    if (this.joining) return;
+
     const isApproval = this.activity.participationMode === 'APPROVAL';
     const message = isApproval ? this.introMessage.trim() : undefined;
 
@@ -181,16 +185,42 @@ export class ActivityDetailComponent implements OnChanges {
       return;
     }
 
+    this.joining = true;
     this.activityService.joinActivity(this.activity.id, message).subscribe({
       next: () => {
         const successMsg = isApproval
           ? '📩 Request sent! The host will review your message.'
           : '🎉 You have successfully joined the activity!';
         this.snackBar.open(successMsg, 'Great', { duration: 4000 });
-        this.activity.participantCount++;
+        if (isApproval) {
+          this.participation = {
+            host: false,
+            joined: false,
+            pendingRequest: true,
+            canCheckIn: false,
+            canRate: false,
+            hasRated: false,
+            attendanceStatus: null
+          };
+        } else {
+          this.activity.participantCount++;
+          this.participation = {
+            host: false,
+            joined: true,
+            pendingRequest: false,
+            canCheckIn: false,
+            canRate: false,
+            hasRated: false,
+            attendanceStatus: null
+          };
+        }
         this.introMessage = '';
+        this.joining = false;
+        this.activityChanged.emit(this.activity);
+        this.loadParticipationStatus();
       },
       error: (err: any) => {
+        this.joining = false;
         console.error('Join failed', err);
         const errMsg = err.error?.error || 'Failed to join. Please try again.';
         this.snackBar.open(errMsg, 'Close', { duration: 4000 });
