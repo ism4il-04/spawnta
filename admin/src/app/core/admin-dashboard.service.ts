@@ -42,7 +42,7 @@ export interface AdminDashboard {
   providedIn: 'root'
 })
 export class AdminDashboardService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/dashboard';
+  private readonly apiUrl = '/api/admin/dashboard';
 
   constructor(private http: HttpClient) {}
 

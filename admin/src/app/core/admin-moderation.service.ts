@@ -50,7 +50,7 @@ export interface AdminModeration {
   providedIn: 'root'
 })
 export class AdminModerationService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/moderation';
+  private readonly apiUrl = '/api/admin/moderation';
 
   constructor(private http: HttpClient) {}
 

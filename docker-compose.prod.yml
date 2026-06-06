@@ -16,6 +16,9 @@ services:
 
   nginx:
     image: aymanesbe3/spawnta-nginx:${IMAGE_TAG:-latest}
+    build:
+      context: ./devops/nginx
+      dockerfile: Dockerfile
     ports:
       - "80:80"
       - "443:443"
@@ -26,7 +29,6 @@ services:
       - backend
       - frontend
       - admin
-
   certbot:
     image: certbot/certbot
     volumes:

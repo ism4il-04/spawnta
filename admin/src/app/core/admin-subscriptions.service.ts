@@ -51,7 +51,7 @@ export interface AdminSubscriptions {
   providedIn: 'root'
 })
 export class AdminSubscriptionsService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/subscriptions';
+  private readonly apiUrl = '/api/admin/subscriptions';
 
   constructor(private http: HttpClient) {}
 

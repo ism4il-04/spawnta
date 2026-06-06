@@ -36,7 +36,7 @@ export interface LeaderboardEntry {
 
 @Injectable({ providedIn: 'root' })
 export class GamificationService {
-  private apiUrl = 'http://localhost:8080/api/gamification';
+  private apiUrl = '/api/gamification';
 
   constructor(private http: HttpClient) {}
 

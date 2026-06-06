@@ -33,7 +33,7 @@ export interface CheckoutSessionResponse {
   providedIn: 'root'
 })
 export class SubscriptionService {
-  private readonly apiUrl = 'http://localhost:8080/api/subscription';
+  private readonly apiUrl = '/api/subscription';
 
   constructor(private http: HttpClient) { }
 

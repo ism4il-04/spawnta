@@ -15,7 +15,7 @@ export interface AdminAuthResponse {
   providedIn: 'root'
 })
 export class AdminAuthService {
-  private readonly apiUrl = 'http://localhost:8080/api/auth';
+  private readonly apiUrl = '/api/auth';
   private readonly currentAdminSubject = new BehaviorSubject<AdminAuthResponse | null>(null);
 
   constructor(private http: HttpClient) {

@@ -43,7 +43,7 @@ export interface UserFilters {
   providedIn: 'root'
 })
 export class AdminUsersService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/users';
+  private readonly apiUrl = '/api/admin/users';
 
   constructor(private http: HttpClient) {}
 

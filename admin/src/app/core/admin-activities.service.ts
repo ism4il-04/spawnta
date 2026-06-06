@@ -35,7 +35,7 @@ export interface AdminActivitiesFilters {
   providedIn: 'root'
 })
 export class AdminActivitiesService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/activities';
+  private readonly apiUrl = '/api/admin/activities';
 
   constructor(private http: HttpClient) {}
 

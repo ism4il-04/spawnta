@@ -104,7 +104,7 @@ export class SignupComponent {
     }
 
     if (err.status === 0) {
-      return 'Unable to reach the backend. Check that http://localhost:8080 is running.';
+      return 'Unable to reach the backend. Please try again later.';
     }
 
     if (err.error?.error) {

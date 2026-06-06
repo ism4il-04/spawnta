@@ -52,7 +52,7 @@ export class ChatService {
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
 
-  private readonly apiUrl = 'http://localhost:8080/api/chats';
+  private readonly apiUrl = '/api/chats';
   private stompClient: Client | null = null;
   
   // Real-time events stream for active chat room
@@ -123,7 +123,7 @@ export class ChatService {
 
     // Config Stomp Client
     this.stompClient = new Client({
-      brokerURL: 'ws://localhost:8080/ws', // Native WebSocket endpoint
+      brokerURL: `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`,
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
