@@ -105,7 +105,7 @@ public class ChatService {
     @Transactional
     public Chat createPrivateChat(Long user1Id, Long user2Id) {
         if (user1Id.equals(user2Id)) {
-            throw new IllegalArgumentException("Vous ne pouvez pas créer de chat privé avec vous-même");
+            throw new IllegalArgumentException("You cannot create a private chat with yourself");
         }
 
         // Check if private chat already exists
@@ -143,17 +143,17 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
 
         if (chat.getStatus() == ChatStatus.BLOCKED) {
-            throw new IllegalStateException("Ce salon de discussion est bloqué.");
+            throw new IllegalStateException("This chat is blocked.");
         }
 
         ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, senderId)
-                .orElseThrow(() -> new IllegalStateException("Vous ne participez pas à ce salon de discussion."));
+                .orElseThrow(() -> new IllegalStateException("You are not a participant in this chat."));
 
         if (participant.getStatus() == ChatParticipantStatus.MUTED) {
-            throw new IllegalStateException("Vous avez été rendu muet par un modérateur dans ce salon.");
+            throw new IllegalStateException("You have been muted by a moderator in this chat.");
         }
         if (participant.getStatus() == ChatParticipantStatus.KICKED) {
-            throw new IllegalStateException("Vous avez été exclu de ce salon de discussion.");
+            throw new IllegalStateException("You have been kicked from this chat.");
         }
 
         // Sanitize and escape message content
@@ -178,7 +178,7 @@ public class ChatService {
         boolean isModerator = chat.getType() == ChatType.GROUP && chat.getActivity().getHost().getId().equals(userId);
 
         if (!isAuthor && !isModerator) {
-            throw new IllegalStateException("Vous n'êtes pas autorisé à supprimer ce message.");
+            throw new IllegalStateException("You are not authorized to delete this message.");
         }
 
         message.setStatus(MessageStatus.DELETED);
@@ -192,7 +192,7 @@ public class ChatService {
                 chat, 
                 "DELETE_MESSAGE", 
                 message.getSender(), 
-                "Suppression du message ID: " + messageId
+                "Deleted message ID: " + messageId
             );
             chatAuditLogRepository.save(audit);
         }
@@ -207,21 +207,21 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
 
         if (chat.getType() != ChatType.GROUP) {
-            throw new IllegalArgumentException("La modération n'est disponible que pour les chats de groupe.");
+            throw new IllegalArgumentException("Moderation is only available for group chats.");
         }
 
         if (!chat.getActivity().getHost().getId().equals(moderatorId)) {
-            throw new IllegalStateException("Seul l'organisateur peut modérer le chat.");
+            throw new IllegalStateException("Only the host can moderate the chat.");
         }
 
         ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, targetUserId)
-                .orElseThrow(() -> new IllegalArgumentException("Le participant ciblé n'existe pas dans ce chat."));
+                .orElseThrow(() -> new IllegalArgumentException("The targeted participant does not exist in this chat."));
 
         participant.setStatus(ChatParticipantStatus.MUTED);
         chatParticipantRepository.save(participant);
 
         User moderator = userRepository.findById(moderatorId).orElseThrow();
-        ChatAuditLog audit = new ChatAuditLog(moderator, chat, "MUTE", participant.getUser(), "Rendu muet");
+        ChatAuditLog audit = new ChatAuditLog(moderator, chat, "MUTE", participant.getUser(), "Muted");
         chatAuditLogRepository.save(audit);
 
         createParticipantOutboxEvent(chatId, participant.getUser(), "MUTE");
@@ -233,21 +233,21 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
 
         if (chat.getType() != ChatType.GROUP) {
-            throw new IllegalArgumentException("La modération n'est disponible que pour les chats de groupe.");
+            throw new IllegalArgumentException("Moderation is only available for group chats.");
         }
 
         if (!chat.getActivity().getHost().getId().equals(moderatorId)) {
-            throw new IllegalStateException("Seul l'organisateur peut modérer le chat.");
+            throw new IllegalStateException("Only the host can moderate the chat.");
         }
 
         ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, targetUserId)
-                .orElseThrow(() -> new IllegalArgumentException("Le participant ciblé n'existe pas dans ce chat."));
+                .orElseThrow(() -> new IllegalArgumentException("The targeted participant does not exist in this chat."));
 
         participant.setStatus(ChatParticipantStatus.KICKED);
         chatParticipantRepository.save(participant);
 
         User moderator = userRepository.findById(moderatorId).orElseThrow();
-        ChatAuditLog audit = new ChatAuditLog(moderator, chat, "KICK", participant.getUser(), "Exclu du salon");
+        ChatAuditLog audit = new ChatAuditLog(moderator, chat, "KICK", participant.getUser(), "Kicked from chat");
         chatAuditLogRepository.save(audit);
 
         createParticipantOutboxEvent(chatId, participant.getUser(), "KICK");
@@ -259,11 +259,11 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
 
         if (chat.getType() == ChatType.PRIVATE) {
-            throw new IllegalStateException("Vous ne pouvez pas quitter une conversation privée.");
+            throw new IllegalStateException("You cannot leave a private chat.");
         }
 
         ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Vous ne participez pas à ce chat."));
+                .orElseThrow(() -> new IllegalArgumentException("You are not a participant in this chat."));
 
         participant.setStatus(ChatParticipantStatus.LEFT);
         chatParticipantRepository.save(participant);
@@ -278,10 +278,18 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
 
         ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Vous ne participez pas à ce chat."));
+                .orElseThrow(() -> new IllegalArgumentException("You are not a participant in this chat."));
 
         participant.setStatus(ChatParticipantStatus.DELETED);
         chatParticipantRepository.save(participant);
+    }
+
+    @Transactional
+    public void deleteChatByActivityId(Long activityId) {
+        chatRepository.findByActivityId(activityId).ifPresent(chat -> {
+            log.info("Deleting group chat for activity ID: {}", activityId);
+            chatRepository.delete(chat);
+        });
     }
 
     @Transactional
@@ -290,12 +298,12 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
 
         if (chat.getType() != ChatType.PRIVATE) {
-            throw new IllegalArgumentException("Seuls les chats privés peuvent être bloqués.");
+            throw new IllegalArgumentException("Only private chats can be blocked.");
         }
 
         boolean participates = chatParticipantRepository.existsByChatIdAndUserId(chatId, userId);
         if (!participates) {
-            throw new IllegalStateException("Vous ne participez pas à ce chat.");
+            throw new IllegalStateException("You are not a participant in this chat.");
         }
 
         chat.setStatus(ChatStatus.BLOCKED);
@@ -309,16 +317,16 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("Chat not found"));
 
         if (chat.getType() != ChatType.PRIVATE) {
-            throw new IllegalArgumentException("Seuls les chats privés peuvent être débloqués.");
+            throw new IllegalArgumentException("Only private chats can be unblocked.");
         }
 
         boolean participates = chatParticipantRepository.existsByChatIdAndUserId(chatId, userId);
         if (!participates) {
-            throw new IllegalStateException("Vous ne participez pas à ce chat.");
+            throw new IllegalStateException("You are not a participant in this chat.");
         }
 
         if (chat.getBlockedByUserId() != null && !chat.getBlockedByUserId().equals(userId)) {
-            throw new IllegalStateException("Seul l'utilisateur qui a bloqué la conversation peut la débloquer.");
+            throw new IllegalStateException("Only the user who blocked the conversation can unblock it.");
         }
 
         chat.setStatus(ChatStatus.ACTIVE);
@@ -353,8 +361,8 @@ public class ChatService {
                 messageMap.put("senderAvatarUrl", message.getSender().getAvatarUrl());
             } else {
                 messageMap.put("senderId", null);
-                messageMap.put("senderFirstName", "Utilisateur");
-                messageMap.put("senderLastName", "Supprimé");
+                messageMap.put("senderFirstName", "User");
+                messageMap.put("senderLastName", "Deleted");
                 messageMap.put("senderAvatarUrl", null);
             }
 
@@ -370,7 +378,7 @@ public class ChatService {
             outboxEventRepository.save(outboxEvent);
         } catch (Exception e) {
             log.error("Failed to serialize message event to outbox", e);
-            throw new RuntimeException("Erreur d'enregistrement d'événement outbox", e);
+            throw new RuntimeException("Failed to register outbox event", e);
         }
     }
 
@@ -405,72 +413,90 @@ public class ChatService {
         List<com.spawnta.dto.ChatResponse> responses = new ArrayList<>();
 
         for (Chat chat : chats) {
-            String title = "";
-            String avatarUrl = null;
+            try {
+                String title = "";
+                String avatarUrl = null;
 
-            if (chat.getType() == ChatType.GROUP) {
-                title = chat.getActivity().getTitle();
-            } else {
-                // Find other participant
-                User other = chat.getParticipants().stream()
-                        .map(ChatParticipant::getUser)
-                        .filter(u -> !u.getId().equals(user.getId()))
-                        .findFirst()
-                        .orElse(null);
-                if (other != null) {
-                    title = other.getFirstName() + " " + other.getLastName();
-                    avatarUrl = other.getAvatarUrl();
+                if (chat.getType() == ChatType.GROUP) {
+                    title = (chat.getActivity() != null) ? chat.getActivity().getTitle() : "Cancelled Activity";
                 } else {
-                    title = "Utilisateur Supprimé";
+                    // Find other participant safely
+                    User other = null;
+                    if (chat.getParticipants() != null) {
+                        other = chat.getParticipants().stream()
+                                .filter(cp -> cp.getUser() != null)
+                                .map(ChatParticipant::getUser)
+                                .filter(u -> !u.getId().equals(user.getId()))
+                                .findFirst()
+                                .orElse(null);
+                    }
+
+                    if (other != null) {
+                        title = (other.getFirstName() != null ? other.getFirstName() : "") + " " + 
+                                (other.getLastName() != null ? other.getLastName() : "");
+                        if (title.trim().isEmpty()) title = "User " + other.getId();
+                        avatarUrl = other.getAvatarUrl();
+                    } else {
+                        title = "Deleted User";
+                    }
                 }
-            }
 
-            // Get last message
-            String lastMessage = "";
-            LocalDateTime lastMessageTime = null;
-            String lastMessageSender = null;
+                // Get last message safely
+                String lastMessage = "";
+                LocalDateTime lastMessageTime = null;
+                String lastMessageSender = null;
 
-            org.springframework.data.domain.Page<Message> lastMsgs = messageRepository
-                    .findAllByChatIdAndStatusOrderByCreatedAtDesc(chat.getId(), MessageStatus.ACTIVE, org.springframework.data.domain.PageRequest.of(0, 1));
-            if (lastMsgs.hasContent()) {
-                Message msg = lastMsgs.getContent().get(0);
-                lastMessage = msg.getContent();
-                lastMessageTime = msg.getCreatedAt();
-                if (msg.getSender() != null) {
-                    lastMessageSender = msg.getSender().getFirstName() + " " + msg.getSender().getLastName();
-                } else {
-                    lastMessageSender = "Utilisateur Supprimé";
+                org.springframework.data.domain.Page<Message> lastMsgs = messageRepository
+                        .findAllByChatIdAndStatusOrderByCreatedAtDesc(chat.getId(), MessageStatus.ACTIVE, org.springframework.data.domain.PageRequest.of(0, 1));
+                
+                if (lastMsgs != null && lastMsgs.hasContent()) {
+                    Message msg = lastMsgs.getContent().get(0);
+                    lastMessage = msg.getContent() != null ? msg.getContent() : "";
+                    lastMessageTime = msg.getCreatedAt();
+                    if (msg.getSender() != null) {
+                        lastMessageSender = (msg.getSender().getFirstName() != null ? msg.getSender().getFirstName() : "") + " " + 
+                                           (msg.getSender().getLastName() != null ? msg.getSender().getLastName() : "");
+                        if (lastMessageSender.trim().isEmpty()) lastMessageSender = "User " + msg.getSender().getId();
+                    } else {
+                        lastMessageSender = "Deleted User";
+                    }
                 }
+
+                boolean notificationsEnabled = true;
+                String participantStatus = "ACTIVE";
+
+                if (chat.getParticipants() != null) {
+                    ChatParticipant self = chat.getParticipants().stream()
+                            .filter(cp -> cp.getUser() != null && cp.getUser().getId().equals(user.getId()))
+                            .findFirst()
+                            .orElse(null);
+                    
+                    if (self != null) {
+                        notificationsEnabled = self.isNotificationsEnabled();
+                        participantStatus = self.getStatus() != null ? self.getStatus().name() : "ACTIVE";
+                    }
+                }
+
+                responses.add(new com.spawnta.dto.ChatResponse(
+                    chat.getId(),
+                    chat.getType() != null ? chat.getType().name() : "GROUP",
+                    chat.getActivity() != null ? chat.getActivity().getId() : null,
+                    chat.getActivity() != null ? chat.getActivity().getTitle() : null,
+                    chat.getStatus() != null ? chat.getStatus().name() : "ACTIVE",
+                    chat.getCreatedAt() != null ? chat.getCreatedAt() : LocalDateTime.now(),
+                    title,
+                    avatarUrl,
+                    lastMessage,
+                    lastMessageTime,
+                    lastMessageSender,
+                    notificationsEnabled,
+                    chat.getBlockedByUserId(),
+                    participantStatus
+                ));
+            } catch (Exception e) {
+                log.error("Error mapping chat ID {} to response for user {}", chat.getId(), email, e);
+                // Skip this individual chat instead of failing the whole request
             }
-
-            boolean notificationsEnabled = chat.getParticipants().stream()
-                    .filter(cp -> cp.getUser().getId().equals(user.getId()))
-                    .map(ChatParticipant::isNotificationsEnabled)
-                    .findFirst()
-                    .orElse(true);
-
-            String participantStatus = chat.getParticipants().stream()
-                    .filter(cp -> cp.getUser().getId().equals(user.getId()))
-                    .map(cp -> cp.getStatus().name())
-                    .findFirst()
-                    .orElse("ACTIVE");
-
-            responses.add(new com.spawnta.dto.ChatResponse(
-                chat.getId(),
-                chat.getType().name(),
-                chat.getActivity() != null ? chat.getActivity().getId() : null,
-                chat.getActivity() != null ? chat.getActivity().getTitle() : null,
-                chat.getStatus().name(),
-                chat.getCreatedAt(),
-                title,
-                avatarUrl,
-                lastMessage,
-                lastMessageTime,
-                lastMessageSender,
-                notificationsEnabled,
-                chat.getBlockedByUserId(),
-                participantStatus
-            ));
         }
         return responses;
     }
@@ -481,7 +507,7 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         ChatParticipant participant = chatParticipantRepository.findByChatIdAndUserId(chatId, user.getId())
-                .orElseThrow(() -> new IllegalStateException("Vous n'êtes pas autorisé à accéder à cette conversation."));
+                .orElseThrow(() -> new IllegalStateException("You are not authorized to access this conversation."));
 
         Chat chat = participant.getChat();
 
@@ -501,7 +527,7 @@ public class ChatService {
             msg.getId(),
             msg.getChat().getId(),
             msg.getSender() != null ? msg.getSender().getId() : null,
-            msg.getSender() != null ? (msg.getSender().getFirstName() + " " + msg.getSender().getLastName()) : "Utilisateur Supprimé",
+            msg.getSender() != null ? (msg.getSender().getFirstName() + " " + msg.getSender().getLastName()) : "Deleted User",
             msg.getSender() != null ? msg.getSender().getAvatarUrl() : null,
             msg.getContent(),
             msg.getStatus().name(),

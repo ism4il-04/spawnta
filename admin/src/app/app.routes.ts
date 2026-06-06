@@ -16,9 +16,7 @@ export const routes: Routes = [
       { path: 'activities', component: ActivitiesComponent },
       { path: 'users', component: UsersComponent },
       { path: 'subscriptions', component: SubscriptionsComponent },
-      { path: 'moderation', component: ModerationComponent },
-      { path: 'analytics', redirectTo: 'dashboard' }, // Placeholder
-      { path: 'audit', redirectTo: 'dashboard' }      // Placeholder
+      { path: 'moderation', component: ModerationComponent }
     ]
   }
 ];

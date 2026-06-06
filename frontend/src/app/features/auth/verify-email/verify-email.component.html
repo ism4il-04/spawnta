@@ -1,42 +1,48 @@
-<div class="verify-container">
-  <mat-card class="verify-card">
-
+<div class="auth-container single-card-layout">
+  <div class="modern-card auth-card">
+    
     <!-- Loading -->
     <ng-container *ngIf="status === 'loading'">
-      <mat-card-content class="centered">
-        <mat-spinner diameter="48"></mat-spinner>
-        <p>Verifying your email...</p>
-      </mat-card-content>
+      <div class="card-body centered">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p class="status-text">Verifying your email...</p>
+      </div>
     </ng-container>
 
     <!-- Success -->
     <ng-container *ngIf="status === 'success'">
-      <mat-card-header>
-        <mat-card-title>
+      <div class="card-header">
+        <div class="card-badge success-badge">Success</div>
+        <h2 class="card-title">
           <mat-icon class="success-icon">check_circle</mat-icon>
           Email verified!
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Your account is active. Redirecting to your profile...</p>
-      </mat-card-content>
+        </h2>
+        <p class="card-subtitle">Your account has been successfully activated</p>
+      </div>
+      <div class="card-body">
+        <p class="status-desc">Your account is active. Redirecting to your profile...</p>
+      </div>
     </ng-container>
 
     <!-- Error -->
     <ng-container *ngIf="status === 'error'">
-      <mat-card-header>
-        <mat-card-title>
+      <div class="card-header">
+        <div class="card-badge error-badge">Error</div>
+        <h2 class="card-title">
           <mat-icon class="error-icon">error_outline</mat-icon>
           Verification failed
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>{{ errorMessage }}</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary" (click)="goToLogin()">Back to Login</button>
-      </mat-card-actions>
+        </h2>
+        <p class="card-subtitle">We couldn't verify your email address</p>
+      </div>
+      <div class="card-body">
+        <p class="error-msg">{{ errorMessage }}</p>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-lg btn-full" (click)="goToLogin()">
+            Back to Login
+          </button>
+        </div>
+      </div>
     </ng-container>
 
-  </mat-card>
+  </div>
 </div>

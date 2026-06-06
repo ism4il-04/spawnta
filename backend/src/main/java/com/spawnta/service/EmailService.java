@@ -215,4 +215,64 @@ public class EmailService {
             log.error("Failed to send cancellation email to {}: {}", user.getEmail(), e.getMessage());
         }
     }
+
+    /**
+     * Notify participants when an activity is cancelled/deleted
+     */
+    public void sendActivityCancelledNotification(String toEmail, String activityTitle) {
+        if (mailSender == null || mailHost.isBlank()) {
+            log.info("=== [DEV MODE] Activity Cancelled notification for {}: {} ===", toEmail, activityTitle);
+            return;
+        }
+
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromEmail);
+            msg.setTo(toEmail);
+            msg.setSubject("Activity Cancelled: " + activityTitle);
+            msg.setText(
+                "Hi,\n\n" +
+                "The activity \"" + activityTitle + "\" you were participating in has been cancelled by the host.\n\n" +
+                "Feel free to discover other activities on Spawnta!\n\n" +
+                "Best regards,\n" +
+                "The Spawnta Team"
+            );
+            
+            mailSender.send(msg);
+            log.info("Activity cancellation email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send activity cancellation email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    /**
+     * Notify participants when critical activity details change
+     */
+    public void sendActivityUpdatedNotification(String toEmail, String activityTitle, String changes) {
+        if (mailSender == null || mailHost.isBlank()) {
+            log.info("=== [DEV MODE] Activity Updated notification for {}: {} - Changes: {} ===", 
+                toEmail, activityTitle, changes);
+            return;
+        }
+
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromEmail);
+            msg.setTo(toEmail);
+            msg.setSubject("Activity Updated: " + activityTitle);
+            msg.setText(
+                "Hi,\n\n" +
+                "Important updates have been made to the activity \"" + activityTitle + "\":\n\n" +
+                changes + "\n\n" +
+                "Check the updated details here: " + frontendUrl + "/map\n\n" +
+                "Best regards,\n" +
+                "The Spawnta Team"
+            );
+            
+            mailSender.send(msg);
+            log.info("Activity update email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send activity update email to {}: {}", toEmail, e.getMessage());
+        }
+    }
 }

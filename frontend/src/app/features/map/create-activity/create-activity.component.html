@@ -1,7 +1,7 @@
-<div class="modern-modal-overlay" (click)="hideForm()">
+<div class="modern-modal-overlay">
   <div class="modern-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">Host an Activity</h2>
+      <h2 class="modal-title">{{ editActivity ? 'Edit Activity' : 'Host an Activity' }}</h2>
       <button type="button" class="modal-close" (click)="cancel.emit()">
         <i class="material-icons">close</i>
       </button>
@@ -11,16 +11,16 @@
       <div class="form-body">
         <!-- Title -->
         <div class="modern-form-field">
-          <label class="form-label" for="title">Titre</label>
+          <label class="form-label" for="title">Title</label>
           <input 
             id="title"
             class="form-input"
             [class.error]="activityForm.get('title')?.invalid && activityForm.get('title')?.touched"
             formControlName="title"
             type="text"
-            placeholder="Nom de l'activité">
+            placeholder="Activity name">
           <span class="form-error" *ngIf="activityForm.get('title')?.hasError('required') && activityForm.get('title')?.touched">
-            Le titre est requis
+            Title is required
           </span>
         </div>
 
@@ -33,9 +33,9 @@
             [class.error]="activityForm.get('description')?.invalid && activityForm.get('description')?.touched"
             formControlName="description"
             rows="3"
-            placeholder="Décrivez votre activité..."></textarea>
+            placeholder="Describe your activity..."></textarea>
           <span class="form-error" *ngIf="activityForm.get('description')?.hasError('required') && activityForm.get('description')?.touched">
-            La description est requise
+            Description is required
           </span>
         </div>
 
@@ -47,8 +47,9 @@
               <select 
                 id="activityType"
                 class="form-select"
-                formControlName="activityType">
-                <option value="">Sélectionner</option>
+                formControlName="activityType"
+                [attr.disabled]="editActivity ? true : null">
+                <option value="">Select</option>
                 <option value="MEETUP">Local Meetup</option>
                 <option value="TRIP">Trip / Excursion</option>
               </select>
@@ -63,7 +64,7 @@
                 id="category"
                 class="form-select"
                 formControlName="category">
-                <option value="">Sélectionner</option>
+                <option value="">Select</option>
                 <option value="Coffee & Cafes">Coffee & Cafes</option>
                 <option value="Hiking & Trekking">Hiking & Trekking</option>
                 <option value="Nightlife">Nightlife</option>
@@ -87,13 +88,13 @@
                 class="form-input"
                 formControlName="scheduledAt"
                 type="date"
-                placeholder="jj/mm/aaaa">
+                placeholder="dd/mm/yyyy">
               <i class="material-icons date-icon">calendar_today</i>
             </div>
           </div>
 
           <div class="modern-form-field">
-            <label class="form-label" for="scheduledTime">Heure</label>
+            <label class="form-label" for="scheduledTime">Time</label>
             <div class="time-input-wrapper">
               <input 
                 id="scheduledTime"
@@ -106,19 +107,46 @@
           </div>
         </div>
 
-        <!-- Duration and Max Participants Row -->
-        <div class="form-row">
-          <div class="modern-form-field">
-            <label class="form-label" for="durationMinutes">Durée (minutes)</label>
-            <input 
-              id="durationMinutes"
-              class="form-input"
-              formControlName="durationMinutes"
-              type="number"
-              placeholder="60"
-              min="15">
+        <!-- Duration Section -->
+        <div class="modern-form-field">
+          <label class="form-label">Activity Duration</label>
+          <div class="duration-picker">
+            <div class="duration-unit">
+              <input 
+                class="form-input duration-input"
+                formControlName="durationDays"
+                type="number"
+                min="0"
+                max="30"
+                placeholder="0">
+              <span class="duration-label">days</span>
+            </div>
+            <div class="duration-unit">
+              <input 
+                class="form-input duration-input"
+                formControlName="durationHours"
+                type="number"
+                min="0"
+                max="23"
+                placeholder="2">
+              <span class="duration-label">hours</span>
+            </div>
+            <div class="duration-unit">
+              <input 
+                class="form-input duration-input"
+                formControlName="durationMins"
+                type="number"
+                min="0"
+                max="59"
+                step="15"
+                placeholder="0">
+              <span class="duration-label">min</span>
+            </div>
           </div>
+        </div>
 
+        <!-- Max Participants -->
+        <div class="form-row">
           <div class="modern-form-field">
             <label class="form-label" for="maxParticipants">Max Participants</label>
             <input 
@@ -134,14 +162,14 @@
         <!-- Participation Mode Row -->
         <div class="form-row">
           <div class="modern-form-field">
-            <label class="form-label" for="participationMode">Mode de participation</label>
+            <label class="form-label" for="participationMode">Participation Mode</label>
             <div class="select-wrapper">
               <select 
                 id="participationMode"
                 class="form-select"
                 formControlName="participationMode">
-                <option value="DIRECT">Rejoindre directement</option>
-                <option value="APPROVAL">Approbation requise</option>
+                <option value="DIRECT">Join directly</option>
+                <option value="APPROVAL">Requires approval</option>
               </select>
               <i class="material-icons select-arrow">expand_more</i>
             </div>
@@ -153,17 +181,17 @@
           <div class="location-info">
             <div class="info-header">
               <i class="material-icons">info</i>
-              <span>Cliquez sur la carte pour définir les points de localisation</span>
+              <span>Click on the map to set location points</span>
             </div>
             
             <div *ngIf="activityForm.get('activityType')?.value === 'MEETUP'" class="location-display">
               <div *ngIf="activityForm.get('latitude')?.value" class="coords-display success">
                 <i class="material-icons">location_on</i>
-                <span>Localisation: {{ activityForm.get('latitude')?.value | number:'1.4-4' }}, {{ activityForm.get('longitude')?.value | number:'1.4-4' }}</span>
+                <span>Location: {{ activityForm.get('latitude')?.value | number:'1.4-4' }}, {{ activityForm.get('longitude')?.value | number:'1.4-4' }}</span>
               </div>
               <div *ngIf="!activityForm.get('latitude')?.value" class="coords-display warning">
                 <i class="material-icons">gpp_maybe</i>
-                <span>Aucune localisation sélectionnée</span>
+                <span>No location selected</span>
               </div>
             </div>
 
@@ -171,11 +199,11 @@
               <div class="trip-locations">
                 <div *ngIf="activityForm.get('startLatitude')?.value" class="coords-display success">
                   <i class="material-icons">flag</i>
-                  <span>Départ: {{ activityForm.get('startLatitude')?.value | number:'1.4-4' }}, {{ activityForm.get('startLongitude')?.value | number:'1.4-4' }}</span>
+                  <span>Start: {{ activityForm.get('startLatitude')?.value | number:'1.4-4' }}, {{ activityForm.get('startLongitude')?.value | number:'1.4-4' }}</span>
                 </div>
                 <div *ngIf="!activityForm.get('startLatitude')?.value" class="coords-display warning">
                   <i class="material-icons">gpp_maybe</i>
-                  <span>Aucun point de départ sélectionné</span>
+                  <span>No start point selected</span>
                 </div>
                 
                 <div *ngIf="activityForm.get('destLatitude')?.value" class="coords-display success">
@@ -184,7 +212,7 @@
                 </div>
                 <div *ngIf="!activityForm.get('destLatitude')?.value" class="coords-display warning">
                   <i class="material-icons">gpp_maybe</i>
-                  <span>Aucune destination sélectionnée</span>
+                  <span>No destination selected</span>
                 </div>
               </div>
             </div>
@@ -192,20 +220,14 @@
         </div>
       </div>
 
-      <!-- Modal Actions -->
-      <div class="modal-actions">
-        <button type="button" class="btn btn-outline" (click)="cancel.emit()">
-          Cancel
-        </button>
-        <button type="submit" class="btn btn-primary" [disabled]="activityForm.invalid || loading">
-          <span *ngIf="!loading">
-            <i class="material-icons">add</i>
-            Host Activity
-          </span>
-          <span *ngIf="loading" class="loading-content">
-            <div class="spinner"></div>
-            Création en cours...
-          </span>
+      <div class="form-footer">
+        <button type="button" class="btn btn-outline" (click)="cancel.emit()">Cancel</button>
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="activityForm.invalid || loading">
+          <span *ngIf="!loading">{{ editActivity ? 'Save Changes' : 'Create Activity' }}</span>
+          <div class="spinner" *ngIf="loading"></div>
         </button>
       </div>
     </form>

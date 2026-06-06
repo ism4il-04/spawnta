@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule, LayoutDashboard, Users, Shield, Calendar, CreditCard, BarChart3, History, LogOut, ChevronLeft, ChevronRight } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Users, Shield, Calendar, CreditCard, LogOut, ChevronLeft, ChevronRight } from 'lucide-angular';
 import { AdminAuthService } from '../../core/admin-auth.service';
 
 @Component({
@@ -22,8 +22,6 @@ export class SidebarComponent {
   readonly Shield = Shield;
   readonly Calendar = Calendar;
   readonly CreditCard = CreditCard;
-  readonly BarChart3 = BarChart3;
-  readonly History = History;
   readonly LogOut = LogOut;
   readonly ChevronLeft = ChevronLeft;
   readonly ChevronRight = ChevronRight;

@@ -73,7 +73,7 @@ public class ChatController {
         String email = authentication.getName();
         String content = body.get("content");
         if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("Le contenu du message ne peut pas être vide");
+            throw new IllegalArgumentException("Message content cannot be empty");
         }
 
         Message msg = chatService.sendMessage(chatId, email, content);
@@ -81,7 +81,7 @@ public class ChatController {
             msg.getId(),
             msg.getChat().getId(),
             msg.getSender() != null ? msg.getSender().getId() : null,
-            msg.getSender() != null ? (msg.getSender().getFirstName() + " " + msg.getSender().getLastName()) : "Utilisateur Supprimé",
+            msg.getSender() != null ? (msg.getSender().getFirstName() + " " + msg.getSender().getLastName()) : "Deleted User",
             msg.getSender() != null ? msg.getSender().getAvatarUrl() : null,
             msg.getContent(),
             msg.getStatus().name(),
@@ -98,7 +98,7 @@ public class ChatController {
             Authentication authentication) {
         String email = authentication.getName();
         chatService.deleteMessage(messageId, email);
-        return ResponseEntity.ok(Map.of("message", "Message supprimé avec succès"));
+        return ResponseEntity.ok(Map.of("message", "Message deleted successfully"));
     }
 
     @PutMapping("/{chatId}/participants/{userId}/mute")
@@ -108,7 +108,7 @@ public class ChatController {
             Authentication authentication) {
         String email = authentication.getName();
         chatService.muteParticipant(chatId, userId, email);
-        return ResponseEntity.ok(Map.of("message", "Participant rendu muet avec succès"));
+        return ResponseEntity.ok(Map.of("message", "Participant muted successfully"));
     }
 
     @PutMapping("/{chatId}/participants/{userId}/kick")
@@ -118,7 +118,7 @@ public class ChatController {
             Authentication authentication) {
         String email = authentication.getName();
         chatService.kickParticipant(chatId, userId, email);
-        return ResponseEntity.ok(Map.of("message", "Participant exclu du salon avec succès"));
+        return ResponseEntity.ok(Map.of("message", "Participant kicked from the chat successfully"));
     }
 
     @PutMapping("/{chatId}/notifications")
@@ -129,10 +129,10 @@ public class ChatController {
         String email = authentication.getName();
         Boolean enabled = body.get("enabled");
         if (enabled == null) {
-            throw new IllegalArgumentException("Le champ 'enabled' est obligatoire");
+            throw new IllegalArgumentException("The 'enabled' field is required");
         }
         chatService.toggleNotifications(chatId, email, enabled);
-        return ResponseEntity.ok(Map.of("message", "Préférence de notifications mise à jour"));
+        return ResponseEntity.ok(Map.of("message", "Notification preference updated"));
     }
 
     @DeleteMapping("/{chatId}/leave")
@@ -141,7 +141,7 @@ public class ChatController {
             Authentication authentication) {
         String email = authentication.getName();
         chatService.leaveChat(chatId, email);
-        return ResponseEntity.ok(Map.of("message", "Vous avez quitté la conversation"));
+        return ResponseEntity.ok(Map.of("message", "You left the conversation"));
     }
 
     @DeleteMapping("/{chatId}/conversation")
@@ -150,7 +150,7 @@ public class ChatController {
             Authentication authentication) {
         String email = authentication.getName();
         chatService.deleteConversation(chatId, email);
-        return ResponseEntity.ok(Map.of("message", "La conversation a été supprimée"));
+        return ResponseEntity.ok(Map.of("message", "The conversation has been deleted"));
     }
 
     @PostMapping("/{chatId}/block")
@@ -159,7 +159,7 @@ public class ChatController {
             Authentication authentication) {
         String email = authentication.getName();
         chatService.blockPrivateChat(chatId, email);
-        return ResponseEntity.ok(Map.of("message", "La conversation privée a été bloquée"));
+        return ResponseEntity.ok(Map.of("message", "The private chat has been blocked"));
     }
 
     @PostMapping("/{chatId}/unblock")
@@ -168,16 +168,6 @@ public class ChatController {
             Authentication authentication) {
         String email = authentication.getName();
         chatService.unblockPrivateChat(chatId, email);
-        return ResponseEntity.ok(Map.of("message", "La conversation privée a été débloquée"));
-    }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+        return ResponseEntity.ok(Map.of("message", "The private chat has been unblocked"));
     }
 }

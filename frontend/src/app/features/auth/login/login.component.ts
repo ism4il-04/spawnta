@@ -55,22 +55,22 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.loading = false;
-        this.snackBar.open('Connexion réussie !', 'Fermer', { duration: 3000 });
+        this.snackBar.open('Signed in successfully!', 'Close', { duration: 3000 });
         this.router.navigate(['/profile']);
       },
       error: (err: any) => {
         this.loading = false;
         if (err.error?.code === 'EMAIL_NOT_VERIFIED') {
           const email: string = err.error.email ?? this.loginForm.value.email;
-          this.snackBar.open('Veuillez d\'abord vérifier votre email.', 'Renvoyer', { duration: 6000 })
+          this.snackBar.open('Please verify your email first.', 'Resend', { duration: 6000 })
             .onAction().subscribe(() => {
               this.authService.resendVerification(email).subscribe({
-                next: () => this.snackBar.open('Email de vérification renvoyé !', 'Fermer', { duration: 3000 }),
-                error: () => this.snackBar.open('Impossible de renvoyer l\'email.', 'Fermer', { duration: 3000 })
+                next: () => this.snackBar.open('Verification email resent!', 'Close', { duration: 3000 }),
+                error: () => this.snackBar.open('Could not resend email.', 'Close', { duration: 3000 })
               });
             });
         } else {
-          this.snackBar.open(err.error?.error || 'Échec de la connexion', 'Fermer', { duration: 3000 });
+          this.snackBar.open(err.error?.error || 'Sign in failed', 'Close', { duration: 3000 });
         }
       }
     });

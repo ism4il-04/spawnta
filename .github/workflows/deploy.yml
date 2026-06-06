@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 env:
-  DOCKERHUB_USERNAME: i5m4il
+  DOCKERHUB_USERNAME: aymanesbe3
 
 jobs:
 
@@ -19,7 +19,7 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set image tag
@@ -61,46 +61,31 @@ jobs:
             ${{ env.DOCKERHUB_USERNAME }}/spawnta-nginx:${{ env.IMAGE_TAG }}
             ${{ env.DOCKERHUB_USERNAME }}/spawnta-nginx:latest
 
-#  deploy:
-#    name: Deploy to Server
-#    runs-on: ubuntu-latest
-#    needs: build-and-push
-#    environment: production
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Set image tag
-#        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
-#
-#      - name: Copy compose files to server
-#        uses: appleboy/scp-action@v0.1.7
-#        with:
-#          host: ${{ secrets.SERVER_HOST }}
-#          username: ${{ secrets.SERVER_USER }}
-#          key: ${{ secrets.SERVER_SSH_KEY }}
-#          source: "docker-compose.yml,docker-compose.prod.yml"
-#          target: "/opt/spawnta"
-#
-#      - name: Deploy via SSH
-#        uses: appleboy/ssh-action@v1.0.3
-#        with:
-#          host: ${{ secrets.SERVER_HOST }}
-#          username: ${{ secrets.SERVER_USER }}
-#          key: ${{ secrets.SERVER_SSH_KEY }}
-#          script: |
-#            cd /opt/spawnta
-#            echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" > .env.deploy
-#            cat .env >> .env.deploy
-#            docker compose \
-#              -f docker-compose.yml \
-#              -f docker-compose.prod.yml \
-#              --env-file .env.deploy \
-#              pull
-#            docker compose \
-#              -f docker-compose.yml \
-#              -f docker-compose.prod.yml \
-#              --env-file .env.deploy \
-#              up -d --remove-orphans
-#            docker image prune -f
-#            rm .env.deploy
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            cd /home/ec2-user/spawnta
+            docker compose \
+              -f docker-compose.yml \
+              -f docker-compose.prod.yml \
+              pull
+            docker compose \
+              -f docker-compose.yml \
+              -f docker-compose.prod.yml \
+              up -d --remove-orphans
+            docker image prune -f

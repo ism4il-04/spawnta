@@ -17,7 +17,9 @@ import com.stripe.model.Charge;
 import com.stripe.model.Customer;
 import com.stripe.model.Subscription;
 import com.stripe.model.Event;
+import com.stripe.model.Coupon;
 import com.stripe.model.checkout.Session;
+import com.stripe.param.CouponCreateParams;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.SubscriptionCancelParams;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -27,6 +29,7 @@ import com.spawnta.repository.UserRepository;
 import com.spawnta.subscription.entity.*;
 import com.spawnta.subscription.repository.*;
 import com.spawnta.subscription.dto.*;
+import com.spawnta.subscription.service.SubscriptionDiscountService;
 
 /**
  * Service for handling all Stripe interactions
@@ -43,6 +46,7 @@ public class StripeService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final InvoiceRepository invoiceRepository;
     private final UserRepository userRepository;
+    private final SubscriptionDiscountService discountService;
     
     @Value("${stripe.api.secretKey}")
     private String stripeSecretKey;
@@ -58,13 +62,15 @@ public class StripeService {
             UserSubscriptionRepository userSubscriptionRepository,
             PaymentTransactionRepository paymentTransactionRepository,
             InvoiceRepository invoiceRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            SubscriptionDiscountService discountService
     ) {
         this.subscriptionPlanRepository = subscriptionPlanRepository;
         this.userSubscriptionRepository = userSubscriptionRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.invoiceRepository = invoiceRepository;
         this.userRepository = userRepository;
+        this.discountService = discountService;
     }
     
     /**
@@ -88,8 +94,16 @@ public class StripeService {
         
         // Check if user already has a Stripe customer ID
         if (user.getStripeCustomerId() != null && !user.getStripeCustomerId().isEmpty()) {
-            logger.info("User already has Stripe customer ID: {}", user.getStripeCustomerId());
-            return user.getStripeCustomerId();
+            try {
+                // Verify the customer still exists on Stripe
+                Customer customer = Customer.retrieve(user.getStripeCustomerId());
+                logger.info("Verified existing Stripe customer ID: {}", customer.getId());
+                return customer.getId();
+            } catch (StripeException e) {
+                logger.warn("Existing Stripe customer ID {} is invalid or not found: {}. Recreating...", 
+                        user.getStripeCustomerId(), e.getMessage());
+                // ID is invalid, continue to create a new one
+            }
         }
         
         // Create new customer in Stripe
@@ -102,6 +116,10 @@ public class StripeService {
         
         Customer customer = Customer.create(params);
         logger.info("Created Stripe customer: {} for user: {}", customer.getId(), user.getId());
+        
+        // Update user with new Stripe customer ID
+        user.setStripeCustomerId(customer.getId());
+        userRepository.save(user);
         
         return customer.getId();
     }
@@ -131,8 +149,15 @@ public class StripeService {
         // Create or get Stripe customer
         String stripeCustomerId = createOrUpdateCustomer(user);
         
+        // Calculate discount
+        int discountPercent = discountService.calculateTotalDiscountPercentage(user);
+        String couponId = null;
+        if (discountPercent > 0) {
+            couponId = getOrCreateCoupon(discountPercent);
+        }
+
         // Create checkout session
-        SessionCreateParams params = SessionCreateParams.builder()
+        SessionCreateParams.Builder sessionBuilder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
                 .setCustomer(stripeCustomerId)
                 .setSuccessUrl(successUrl != null ? successUrl : frontendUrl + "/subscription/success?session_id={CHECKOUT_SESSION_ID}")
@@ -145,17 +170,42 @@ public class StripeService {
                 )
                 .setClientReferenceId(user.getId().toString())
                 .putMetadata("userId", user.getId().toString())
-                .putMetadata("tier", tier)
-                .build();
+                .putMetadata("tier", tier);
         
-        Session session = Session.create(params);
-        logger.info("Created Stripe checkout session: {} for user: {}", session.getId(), user.getId());
+        if (couponId != null) {
+            sessionBuilder.addDiscount(
+                SessionCreateParams.Discount.builder()
+                    .setCoupon(couponId)
+                    .build()
+            );
+        }
+
+        Session session = Session.create(sessionBuilder.build());
+        logger.info("Created Stripe checkout session: {} for user: {} with {}% discount", session.getId(), user.getId(), discountPercent);
         
         return CheckoutSessionResponse.builder()
                 .sessionId(session.getId())
                 .checkoutUrl(session.getUrl())
                 .publishableKey(stripePublishableKey)
                 .build();
+    }
+
+    private String getOrCreateCoupon(int percentOff) throws StripeException {
+        String couponId = "DISCOUNT_" + percentOff + "PCT";
+        try {
+            Coupon coupon = Coupon.retrieve(couponId);
+            return coupon.getId();
+        } catch (StripeException e) {
+            // Create coupon if it doesn't exist
+            CouponCreateParams params = CouponCreateParams.builder()
+                    .setId(couponId)
+                    .setPercentOff(BigDecimal.valueOf(percentOff))
+                    .setDuration(CouponCreateParams.Duration.ONCE)
+                    .setName(percentOff + "% Off Gamification Reward")
+                    .build();
+            Coupon coupon = Coupon.create(params);
+            return coupon.getId();
+        }
     }
     
     /**
@@ -396,6 +446,11 @@ public class StripeService {
         userSubscription.setCancelReason(reason);
         userSubscription.setEndDate(LocalDateTime.now());
         userSubscriptionRepository.save(userSubscription);
+        
+        // Downgrade user to FREE tier immediately
+        user.setSubscriptionTier(SubscriptionTier.FREE.name());
+        userRepository.save(user);
+        logger.info("Downgraded user {} to FREE tier", user.getId());
         
         logger.info("Cancelled subscription for user: {}", user.getId());
     }

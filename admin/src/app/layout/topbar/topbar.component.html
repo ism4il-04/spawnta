@@ -1,27 +1,10 @@
 <header class="topbar">
-  <div class="topbar-left">
-    <div class="search-wrapper">
-      <lucide-icon [name]="Search" [size]="18" class="search-icon"></lucide-icon>
-      <input type="text" placeholder="Search users, activities, reports..." class="search-input">
-      <kbd class="search-shortcut">⌘K</kbd>
-    </div>
-  </div>
-
   <div class="topbar-right">
-    <button class="topbar-btn" title="Help">
-      <lucide-icon [name]="HelpCircle" [size]="20"></lucide-icon>
+    <button class="topbar-btn" (click)="toggleTheme()"
+            [attr.aria-label]="isDarkTheme ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            [title]="isDarkTheme ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+      <lucide-icon [name]="isDarkTheme ? Sun : Moon" [size]="20"></lucide-icon>
     </button>
-    
-    <button class="topbar-btn" title="Settings">
-      <lucide-icon [name]="Settings" [size]="20"></lucide-icon>
-    </button>
-
-    <div class="notification-wrapper">
-      <button class="topbar-btn" title="Notifications">
-        <lucide-icon [name]="Bell" [size]="20"></lucide-icon>
-        <span class="badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
-      </button>
-    </div>
 
     <div class="divider"></div>
 

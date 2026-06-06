@@ -13,6 +13,23 @@
   --text-muted: #64748b;
 }
 
+body.dark-theme {
+  --primary: #5B4CF5;
+  --primary-hover: #6D5FF7;
+  --secondary: #A1A1AA;
+  --accent: #5B4CF5;
+  --background: #0D0D0F;
+  --surface: #17171C;
+  --border: rgba(255, 255, 255, 0.08);
+  --text-main: #FFFFFF;
+  --text-muted: #A1A1AA;
+}
+
+/* Theme switch transitions for structural layout elements */
+body, .admin-layout-container, .topbar, .sidebar, .main-content-wrapper, .page-content, .login-container, .login-page {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+
 html, body {
   margin: 0;
   padding: 0;

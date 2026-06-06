@@ -15,7 +15,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = '/api/auth';
   private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
 
   constructor(private http: HttpClient) {
@@ -81,6 +81,12 @@ export class AuthService {
 
   public getAccessToken(): string | null {
     return this.currentUserValue?.accessToken ?? null;
+  }
+
+  public updateCurrentUserName(firstName: string, lastName: string): void {
+    const user = this.currentUserValue;
+    if (!user) return;
+    this.setSession({ ...user, firstName, lastName });
   }
 
   public hasRefreshToken(): boolean {

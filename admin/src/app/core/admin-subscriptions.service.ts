@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 export interface SubscriptionPlanAdmin {
   id: number;
   tier: string;
@@ -24,6 +24,16 @@ export interface UserSubscriptionAdmin {
   endDate: string | null;
 }
 
+export interface AdminTransaction {
+  id: number;
+  userEmail: string;
+  amount: number;
+  currency: string;
+  status: string;
+  timestamp: string;
+  stripeId: string | null;
+}
+
 export interface AdminSubscriptions {
   totalPlans: number;
   activeSubscriptions: number;
@@ -31,16 +41,17 @@ export interface AdminSubscriptions {
   pastDueSubscriptions: number;
   cancelledSubscriptions: number;
   successfulPayments: number;
+  monthlyRecurringRevenue: number;
   plans: SubscriptionPlanAdmin[];
   subscriptions: UserSubscriptionAdmin[];
+  recentTransactions: AdminTransaction[];
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminSubscriptionsService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/subscriptions';
-
+private readonly apiUrl = `${environment.apiUrl}/api/admin/subscriptions`;
   constructor(private http: HttpClient) {}
 
   getSubscriptions(): Observable<AdminSubscriptions> {

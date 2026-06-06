@@ -1,8 +1,10 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import { Client, IMessage } from '@stomp/stompjs';
 import { AuthService } from './auth.service';
+import { NotificationToastService } from './notification-toast.service';
+import { Router } from '@angular/router';
 
 export interface ChatResponse {
   id: number;
@@ -46,8 +48,11 @@ export interface PaginatedMessages {
 export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly toastService = inject(NotificationToastService);
+  private readonly router = inject(Router);
+  private readonly ngZone = inject(NgZone);
 
-  private readonly apiUrl = 'http://localhost:8080/api/chats';
+  private readonly apiUrl = '/api/chats';
   private stompClient: Client | null = null;
   
   // Real-time events stream for active chat room
@@ -68,6 +73,8 @@ export class ChatService {
   private reconnectAttempts = 0;
   private currentSubscribedChatId: number | null = null;
   private readonly subscribedChats = new Set<number>();
+  private isConnecting = false;
+  private subscribedToErrorQueue = false;
 
   /** Set which chat the user is currently viewing (to avoid counting it as unread) */
   public setActiveChatId(id: number | null): void {
@@ -101,61 +108,107 @@ export class ChatService {
     const token = this.authService.getAccessToken();
     if (!token) return;
 
-    if (this.stompClient && this.stompClient.connected) {
-      return;
+    // Prevent concurrent connection attempts
+    if (this.isConnecting) return;
+    if (this.stompClient && this.stompClient.connected) return;
+
+    // Deactivate any existing ghost client to stop its event handlers
+    if (this.stompClient) {
+      try { this.stompClient.deactivate(); } catch (_) {}
+      this.stompClient = null;
     }
+
+    this.isConnecting = true;
+    this.subscribedToErrorQueue = false;
 
     // Config Stomp Client
     this.stompClient = new Client({
-      brokerURL: 'ws://localhost:8080/ws', // Native WebSocket endpoint
+      brokerURL: `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`,
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
       heartbeatIncoming: 30000, // Heartbeat every 30s (Requirement 9.4)
       heartbeatOutgoing: 30000,
+      reconnectDelay: 0, // We handle reconnection manually
       debug: (str) => {
-        console.debug('[STOMP]', str);
+        // Only log non-heartbeat messages to reduce noise
+        if (!str.includes('>>> PING') && !str.includes('<<< PONG')) {
+          console.debug('[STOMP]', str);
+        }
       }
     });
 
     this.stompClient.onConnect = () => {
-      this.reconnectAttempts = 0;
-      this.connectionStatusSubject.next(true);
-      console.log('STOMP Connected successfully!');
-      
-      this.subscribedChats.clear(); // Clear local cache on fresh connect
+      this.ngZone.run(() => {
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+        this.connectionStatusSubject.next(true);
+        console.log('STOMP Connected successfully!');
+        
+        this.subscribedChats.clear(); // Clear local cache on fresh connect
 
-      // Fetch all chats and subscribe to them for global background notifications
-      this.getUserChats().subscribe({
-        next: (chats) => {
-          chats.forEach(c => this.subscribeToChat(c.id));
+        // Subscribe to personal error/auth queue ONCE per connection
+        if (this.stompClient && !this.subscribedToErrorQueue) {
+          this.subscribedToErrorQueue = true;
+          this.stompClient.subscribe('/user/queue/errors', (message: IMessage) => {
+            this.ngZone.run(() => {
+              try {
+                const body = JSON.parse(message.body);
+                if (body.type === 'AUTH_EXPIRED') {
+                  console.error('Session JWT expired event received!');
+                  this.authService.logout();
+                  this.messageStreamSubject.next({ type: 'AUTH_EXPIRED', payload: body });
+                }
+              } catch (ignored) {}
+            });
+          });
         }
-      });
 
-      // Sync missing messages by telling listeners to refresh (Requirement 9.3)
-      this.messageStreamSubject.next({ type: 'RECONNECTED', payload: null });
+        // Fetch all chats and subscribe to them for global background notifications
+        this.getUserChats().subscribe({
+          next: (chats) => {
+            chats.forEach(c => this.subscribeToChat(c.id));
+          }
+        });
+
+        // Sync missing messages by telling listeners to refresh (Requirement 9.3)
+        this.messageStreamSubject.next({ type: 'RECONNECTED', payload: null });
+      });
     };
 
     this.stompClient.onDisconnect = () => {
-      this.connectionStatusSubject.next(false);
-      console.warn('STOMP Disconnected');
+      this.ngZone.run(() => {
+        this.isConnecting = false;
+        this.connectionStatusSubject.next(false);
+        console.warn('STOMP Disconnected');
+      });
     };
 
     this.stompClient.onWebSocketClose = () => {
-      this.connectionStatusSubject.next(false);
-      this.reconnectAttempts++;
+      this.ngZone.run(() => {
+        this.isConnecting = false;
+        this.connectionStatusSubject.next(false);
+        this.reconnectAttempts++;
 
-      // Exponential Backoff Reconnection limit to max 3 times (Requirement 9.1 & 9.2)
-      if (this.reconnectAttempts <= 3) {
-        const backoffDelay = Math.pow(2, this.reconnectAttempts) * 1000 + 1000; // 3s, 5s, 9s delay
-        console.log(`WebSocket closed. Retrying connection in ${backoffDelay}ms (Attempt ${this.reconnectAttempts}/3)...`);
-        
-        setTimeout(() => {
-          this.connectWebSocket();
-        }, backoffDelay);
-      } else {
-        console.error('STOMP WebSocket: Max reconnection attempts reached.');
-      }
+        // Exponential Backoff Reconnection limit to max 3 times (Requirement 9.1 & 9.2)
+        if (this.reconnectAttempts <= 3) {
+          const backoffDelay = Math.pow(2, this.reconnectAttempts) * 1000 + 1000; // 3s, 5s, 9s delay
+          console.log(`WebSocket closed. Retrying connection in ${backoffDelay}ms (Attempt ${this.reconnectAttempts}/3)...`);
+          
+          setTimeout(() => {
+            this.connectWebSocket();
+          }, backoffDelay);
+        } else {
+          console.error('STOMP WebSocket: Max reconnection attempts reached.');
+        }
+      });
+    };
+
+    this.stompClient.onStompError = (frame) => {
+      this.ngZone.run(() => {
+        this.isConnecting = false;
+        console.error('STOMP protocol error:', frame.headers['message']);
+      });
     };
 
     this.stompClient.activate();
@@ -169,6 +222,8 @@ export class ChatService {
       this.stompClient.deactivate();
       this.stompClient = null;
       this.connectionStatusSubject.next(false);
+      this.isConnecting = false;
+      this.subscribedToErrorQueue = false;
     }
   }
 
@@ -195,11 +250,25 @@ export class ChatService {
       try {
         const body = JSON.parse(message.body);
         this.messageStreamSubject.next(body);
+        
         // Increment unread badge if the message is for a different chat
         if (body.type === 'MESSAGE') {
           const msgChatId = body.payload?.chatId;
+          const msg = body.payload as MessageResponse;
+          
           if (msgChatId !== undefined && msgChatId !== this.activeChatId) {
             this.incrementUnread();
+            
+            // Afficher une notification toast
+            this.toastService.showMessage(
+              msg.senderName || 'Nouveau message',
+              msg.content,
+              msg.senderAvatarUrl || undefined,
+              () => {
+                // Naviguer vers le chat quand on clique sur la notification
+                this.router.navigate(['/chat'], { queryParams: { id: msgChatId } });
+              }
+            );
           }
         }
       } catch (err) {

@@ -16,37 +16,46 @@ import { RecommendationsFeedComponent } from '../recommendations/recommendations
 export class HomeComponent {
   protected readonly authService = inject(AuthService);
 
-  protected readonly features = [
+  protected get filteredFeatures() {
+    return this.features.filter(f => {
+      if (f.id === 'auth' && this.authService.isLoggedIn()) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  private readonly features = [
     {
       id: 'carte',
       icon: 'map',
-      title: 'Carte interactive',
-      description: 'Explorez les activités autour de vous, recherchez une ville et consultez les détails de chaque sortie en un clic.',
-      cta: 'Ouvrir la carte',
+      title: 'Interactive Map',
+      description: 'Explore activities around you, search for cities, and check details of each outing in one click.',
+      cta: 'Open the Map',
       link: '/map'
     },
     {
       id: 'profil',
       icon: 'person',
-      title: 'Mon profil',
-      description: 'Mettez à jour votre bio, vos réseaux sociaux, vos centres d\'intérêt, votre galerie et votre avatar.',
-      cta: 'Gérer mon profil',
+      title: 'My Profile',
+      description: 'Update your bio, social networks, interests, gallery, and custom avatars to showcase your activities.',
+      cta: 'Manage Profile',
       link: '/profile'
     },
     {
       id: 'auth',
       icon: 'lock',
-      title: 'Compte sécurisé',
-      description: 'Créez un compte, vérifiez votre email et accédez à toutes les fonctionnalités protégées de la plateforme.',
-      cta: 'Créer un compte',
+      title: 'Secure Account',
+      description: 'Create an account, verify your email, and access all protected features of the community platform.',
+      cta: 'Sign Up Now',
       link: '/signup'
     },
     {
       id: 'subscription',
       icon: 'workspace_premium',
-      title: 'Abonnement',
-      description: 'Comparez les plans disponibles et lancez le checkout Stripe depuis votre compte.',
-      cta: 'Voir les plans',
+      title: 'Premium Subscription',
+      description: 'Compare available plans and initiate Stripe checkout from your account to unlock premium perks.',
+      cta: 'View Plans',
       link: '/subscription'
     }
   ];

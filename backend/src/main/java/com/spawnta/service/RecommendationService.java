@@ -85,8 +85,14 @@ public class RecommendationService {
     }
 
     @Transactional(readOnly = true)
+    public List<ActivityRecommendation> getPersonalizedFeedWithRecs(Long userId) {
+        // Return both clicked and unclicked, but unclicked first, then by score
+        return recommendationRepository.findByUserIdOrderByClickedAscScoreDesc(userId);
+    }
+
+    @Transactional(readOnly = true)
     public List<Activity> getPersonalizedFeed(Long userId) {
-        List<ActivityRecommendation> recs = recommendationRepository.findByUserIdAndClickedFalseOrderByScoreDesc(userId);
+        List<ActivityRecommendation> recs = getPersonalizedFeedWithRecs(userId);
         return recs.stream()
                 .map(ActivityRecommendation::getActivity)
                 .collect(Collectors.toList());
@@ -144,17 +150,17 @@ public class RecommendationService {
             boolean matchesInterest = user.getInterests().stream()
                     .anyMatch(interest -> interest.name().equalsIgnoreCase(actCat));
             if (matchesInterest) {
-                return "Basé sur votre intérêt pour " + actCat;
+                return "Based on your interest in " + actCat;
             }
         }
 
         if (score >= 70.0) {
-            return "Populaire près de chez vous";
+            return "Popular near you";
         } else if (score >= 40.0) {
-            return "Activité recommandée pour vous";
+            return "Recommended activity for you";
         }
 
-        return "Recommandé pour la communauté";
+        return "Recommended for the community";
     }
 
     private double calculateDistanceInKm(double lat1, double lon1, double lat2, double lon2) {

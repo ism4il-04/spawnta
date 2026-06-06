@@ -83,8 +83,8 @@ public class GamificationService {
             // Write transactional outbox event
             createLevelUpOutboxEvent(user, originalLevel, user.getLevel());
 
-            // Trigger badge checks (e.g. check Adventurer / Veteran badges)
-            badgeService.checkBadgeCriteria(user.getId());
+            // Trigger level-specific badge checks
+            badgeService.checkLevelBadges(user.getId());
         }
     }
 

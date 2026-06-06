@@ -123,6 +123,7 @@ public class AdminModerationService {
             report.getReportedBy().getEmail(),
             activity.getId(),
             activity.getTitle(),
+            activity.getDescription(),
             activity.getHost().getEmail(),
             report.getResolutionNotes(),
             resolvedBy == null ? null : resolvedBy.getEmail(),

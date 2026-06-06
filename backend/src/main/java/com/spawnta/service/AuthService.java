@@ -10,6 +10,7 @@ import com.spawnta.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -87,6 +88,14 @@ public class AuthService {
 
         if (!user.isEmailVerified()) {
             throw new EmailNotVerifiedException("Please verify your email before logging in", user.getEmail());
+        }
+
+        if (user.isBanned()) {
+            throw new IllegalArgumentException("Your account has been banned: " + user.getSuspensionReason());
+        }
+
+        if (user.getSuspendedUntil() != null && user.getSuspendedUntil().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Your account is suspended until " + user.getSuspendedUntil() + ". Reason: " + user.getSuspensionReason());
         }
 
         return buildAuthResponse(user);

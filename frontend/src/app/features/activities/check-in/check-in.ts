@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AttendanceService, ParticipationStatus } from '../../../core/services/attendance.service';
-import { qrCodeImageSrc } from '../../../core/utils/qr-code.util';
+import { Html5Qrcode } from 'html5-qrcode';
 import { timeout } from 'rxjs/operators';
 
 @Component({
@@ -25,7 +25,7 @@ import { timeout } from 'rxjs/operators';
   templateUrl: './check-in.html',
   styleUrl: './check-in.scss'
 })
-export class CheckInComponent implements OnInit {
+export class CheckInComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private attendanceService = inject(AttendanceService);
@@ -33,16 +33,16 @@ export class CheckInComponent implements OnInit {
 
   activityId!: number;
   loading = false;
+  loadingMessage = 'Checking eligibility...';
   success = false;
   blocked = false;
   blockMessage = '';
-  qrCode: string | null = null;
-  qrImageSrc: string | null = null;
   activityName = '';
-  checkInDeadline = '';
   attendanceStatus: string | null = null;
-  private lastLatitude = 0;
-  private lastLongitude = 0;
+
+  activeMethod: 'QR' | 'GPS' = 'QR';
+  isScannerActive = false;
+  private html5Qrcode?: Html5Qrcode;
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -55,8 +55,13 @@ export class CheckInComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.stopScanner();
+  }
+
   private verifyEligibility(): void {
     this.loading = true;
+    this.loadingMessage = 'Checking eligibility...';
     this.attendanceService.getMyParticipationStatus(this.activityId)
       .pipe(timeout(10000))
       .subscribe({
@@ -66,12 +71,11 @@ export class CheckInComponent implements OnInit {
 
           if (status.host) {
             this.blocked = true;
-            this.blockMessage = 'En tant qu\'hôte, affichez le QR depuis la fiche activité sur la carte.';
+            this.blockMessage = 'Hosts do not need to check in. Please show your activity QR code from the map details panel for participants to scan.';
             return;
           }
 
-          // Already checked in — show the appropriate status
-          if (status.attendanceStatus === 'PENDING' || status.attendanceStatus === 'CONFIRMED') {
+          if (status.attendanceStatus === 'CONFIRMED') {
             this.blocked = true;
             return;
           }
@@ -79,63 +83,119 @@ export class CheckInComponent implements OnInit {
           if (!status.canCheckIn) {
             this.blocked = true;
             this.blockMessage = status.joined
-              ? 'Check-in indisponible pour le moment (hors de la fenêtre horaire de l\'activité).'
-              : 'Vous devez rejoindre cette activité avant de valider votre présence.';
+              ? 'Check-in is currently unavailable. You must check in within the activity time window.'
+              : 'You must join this activity before validating your presence.';
           }
         },
         error: () => {
           this.loading = false;
           this.blocked = true;
-          this.blockMessage = 'Impossible de vérifier votre éligibilité. Veuillez réessayer.';
+          this.blockMessage = 'Unable to verify eligibility. Please try again.';
         }
       });
   }
 
-  startCheckIn(): void {
+  setMethod(method: 'QR' | 'GPS'): void {
+    this.activeMethod = method;
+    if (method !== 'QR') {
+      this.stopScanner();
+    }
+  }
+
+  startScanner(): void {
+    this.isScannerActive = true;
+    setTimeout(() => {
+      try {
+        this.html5Qrcode = new Html5Qrcode('reader');
+        this.html5Qrcode.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+          },
+          (decodedText) => {
+            this.stopScanner();
+            this.onQrTokenScanned(decodedText);
+          },
+          () => { }
+        ).catch(err => {
+          console.warn('Environment camera failed, trying user camera...', err);
+          return this.html5Qrcode!.start(
+            { facingMode: 'user' },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 }
+            },
+            (decodedText) => {
+              this.stopScanner();
+              this.onQrTokenScanned(decodedText);
+            },
+            () => { }
+          );
+        }).catch(err => {
+          console.error('Camera startup error', err);
+          this.isScannerActive = false;
+          this.snackBar.open('Unable to access camera. Please allow permission.', 'Close', { duration: 4000 });
+        });
+      } catch (e) {
+        console.error(e);
+        this.isScannerActive = false;
+      }
+    }, 100);
+  }
+
+  stopScanner(): void {
+    this.isScannerActive = false;
+    if (this.html5Qrcode) {
+      if (this.html5Qrcode.isScanning) {
+        this.html5Qrcode.stop().catch(err => console.error('Error stopping scanner', err));
+      }
+      this.html5Qrcode = undefined;
+    }
+  }
+
+  private onQrTokenScanned(token: string): void {
     this.loading = true;
+    this.loadingMessage = 'Validating QR token...';
+    this.attendanceService.checkInViaQr(this.activityId, token).subscribe({
+      next: () => {
+        this.loading = false;
+        this.success = true;
+        this.snackBar.open('Attendance confirmed successfully via QR!', 'Close', { duration: 4000 });
+
+      },
+      error: (err) => {
+        this.loading = false;
+        this.snackBar.open(err.error?.error || 'QR Validation failed. Invalid or expired token.', 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  confirmCheckInGps(): void {
+    this.loading = true;
+    this.loadingMessage = 'Retrieving GPS position...';
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        this.lastLatitude = pos.coords.latitude;
-        this.lastLongitude = pos.coords.longitude;
-        this.attendanceService.initiateCheckIn(this.activityId, this.lastLatitude, this.lastLongitude).subscribe({
-          next: (res) => {
+        this.loadingMessage = 'Validating location coordinates...';
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        this.attendanceService.confirmCheckIn(this.activityId, lat, lng).subscribe({
+          next: () => {
             this.loading = false;
-            this.qrCode = res.qrCode;
-            this.qrImageSrc = qrCodeImageSrc(res.qrCode);
-            this.activityName = res.activityName;
-            this.checkInDeadline = res.checkInDeadline;
+            this.success = true;
+            this.snackBar.open('Geolocation check-in successful!', 'Close', { duration: 4000 });
+
           },
           error: (err) => {
             this.loading = false;
-            this.snackBar.open(err.error?.error || 'Échec du démarrage du check-in', 'Fermer', { duration: 4000 });
+            this.snackBar.open(err.error?.error || 'Validation failed. Ensure you are close to the location.', 'Close', { duration: 5000 });
           }
         });
       },
       () => {
         this.loading = false;
-        this.snackBar.open('La géolocalisation est requise.', 'Fermer', { duration: 3000 });
+        this.snackBar.open('Geolocation permission is required for GPS check-in.', 'Close', { duration: 4000 });
       }
     );
   }
-
-  confirmCheckIn(): void {
-    this.loading = true;
-    this.attendanceService.confirmCheckIn(
-      this.activityId,
-      'https://example.com/checkin-evidence.jpg',
-      this.lastLatitude,
-      this.lastLongitude
-    ).subscribe({
-      next: () => {
-        this.loading = false;
-        this.success = true;
-        this.snackBar.open('Présence enregistrée — en attente de confirmation par l\'hôte.', 'Fermer', { duration: 4000 });
-      },
-      error: (err) => {
-        this.loading = false;
-        this.snackBar.open(err.error?.error || 'Échec de la validation', 'Fermer', { duration: 5000 });
-      }
-    });
-  }
 }
-

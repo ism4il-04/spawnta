@@ -82,6 +82,7 @@ services:
         condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      SPRING_FLYWAY_ENABLED: false
       DB_HOST: postgres
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -91,6 +92,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_APP_JWT_SECRET: ${JWT_SECRET}
       SPRING_APP_JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY}
+      FRONTEND_URL: ${FRONTEND_URL:-http://13.61.24.138}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
@@ -123,7 +125,18 @@ services:
     restart: unless-stopped
     ports:
       - "4300:80"
- 
+
+  stripe-cli:
+    image: stripe/stripe-cli
+    container_name: spawnta-stripe-cli
+    restart: unless-stopped
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
+    command: >
+      listen --forward-to backend:8080/api/subscription/webhook --project-name default
+    depends_on:
+      - backend
+
 # ─── Named volumes ────────────────────────────────────────────
 volumes:
   postgres_data:

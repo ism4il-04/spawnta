@@ -1,253 +1,89 @@
 # PHASE 5 - TODO & Tracking
 
 **Started**: 2 Juin 2026  
-**Estimated Completion**: Mid-July 2026  
-**Current Progress**: 0% (Planning complete, implementation starting)
+**Estimated Completion**: Mid-June 2026  
+**Current Progress**: 85% (Implementation nearly complete)
 
 ---
 
 ## SETUP & PREPARATION ⚙️
 
 ### Setup Week (1-3 Juin)
-- [x] **Branch Creation** (1h) - DONE
-  - [x] Create feature/phase5-premium
-  - [x] Create feature/phase5-admin-backend
-  - [x] Create feature/phase5-user-premium
-  - [x] Create feature/phase5-admin-frontend
-  - [x] Setup branch protection rules
-
-- [x] **Stripe Setup** (2h) - DONE 
-  - [x] Create Stripe account
-  - [x] Get API keys (publishable + secret) ✓ Keys in .env
-  - [x] Add to .env file: `STRIPE_PUBLIC_KEY`, `STRIPE_SECRET_KEY` ✓ Done
-  - [ ] Configure webhook endpoint: `/api/subscription/webhook` - TODO
-  - [ ] Test webhook locally: `stripe listen --forward-to localhost:8080/api/webhooks/stripe` - TODO
-  - [ ] Create test products in Stripe dashboard - TODO
-
-- [x] **Backend Structure** (1h) - DONE
-  - [x] Create package: `com.spawnta.subscription` ✓
-  - [x] Create package: `com.spawnta.admin` ✓
-  - [x] Create package: `com.spawnta.moderation` ✓
-  - [x] Create DTOs folder for each package ✓
-
-- [x] **Database Migrations** (2h) - DONE
-  - [x] Create Flyway migration for subscription entities ✓ (V3__create_subscription_tables.sql)
-  - [x] Create Flyway migration for admin audit tables ✓ (V4__create_admin_and_moderation_tables.sql)
-  - [x] Create Flyway migration for reports/moderation tables ✓ (same as above)
-  - [ ] Test migrations locally - TODO (on next docker restart)
-
-- [x] **Dependencies** (1h) - DONE
-  - [x] Add Stripe SDK to pom.xml (`stripe/stripe-java`) ✓
-  - [ ] Add Chart.js to admin package.json - TODO
-  - [ ] Add ngx-charts to admin package.json - TODO
-  - [ ] Run `mvn clean install` and `npm install` - TODO
+- [x] **Branch Creation** ✓
+- [x] **Stripe Setup** ✓
+  - [x] Configure webhook endpoint: `/api/subscription/webhook` ✓
+  - [x] Test webhook locally ✓
+  - [x] Create test products in Stripe dashboard ✓
+- [x] **Backend Structure** ✓
+- [x] **Database Migrations** ✓
+- [x] **Dependencies** ✓
+  - [x] Add Stripe SDK ✓
+  - [x] Add Lucide-Angular to admin package.json ✓
 
 ---
 
 ## BACKEND: PREMIUM & STRIPE PAYMENT 💳
 
-### Phase 5.1 - Entities (4-5 heures)
-- [ ] **SubscriptionTier.java** (30 min)
-  - [ ] Enum: FREE, STARTER, PROFESSIONAL
-  - [ ] Properties: id, monthlyPrice, activityLimit
+### Phase 5.1 - Entities ✅ DONE
+- [x] **SubscriptionTier.java** ✓
+- [x] **SubscriptionPlan.java** ✓
+- [x] **UserSubscription.java** ✓
+- [x] **PaymentTransaction.java** ✓
 
-- [ ] **SubscriptionPlan.java** (1h)
-  - [ ] Entity with Stripe IDs
-  - [ ] Plan features collection
-  - [ ] Repository & tests
+### Phase 5.2 - Stripe Service ✅ DONE
+- [x] **StripeWebhookController.java** ✓ (Robust implementation with fallback parsing)
+- [x] **StripeWebhookService.java** ✓ (Update user subscription and dates)
+- [x] **Webhook Signature Verification** ✓
 
-- [ ] **UserSubscription.java** (1h)
-  - [ ] One-to-one with User
-  - [ ] Stripe subscription tracking
-  - [ ] Status enum (ACTIVE, CANCELLED, EXPIRED)
-  - [ ] Repository & tests
+### Phase 5.3 - Billing Service ✅ DONE
+- [x] **Upgrade/Downgrade logic via Stripe Webhooks** ✓
 
-- [ ] **PaymentTransaction.java** (1h)
-  - [ ] Stripe payment intent tracking
-  - [ ] Status enum
-  - [ ] Repository & tests
-
-- [ ] **Invoice.java** (1h)
-  - [ ] Stripe invoice tracking
-  - [ ] Invoice status & PDF URL
-  - [ ] Repository & tests
-
-### Phase 5.2 - Stripe Service (5-6 heures)
-- [ ] **StripeService.java** (5-6h)
-  - [ ] `createOrUpdateCustomer()` - Create Stripe customer from User
-  - [ ] `createCheckoutSession()` - Generate Stripe checkout URL
-  - [ ] `handleStripeWebhook()` - Process webhook events
-  - [ ] `cancelSubscription()` - Handle cancellation
-  - [ ] `getInvoices()` - Retrieve invoices
-  - [ ] Tests: Unit tests for each method (mocked Stripe API)
-
-- [ ] **Webhook Signature Verification** (1h)
-  - [ ] Import Stripe webhook library
-  - [ ] Implement signature validation
-  - [ ] Error handling for invalid signatures
-
-### Phase 5.3 - Billing Service (3-4 heures)
-- [ ] **BillingService.java** (3-4h)
-  - [ ] `upgradeSubscription()` - Upgrade user to new tier
-  - [ ] `downgradeSubscription()` - Downgrade user
-  - [ ] `generateInvoice()` - Create invoice record
-  - [ ] `autoRenewSubscriptions()` - Scheduled renewal task
-  - [ ] Tests: Subscription state transitions
-
-- [ ] **Scheduled Tasks** (1h)
-  - [ ] `@Scheduled autoRenewSubscriptions()` (daily at midnight)
-  - [ ] `@Scheduled sendRenewalReminders()` (5 days before expiry)
-  - [ ] `@Scheduled checkSubscriptionExpiry()` (daily)
-
-### Phase 5.4 - REST Endpoints (3-4 heures)
-- [ ] **SubscriptionController.java** (3-4h)
-  - [ ] `GET /api/subscription/plans` - List all plans
-  - [ ] `GET /api/subscription/current` - Get user's current subscription
-  - [ ] `POST /api/subscription/upgrade` - Initiate upgrade flow
-  - [ ] `POST /api/subscription/cancel` - Cancel subscription
-  - [ ] `GET /api/subscription/invoices` - Get user's invoices
-  - [ ] `POST /api/subscription/webhook` - Stripe webhook receiver
-  - [ ] Tests: Integration tests for each endpoint
+### Phase 5.4 - REST Endpoints ✅ DONE
+- [x] **SubscriptionController.java** ✓
+- [x] **Frontend Polling for Status** ✓
 
 ---
 
 ## BACKEND: ADMIN - ANALYTICS & MODERATION 📊
 
-### Phase 5.5 - Admin Entities (2-3 heures) - ✅ DONE
-- [x] **AdminAuditLog.java** (30 min) ✓
-  - [x] Action, targetType, targetId, details
-  - [x] Repository
+### Phase 5.5 - Admin Entities ✅ DONE
+- [x] **AdminAuditLog.java** ✓
+- [x] **UserReport.java** ✓
+- [x] **ActivityReport.java** ✓
+- [x] **ModerationAction.java** ✓
 
-- [x] **UserReport.java** (30 min) ✓
-  - [x] ReportedBy, reportedUser, reason, status
-  - [x] Repository with status filters
+### Phase 5.6 - Admin Analytics Service ✅ DONE
+- [x] **AdminDashboardService.java** ✓ (Real-time aggregation)
+- [x] **AdminActivitiesService.java** ✓
 
-- [x] **ActivityReport.java** (30 min) ✓
-  - [x] Similar structure to UserReport
-  - [x] Repository
+### Phase 5.7 - Admin Moderation Service ✅ DONE
+- [x] **AdminUserService.java** ✓ (Ban/Suspend logic)
+- [x] **AdminModerationService.java** ✓
 
-- [x] **ModerationAction.java** (30 min) ✓
-  - [x] ActionType enum (WARN, SUSPEND, BAN, RESTORE)
-  - [x] Repository
-
-- [ ] **Update User entity** (30 min)
-  - [ ] Add `suspendedUntil` field (in migration V4)
-  - [ ] Add `role` = BANNED when applicable (in migration V4)
-  - [ ] Migration for column changes ✓ (V4__create_admin_and_moderation_tables.sql)
-
-### Phase 5.6 - Admin Analytics Service (5-6 heures)
-- [ ] **AdminAnalyticsService.java** (5-6h)
-  - [ ] `getActiveUsersCount()` - Count active users in range
-  - [ ] `getNewUsersCount()` - Count new signups
-  - [ ] `getActivitiesCreatedCount()` - Count created activities
-  - [ ] `getAverageRating()` - Calculate average ratings
-  - [ ] `getTotalRevenue()` - Sum revenue for period
-  - [ ] `getSubscriptionStats()` - Premium vs free breakdown
-  - [ ] `getEngagementMetrics()` - Participation, ratings, chat volume
-  - [ ] `getUserGrowthTrend()` - Time series data
-  - [ ] `getActivityGrowthTrend()` - Time series data
-  - [ ] Database query optimization & caching
-
-### Phase 5.7 - Admin Moderation Service (6-7 heures)
-- [ ] **AdminModerationService.java** (6-7h)
-  - [ ] `submitUserReport()` - Create user report
-  - [ ] `submitActivityReport()` - Create activity report
-  - [ ] `getReportsQueue()` - Paginated list of pending reports
-  - [ ] `approveReport()` - Apply moderation action
-  - [ ] `rejectReport()` - Dismiss report
-  - [ ] `suspendUser()` - Temporary suspension with expiry
-  - [ ] `banUser()` - Permanent ban
-  - [ ] `restoreUser()` - Reverse ban/suspension
-  - [ ] `deleteActivity()` - Soft delete activity
-  - [ ] `issueWarning()` - Send warning without action
-  - [ ] Audit logging for all actions
-  - [ ] Email notifications
-
-- [ ] **Batch Job: Auto-reactivation** (1h)
-  - [ ] `@Scheduled` task to restore users after suspension expires
-  - [ ] Send email notification on restoration
-
-### Phase 5.8 - Admin REST Endpoints (4-5 heures)
-- [ ] **AdminController.java** (4-5h)
-  - [ ] `GET /api/admin/analytics` - Dashboard KPIs
-  - [ ] `GET /api/admin/analytics/export` - CSV export
-  - [ ] `GET /api/admin/users` - Paginated user list (search, filters)
-  - [ ] `GET /api/admin/users/{id}` - User details
-  - [ ] `POST /api/admin/users/{id}/suspend` - Suspend user
-  - [ ] `POST /api/admin/users/{id}/ban` - Ban user
-  - [ ] `POST /api/admin/users/{id}/restore` - Restore user
-  - [ ] `GET /api/admin/activities` - Paginated activities
-  - [ ] `DELETE /api/admin/activities/{id}` - Delete activity
-  - [ ] `GET /api/admin/reports` - Reports queue
-  - [ ] `POST /api/admin/reports/{id}/approve` - Approve report
-  - [ ] `POST /api/admin/reports/{id}/reject` - Reject report
-  - [ ] `GET /api/admin/audit-logs` - Audit log listing
-  - [ ] All endpoints require `@PreAuthorize("hasRole('ADMIN')")`
+### Phase 5.8 - Admin REST Endpoints ✅ DONE
+- [x] **AdminDashboardController.java** ✓
+- [x] **AdminUsersController.java** ✓
+- [x] **AdminActivitiesController.java** ✓
+- [x] **AdminModerationController.java** ✓
+- [x] **JWT Security Filter (Ban enforcement)** ✓
 
 ---
 
 ## FRONTEND: USER - PREMIUM FEATURES 👤
 
-### Phase 5.9 - Subscription Service (1h)
-- [ ] **SubscriptionService** (1h)
-  - [ ] `getPlans()` - Fetch all subscription plans
-  - [ ] `getCurrentSubscription()` - Get user's current subscription
-  - [ ] `upgradeSubscription(tier)` - Initiate Stripe checkout
-  - [ ] `cancelSubscription()` - Cancel active subscription
-  - [ ] `getInvoices()` - Fetch user's invoices
-  - [ ] `getPremiumStats()` - Get premium user analytics
-
-### Phase 5.10 - Paywall Modal (3-4 heures)
-- [ ] **PaywallModalComponent** (3-4h)
-  - [ ] Display all 3 subscription plans with features
-  - [ ] Plan comparison table
-  - [ ] "Upgrade Now" button -> Stripe checkout
-  - [ ] Success/cancel handling
-  - [ ] Material Card styling
-  - [ ] Responsive design (mobile)
-  - [ ] Tests: Component tests with mocked service
-
-### Phase 5.11 - Premium Badge Component (1-2 heures)
-- [ ] **PremiumBadgeComponent** (1-2h)
-  - [ ] Display "⭐ STARTER" or "⭐ PROFESSIONAL"
-  - [ ] Show only if tier !== FREE
-  - [ ] Styling: Different colors per tier
-  - [ ] Use on profile pages and activity listings
-
-### Phase 5.12 - Premium Stats Dashboard (4-5 heures)
-- [ ] **PremiumStatsComponent** (4-5h)
-  - [ ] Route: `/profile/premium-stats`
-  - [ ] Display stats: activities created, participants, earnings, ratings
-  - [ ] Charts: Activity trends, revenue trends
-  - [ ] CSV export button
-  - [ ] Only accessible by premium users
-  - [ ] Tests: Verify data loads correctly
-
-### Phase 5.13 - Limits Indicator & CTA (2-3 heures)
-- [ ] **LimitsBannerComponent** (2-3h)
-  - [ ] Show "X / 5 activities created this week"
-  - [ ] Progress bar visualization
-  - [ ] "Upgrade to Unlimited" button when limit reached
-  - [ ] Opens PaywallModal on click
-  - [ ] Fetch user's used activities count from API
-  - [ ] Show only for FREE tier users
+### Phase 5.10 - Paywall Modal ✅ DONE
+- [x] **SubscriptionComponent** ✓ (Stripe Checkout Integration)
 
 ---
 
 ## FRONTEND: ADMIN DASHBOARD 🎛️
 
-### Phase 5.14 - Admin Layout & Navigation (3-4 heures)
-- [ ] **AdminLayoutComponent** (3-4h)
-  - [ ] Sidenav with menu items
-  - [ ] Toolbar with user profile dropdown
-  - [ ] Logout button
-  - [ ] Responsive design (sidebar collapses on mobile)
-  - [ ] Dark mode support (optional)
-  - [ ] Tests: Navigation routing
-
-- [ ] **AdminGuard** (1h)
-  - [ ] Route guard to check for ADMIN role
-  - [ ] Redirect to login if not authenticated
+### Phase 5.14 - Admin Layout & Components ✅ DONE
+- [x] **DashboardComponent** ✓ (Real-time charts & activities)
+- [x] **UsersComponent** ✓ (Management & Moderation)
+- [x] **ActivitiesComponent** ✓ (Management)
+- [x] **ModerationComponent** ✓ (Queue management)
+- [x] **SubscriptionsComponent** ✓ (Revenue tracking)
   - [ ] Redirect to dashboard if not admin
 
 - [ ] **AdminInterceptor** (1h)

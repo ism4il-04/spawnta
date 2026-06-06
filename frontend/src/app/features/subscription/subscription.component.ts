@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { finalize, Subscription as RxSubscription, interval, take, switchMap, filter, of, Subject, takeUntil } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,11 +18,13 @@ import {
   templateUrl: './subscription.component.html',
   styleUrls: ['./subscription.component.scss']
 })
-export class SubscriptionComponent implements OnInit {
+export class SubscriptionComponent implements OnInit, OnDestroy {
   private readonly subscriptionService = inject(SubscriptionService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroy$ = new Subject<void>();
 
   plans: SubscriptionPlan[] = [];
   currentSubscription: UserSubscription | null = null;
@@ -30,10 +32,80 @@ export class SubscriptionComponent implements OnInit {
   loadingCurrent = false;
   upgradeTier: string | null = null;
   plansError = false;
+  pollingSubscription: RxSubscription | null = null;
+  isProcessingPayment = false;
 
   ngOnInit(): void {
     this.loadPlans();
     this.loadCurrentSubscription();
+    this.checkCheckoutStatus();
+  }
+
+  ngOnDestroy(): void {
+    this.stopPolling();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private checkCheckoutStatus(): void {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      if (params['checkout'] === 'success') {
+        this.isProcessingPayment = true;
+        this.snackBar.open('Payment successful! Finalizing your subscription...', 'Close', { duration: 5000 });
+
+        this.startPollingSubscription();
+      } else if (params['checkout'] === 'cancel') {
+        this.snackBar.open('Payment cancelled.', 'Close', { duration: 4000 });
+      }
+    });
+  }
+
+  private startPollingSubscription(): void {
+    const initialTier = this.currentTier;
+    this.stopPolling();
+    this.isProcessingPayment = true;
+
+    // Fast polling: every 2 seconds for a smoother "real-time" feel
+    this.pollingSubscription = interval(2000).pipe(
+      take(15), // Up to 30 seconds
+      switchMap(() => this.subscriptionService.getCurrentSubscription()),
+      filter(sub => {
+        const newTier = (sub?.plan?.tier ?? 'FREE').toUpperCase();
+        return newTier !== initialTier;
+      })
+    ).subscribe({
+      next: subscription => {
+        this.currentSubscription = subscription;
+        this.isProcessingPayment = false;
+        this.snackBar.open('Congratulations! Your subscription is now active.', 'OK', {
+
+          duration: 5000,
+          panelClass: ['success-snackbar']
+        });
+        this.stopPolling();
+        // Remove query params without refreshing
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { checkout: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+      },
+      complete: () => {
+        if (this.isProcessingPayment) {
+          this.isProcessingPayment = false;
+          this.snackBar.open('Validation is taking a moment, but your payment has been received!', 'OK', { duration: 6000 });
+
+        }
+      }
+    });
+  }
+
+  private stopPolling(): void {
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+      this.pollingSubscription = null;
+    }
   }
 
   get isLoggedIn(): boolean {
@@ -41,20 +113,27 @@ export class SubscriptionComponent implements OnInit {
   }
 
   get currentTier(): string {
-    return this.currentSubscription?.plan?.tier ?? 'FREE';
+    return (this.currentSubscription?.plan?.tier ?? 'FREE').toUpperCase();
   }
 
   loadPlans(): void {
     this.loadingPlans = true;
-    this.plansError = false;
-
     this.subscriptionService.getPlans().pipe(
-      finalize(() => this.loadingPlans = false)
+      finalize(() => {
+        this.loadingPlans = false;
+        console.log('Plans loaded:', this.plans);
+      })
     ).subscribe({
-      next: plans => this.plans = this.sortPlans(plans),
-      error: () => {
+      next: (plans) => {
+        this.plans = this.sortPlans(plans);
+        this.plansError = false;
+      },
+      error: (error) => {
+        console.error('Error loading plans:', error);
         this.plansError = true;
-        this.snackBar.open('Impossible de charger les plans.', 'Fermer', { duration: 4000 });
+        this.snackBar.open('Error loading plans.', 'Retry', { duration: 5000 })
+
+          .onAction().subscribe(() => this.loadPlans());
       }
     });
   }
@@ -66,12 +145,16 @@ export class SubscriptionComponent implements OnInit {
 
     this.loadingCurrent = true;
     this.subscriptionService.getCurrentSubscription().pipe(
-      finalize(() => this.loadingCurrent = false)
+      finalize(() => {
+        this.loadingCurrent = false;
+      })
     ).subscribe({
-      next: subscription => this.currentSubscription = subscription,
+      next: subscription => {
+        this.currentSubscription = subscription;
+      },
       error: error => {
         if (error.status !== 404) {
-          this.snackBar.open('Abonnement actuel indisponible.', 'Fermer', { duration: 4000 });
+          this.snackBar.open('Current subscription unavailable.', 'Close', { duration: 4000 });
         }
       }
     });
@@ -89,37 +172,66 @@ export class SubscriptionComponent implements OnInit {
 
     this.upgradeTier = plan.tier;
     this.subscriptionService.upgradeSubscription(plan.tier).pipe(
-      finalize(() => this.upgradeTier = null)
+      finalize(() => {
+        this.upgradeTier = null;
+      })
     ).subscribe({
       next: response => {
         if (response.checkoutUrl) {
           window.location.href = response.checkoutUrl;
           return;
         }
-        this.snackBar.open('Session Stripe creee, mais URL manquante.', 'Fermer', { duration: 4000 });
+        this.snackBar.open('Stripe session created, but payment URL is missing.', 'Close', { duration: 4000 });
       },
       error: error => {
-        const message = error?.error?.error ?? 'Impossible de lancer le paiement.';
-        this.snackBar.open(message, 'Fermer', { duration: 5000 });
+        const message = error?.error?.error ?? 'Unable to initiate payment.';
+        this.snackBar.open(message, 'Close', { duration: 5000 });
       }
     });
   }
 
+  confirmCancel(): void {
+    const confirmMessage = this.currentTier === 'PROFESSIONAL' 
+      ? 'Êtes-vous sûr de vouloir résilier votre abonnement Professional ? Vous serez automatiquement rétrogradé au plan FREE.'
+      : 'Êtes-vous sûr de vouloir résilier votre abonnement Starter ? Vous serez automatiquement rétrogradé au plan FREE.';
+      
+    if (confirm(confirmMessage)) {
+      const snackBarRef = this.snackBar.open('Annulation en cours...', '', { duration: 0 });
+      
+      this.subscriptionService.cancelSubscription('User requested cancellation via UI').subscribe({
+        next: () => {
+          snackBarRef.dismiss();
+          this.snackBar.open('Abonnement résilié avec succès. Vous êtes maintenant sur le plan FREE.', 'OK', { duration: 6000 });
+          
+          // Force complete refresh of subscription data
+          setTimeout(() => {
+            this.loadCurrentSubscription();
+            this.loadPlans();
+          }, 500);
+        },
+        error: (err) => {
+          snackBarRef.dismiss();
+          this.snackBar.open(err.error?.error || 'Erreur lors de la résiliation.', 'Fermer', { duration: 5000 });
+        }
+      });
+    }
+  }
+
   isCurrentPlan(plan: SubscriptionPlan): boolean {
-    return plan.tier === this.currentTier;
+    return plan.tier.toUpperCase() === this.currentTier;
   }
 
   actionLabel(plan: SubscriptionPlan): string {
     if (this.isCurrentPlan(plan)) {
-      return 'Plan actuel';
+      return 'Current plan';
     }
     if (plan.tier === 'FREE') {
-      return 'Inclus';
+      return 'Included';
     }
     if (!this.authService.isLoggedIn()) {
-      return 'Se connecter';
+      return 'Sign in';
     }
-    return this.upgradeTier === plan.tier ? 'Preparation...' : 'Choisir ce plan';
+    return this.upgradeTier === plan.tier ? 'Processing...' : 'Choose this plan';
   }
 
   monthlyPrice(plan: SubscriptionPlan): string {
@@ -128,6 +240,9 @@ export class SubscriptionComponent implements OnInit {
 
   private sortPlans(plans: SubscriptionPlan[]): SubscriptionPlan[] {
     const order = new Map([
+      ['free', 0],
+      ['starter', 1],
+      ['pro', 2],
       ['FREE', 0],
       ['STARTER', 1],
       ['PROFESSIONAL', 2]

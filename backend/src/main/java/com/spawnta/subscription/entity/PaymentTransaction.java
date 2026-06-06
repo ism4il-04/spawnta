@@ -26,7 +26,7 @@ public class PaymentTransaction {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true)
     private String stripePaymentIntentId;
     
     @Column(nullable = false)

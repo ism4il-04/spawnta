@@ -134,9 +134,23 @@
         </section>
 
         <section class="content-section" *ngIf="selectedKind === 'activity'">
-          <h3>Activity Description</h3>
+          <h3>Activity Details</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Host</label>
+              <span>{{ asActivityReport(selectedReport).hostEmail }}</span>
+            </div>
+          </div>
           <div class="content-box">
-            {{ asActivityReport(selectedReport).description }}
+            <p><strong>Description de l'activité :</strong></p>
+            {{ asActivityReport(selectedReport).activityDescription }}
+          </div>
+        </section>
+
+        <section class="content-section">
+          <h3>Report description</h3>
+          <div class="content-box">
+            {{ selectedReport.description }}
           </div>
         </section>
 

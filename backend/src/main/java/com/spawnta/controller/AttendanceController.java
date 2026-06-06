@@ -15,7 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import com.spawnta.dto.AttendancePendingResponse;
 
 @RestController
 @RequestMapping("/api/activities/{activityId}/attendance")
@@ -67,13 +69,39 @@ public class AttendanceController {
         ActivityAttendance attendance = attendanceService.confirmCheckIn(
                 activityId,
                 user.getId(),
-                request.getPhotoUrl(),
                 request.getLatitude(),
                 request.getLongitude()
         );
 
         return ResponseEntity.ok(Map.of(
-                "message", "Check-in recorded. Waiting for host confirmation.",
+                "message", "Check-in successful! Attendance confirmed.",
+                "attendanceId", attendance.getId(),
+                "status", attendance.getStatus().name()
+        ));
+    }
+
+    @PostMapping("/check-in/qr")
+    public ResponseEntity<Map<String, Object>> checkInViaQr(
+            @PathVariable Long activityId,
+            @AuthenticationPrincipal String email,
+            @RequestBody Map<String, String> request) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String token = request.get("token");
+        if (token == null) {
+            throw new IllegalArgumentException("QR Code Token is required");
+        }
+
+        ActivityAttendance attendance = attendanceService.checkInViaQr(
+                activityId,
+                user.getId(),
+                token
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Check-in successful via QR! Attendance confirmed.",
                 "attendanceId", attendance.getId(),
                 "status", attendance.getStatus().name()
         ));
@@ -97,13 +125,14 @@ public class AttendanceController {
         return ResponseEntity.ok(Map.of("message", "Attendance confirmed for selected participants."));
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleForbidden(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
-    }
+    @GetMapping("/pending")
+    public ResponseEntity<List<AttendancePendingResponse>> getPendingAttendances(
+            @PathVariable Long activityId,
+            @AuthenticationPrincipal String email) {
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return ResponseEntity.ok(attendanceService.getPendingAttendances(activityId, user.getId()));
     }
 }

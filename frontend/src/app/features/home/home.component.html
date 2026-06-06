@@ -2,53 +2,54 @@
 
   <!-- ══ Hero ══ -->
   <div class="hero">
-    <span class="eyebrow-pill">🌍 Découvrez votre ville autrement</span>
+    <span class="eyebrow-pill">
+      <span class="pill-globe"></span> Discover your city differently
+    </span>
 
     <h1 class="hero-title">
-      Toutes les fonctionnalités<br>
-      <span class="hero-title-accent">au même endroit.</span>
+      All community events<br>
+      <span class="hero-title-accent">in one premium place.</span>
     </h1>
 
     <p class="hero-subtitle">
-      Explorez les activités autour de vous, connectez-vous avec votre communauté
-      et planifiez vos sorties en un clin d'œil.
+      Explore activities around you, connect with your local community, and plan your outings in a blink.
     </p>
 
     <div class="hero-ctas">
       <a routerLink="/map" class="cta-primary" id="hero-btn-carte">
         <mat-icon>map</mat-icon>
-        Aller à la carte
+        Explore the Map
       </a>
       <a *ngIf="!authService.isLoggedIn()" routerLink="/signup" class="cta-outline" id="hero-btn-inscription">
-        Créer un compte <span class="arrow">→</span>
+        Get Started <span class="arrow">→</span>
       </a>
     </div>
   </div>
 
   <!-- ══ Welcome banner (logged-in) ══ -->
   <div *ngIf="authService.isLoggedIn()" class="welcome-banner">
-    <span class="welcome-wave">👋</span>
     <div class="welcome-body">
       <h2 class="welcome-title">
-        Bon retour, {{ authService.currentUserValue?.firstName }} !
+        Welcome back, {{ authService.currentUserValue?.firstName }}!
       </h2>
       <p class="welcome-text">
-        Retrouvez vos activités favorites et découvrez les nouveautés autour de vous.
+        Check out your favorite activities and discover new events happening around you.
       </p>
     </div>
-    <a routerLink="/map" class="welcome-cta" id="welcome-btn-explorer">Explorer →</a>
+    <a routerLink="/map" class="welcome-cta" id="welcome-btn-explorer">Explore Now →</a>
   </div>
 
   <!-- ══ Feature cards ══ -->
   <div class="features-grid">
-    <div *ngFor="let f of features" class="feature-card">
+    <div *ngFor="let f of filteredFeatures" class="feature-card">
       <div class="card-icon-wrap">
         <mat-icon>{{ f.icon }}</mat-icon>
       </div>
       <h2 class="card-title">{{ f.title }}</h2>
       <p class="card-desc">{{ f.description }}</p>
       <a [routerLink]="f.link" class="card-link" [id]="'feature-' + f.id">
-        {{ f.cta }} <span class="arrow">→</span>
+        <span>{{ f.cta }}</span>
+        <span class="arrow">→</span>
       </a>
     </div>
   </div>

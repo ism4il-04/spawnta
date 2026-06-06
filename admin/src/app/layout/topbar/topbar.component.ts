@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Search, Bell, User, Settings, HelpCircle } from 'lucide-angular';
+import { LucideAngularModule, Sun, Moon } from 'lucide-angular';
 import { AdminAuthService } from '../../core/admin-auth.service';
 
 @Component({
@@ -12,12 +12,25 @@ import { AdminAuthService } from '../../core/admin-auth.service';
 })
 export class TopbarComponent {
   readonly authService = inject(AdminAuthService);
-  
-  readonly Search = Search;
-  readonly Bell = Bell;
-  readonly User = User;
-  readonly Settings = Settings;
-  readonly HelpCircle = HelpCircle;
+  readonly Sun = Sun;
+  readonly Moon = Moon;
 
-  notificationCount = 3; // Mock value
+  isDarkTheme = false;
+
+  toggleTheme(): void {
+    this.isDarkTheme = !this.isDarkTheme;
+    if (this.isDarkTheme) {
+      document.body.classList.add('dark-theme');
+      localStorage.setItem('spawnta-admin-theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-theme');
+      localStorage.setItem('spawnta-admin-theme', 'light');
+    }
+  }
+
+  ngOnInit(): void {
+    const savedTheme = localStorage.getItem('spawnta-admin-theme');
+    this.isDarkTheme = savedTheme === 'dark' || document.body.classList.contains('dark-theme');
+    document.body.classList.toggle('dark-theme', this.isDarkTheme);
+  }
 }

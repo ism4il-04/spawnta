@@ -1,6 +1,7 @@
 package com.spawnta.subscription.controller;
 
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.model.Charge;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.StripeObject;
@@ -76,41 +77,79 @@ public class StripeWebhookController {
      * Route event to appropriate handler based on event type
      */
     private void handleEvent(Event event) {
-        EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
-        StripeObject stripeObject;
+        StripeObject stripeObject = null;
 
-        if (dataObjectDeserializer.getObject().isPresent()) {
-            stripeObject = dataObjectDeserializer.getObject().get();
-        } else {
-            logger.error("Deserialization failed for event: {}", event.getType());
+        // 1. Primary Method: Standard SDK Deserializer
+        try {
+            stripeObject = event.getDataObjectDeserializer().getObject().orElse(null);
+        } catch (Exception e) {
+            logger.warn("⚠️ Standard deserialization failed for {}: {}", event.getType(), e.getMessage());
+        }
+
+        // 2. Fallback Method: Manual Extraction from Data Object (Most reliable for version mismatches)
+        if (stripeObject == null) {
+            try {
+                stripeObject = event.getData().getObject();
+                if (stripeObject != null) {
+                    logger.info("�️ Extracted object manually from event data");
+                }
+            } catch (Exception e) {
+                logger.error("❌ All deserialization attempts failed for event: {}", event.getType());
+                return;
+            }
+        }
+
+        if (stripeObject == null) {
+            logger.error("❌ Failed to extract Stripe object for event: {}", event.getType());
             return;
         }
+
+        logger.info("📦 Handling event [{}] with object type: {}", event.getType(), stripeObject.getClass().getSimpleName());
 
         // Handle different event types
         switch (event.getType()) {
             case "checkout.session.completed":
-                Session session = (Session) stripeObject;
-                webhookService.handleCheckoutCompleted(session);
+                if (stripeObject instanceof Session) {
+                    webhookService.handleCheckoutCompleted((Session) stripeObject);
+                }
+                break;
+
+            case "customer.subscription.created":
+                if (stripeObject instanceof Subscription) {
+                    webhookService.handleSubscriptionCreated((Subscription) stripeObject);
+                }
                 break;
 
             case "invoice.payment_succeeded":
-                Invoice invoice = (Invoice) stripeObject;
-                webhookService.handleInvoicePaymentSucceeded(invoice);
+            case "invoice.paid":
+            case "invoice_payment.paid":
+                if (stripeObject instanceof Invoice) {
+                    webhookService.handleInvoicePaymentSucceeded((Invoice) stripeObject);
+                }
                 break;
 
             case "invoice.payment_failed":
-                Invoice failedInvoice = (Invoice) stripeObject;
-                webhookService.handleInvoicePaymentFailed(failedInvoice);
+                if (stripeObject instanceof Invoice) {
+                    webhookService.handleInvoicePaymentFailed((Invoice) stripeObject);
+                }
                 break;
 
             case "customer.subscription.updated":
-                Subscription updatedSubscription = (Subscription) stripeObject;
-                webhookService.handleSubscriptionUpdated(updatedSubscription);
+                if (stripeObject instanceof Subscription) {
+                    webhookService.handleSubscriptionUpdated((Subscription) stripeObject);
+                }
                 break;
 
             case "customer.subscription.deleted":
-                Subscription deletedSubscription = (Subscription) stripeObject;
-                webhookService.handleSubscriptionDeleted(deletedSubscription);
+                if (stripeObject instanceof Subscription) {
+                    webhookService.handleSubscriptionDeleted((Subscription) stripeObject);
+                }
+                break;
+
+            case "charge.refunded":
+                if (stripeObject instanceof Charge) {
+                    webhookService.handleChargeRefunded((Charge) stripeObject);
+                }
                 break;
 
             default:

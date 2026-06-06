@@ -50,6 +50,18 @@ public class AdminUserService {
     }
 
     @Transactional
+    public AdminUserDTO updateRole(Long userId, Role newRole, String adminEmail) {
+        User admin = requireAdmin(adminEmail);
+        User target = requireTarget(userId);
+        ensureNotSelf(admin, target, "change role of");
+
+        target.setRole(newRole);
+        User saved = userRepository.save(target);
+        audit(admin, "UPDATE_ROLE", target, "Role changed to " + newRole);
+        return toDto(saved);
+    }
+
+    @Transactional
     public AdminUserDTO banUser(Long userId, ModerateUserRequest request, String adminEmail) {
         User admin = requireAdmin(adminEmail);
         User target = requireTarget(userId);

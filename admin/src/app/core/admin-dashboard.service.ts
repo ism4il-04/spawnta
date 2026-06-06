@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+
 
 export interface AuditEntry {
   id: number;
@@ -10,6 +12,14 @@ export interface AuditEntry {
   targetId: number | null;
   details: string | null;
   createdAt: string;
+}
+
+export interface PlatformActivity {
+  type: string;
+  title: string;
+  description: string;
+  iconType: string;
+  timestamp: string;
 }
 
 export interface AdminDashboard {
@@ -27,13 +37,15 @@ export interface AdminDashboard {
   activeSubscriptions: number;
   successfulPayments: number;
   recentAuditLogs: AuditEntry[];
+  recentActivities: PlatformActivity[];
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminDashboardService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/dashboard';
+  private readonly apiUrl = `${environment.apiUrl}/api/admin/dashboard`;
+
 
   constructor(private http: HttpClient) {}
 

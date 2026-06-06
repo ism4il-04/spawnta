@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +12,7 @@ import { RecommendationService, UserNotification } from '../../../core/services/
 @Component({
   selector: 'app-notifications-dropdown',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatMenuModule, MatButtonModule, MatIconModule, MatBadgeModule, MatDividerModule],
+  imports: [CommonModule, MatMenuModule, MatButtonModule, MatIconModule, MatBadgeModule, MatDividerModule],
   templateUrl: './notifications-dropdown.html',
   styleUrl: './notifications-dropdown.scss'
 })

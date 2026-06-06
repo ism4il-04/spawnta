@@ -34,7 +34,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless JWT API
+            .csrf(csrf -> csrf.disable())  // Disable CSRF completely for REST API
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
@@ -44,6 +44,7 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/api/auth/**",
                     "/api/subscription/webhook",  // Stripe webhook endpoint (no auth required)
+                    "/ws",
                     "/ws/**",
                     "/error"
                 ).permitAll()
@@ -65,14 +66,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-            "http://localhost:4200",   // frontend dev
-            "http://localhost:4300",   // admin dev
-            "http://localhost:3000",   // alternative frontend port
-            "http://127.0.0.1:4200",   // alternative localhost
-            "http://127.0.0.1:4300",   // alternative localhost
-            "http://127.0.0.1:3000"    // alternative localhost
-        ));
+        // Autorise toutes les origines localhost et 127.0.0.1 sur n'importe quel port pour k8s et dev
+       config.setAllowedOriginPatterns(List.of(
+    "http://localhost",
+    "http://localhost:*",
+    "http://127.0.0.1",
+    "http://127.0.0.1:*",
+    "http://13.61.24.138",
+    "http://13.61.24.138:*",
+    "https://13.61.24.138"
+));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

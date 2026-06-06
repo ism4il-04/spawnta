@@ -35,7 +35,7 @@ export interface RatingEntry {
 
 @Injectable({ providedIn: 'root' })
 export class AttendanceService {
-  private apiUrl = 'http://localhost:8080/api';
+  private apiUrl = '/api';
 
   constructor(private http: HttpClient) {}
 
@@ -52,10 +52,17 @@ export class AttendanceService {
     );
   }
 
-  confirmCheckIn(activityId: number, photoUrl: string, latitude: number, longitude: number): Observable<any> {
+  confirmCheckIn(activityId: number, latitude: number, longitude: number): Observable<any> {
     return this.http.post(
       `${this.apiUrl}/activities/${activityId}/attendance/check-in/confirm`,
-      { photoUrl, latitude, longitude }
+      { latitude, longitude }
+    );
+  }
+
+  checkInViaQr(activityId: number, token: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/activities/${activityId}/attendance/check-in/qr`,
+      { token }
     );
   }
 
@@ -63,6 +70,12 @@ export class AttendanceService {
     return this.http.post(
       `${this.apiUrl}/activities/${activityId}/attendance/host-confirm`,
       { participantIds }
+    );
+  }
+
+  getPendingAttendances(activityId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/activities/${activityId}/attendance/pending`
     );
   }
 

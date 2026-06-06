@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 export interface UserReportAdmin {
   id: number;
   status: string;
@@ -25,6 +25,7 @@ export interface ActivityReportAdmin {
   reporterEmail: string;
   activityId: number;
   activityTitle: string;
+  activityDescription: string;
   hostEmail: string;
   resolutionNotes: string | null;
   resolvedByEmail: string | null;
@@ -49,8 +50,8 @@ export interface AdminModeration {
   providedIn: 'root'
 })
 export class AdminModerationService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/moderation';
 
+private readonly apiUrl = `${environment.apiUrl}/api/admin/moderation`;
   constructor(private http: HttpClient) {}
 
   getReports(status = 'all'): Observable<AdminModeration> {

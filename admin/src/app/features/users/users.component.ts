@@ -91,6 +91,17 @@ export class UsersComponent implements OnInit {
     });
   }
 
+  changeRole(user: AdminUser, newRole: string): void {
+    if (!window.confirm(`Changer le role de ${user.email} en ${newRole} ?`)) return;
+    this.actionUserId = user.id;
+    this.usersService.updateRole(user.id, newRole).pipe(
+      finalize(() => this.actionUserId = null)
+    ).subscribe({
+      next: updated => this.replaceUser(updated),
+      error: error => this.errorMessage = error?.error?.error ?? 'Changement de role impossible.'
+    });
+  }
+
   statusLabel(user: AdminUser): string {
     if (user.banned) return 'Banni';
     if (this.isSuspended(user)) return 'Suspendu';
@@ -103,6 +114,14 @@ export class UsersComponent implements OnInit {
     if (this.isSuspended(user)) return 'warning';
     if (!user.emailVerified) return 'muted';
     return 'success';
+  }
+
+  roleClass(role: string): string {
+    switch (role) {
+      case 'ADMIN': return 'role-admin';
+      case 'MODERATOR': return 'role-mod';
+      default: return 'role-user';
+    }
   }
 
   isSuspended(user: AdminUser): boolean {

@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, NgZone, inject, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
 import { ActivityService, ActivityResponse } from '../../core/services/activity.service';
+import { AuthService } from '../../core/services/auth.service';
 import { GeocodingService, GeocodingResult } from '../../core/services/geocoding.service';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,16 +19,16 @@ import { FormsModule } from '@angular/forms';
 import { CreateActivityComponent } from './create-activity/create-activity.component';
 import { ActivityDetailComponent } from './activity-detail/activity-detail.component';
 import { Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-map',
   standalone: true,
   imports: [
-    CommonModule, 
-    LeafletModule, 
-    MatSidenavModule, 
-    MatButtonModule, 
+    CommonModule,
+    LeafletModule,
+    MatSidenavModule,
+    MatButtonModule,
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
@@ -41,7 +43,7 @@ import { debounceTime } from 'rxjs/operators';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit, OnDestroy {
+export class MapComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('sidenav') sidenav!: MatSidenav;
   @ViewChild('createCmp') createCmp!: CreateActivityComponent;
 
@@ -53,7 +55,7 @@ export class MapComponent implements OnInit, OnDestroy {
     zoom: 13,
     center: L.latLng(48.8566, 2.3522) // Paris default
   };
-  
+
   activities: ActivityResponse[] = [];
   markers: L.Marker[] = [];
   layers: L.Layer[] = [];
@@ -68,17 +70,21 @@ export class MapComponent implements OnInit, OnDestroy {
     scheduledDate: ''
   };
   readonly categories = ['Coffee & Cafes', 'Hiking & Trekking', 'Nightlife', 'Culture', 'Sports'];
-  
+
   // Radius circle visualization
   radiusCircle: L.Circle | null = null;
   userLocation: L.LatLng | null = null;
   private radiusSubject = new Subject<number>();
+  private readonly destroy$ = new Subject<void>();
 
   panelMode: 'CREATE' | 'DETAIL' | 'NONE' = 'NONE';
   selectedActivity: ActivityResponse | null = null;
+  editActivity: ActivityResponse | null = null;
   tempMarker: L.Marker | null = null;
-  isFormVisible = true; // Nouveau: contrôle la visibilité du formulaire
-  
+  private selectionMarker: L.Marker | null = null;
+  private pendingLocation: { lat: number; lng: number } | null = null;
+  isFormVisible = true;
+
   // Toggle states
   isSearchPanelCollapsed = false;
 
@@ -86,75 +92,96 @@ export class MapComponent implements OnInit, OnDestroy {
     const customEvent = e as CustomEvent<number>;
     const actId = customEvent.detail;
     const act = this.activities.find(a => a.id === actId);
-    if (act) {
-      this.openDetail(act);
-    }
+    if (act) { this.openDetail(act); }
   };
+
+  private readonly createAtLocationListener = (e: Event) => {
+    const customEvent = e as CustomEvent<{ lat: number; lng: number }>;
+    this.ngZone.run(() => {
+      this.startCreateAtLocation(customEvent.detail.lat, customEvent.detail.lng);
+    });
+  };
+
+  private readonly ngZone = inject(NgZone);
+  protected readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private pendingActivityId: number | null = null;
 
   constructor(
     private activityService: ActivityService,
     private geocodingService: GeocodingService,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit() {
-    this.locateUser(true); // silent initial load
+    this.locateUser(true);
     document.addEventListener('joinActivity', this.activityDetailListener as EventListener);
-    
-    // Setup debounced radius change
+    document.addEventListener('createAtLocation', this.createAtLocationListener as EventListener);
+
     this.radiusSubject.pipe(
-      debounceTime(300)
-    ).subscribe(() => {
-      this.loadActivities();
-    });
+      debounceTime(300),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.loadActivities());
+
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const activityId = Number(params.get('activityId'));
+        this.pendingActivityId = activityId || null;
+        if (this.pendingActivityId && this.activities.length) {
+          this.openRouteActivity();
+        }
+      });
   }
 
   ngOnDestroy() {
     document.removeEventListener('joinActivity', this.activityDetailListener as EventListener);
+    document.removeEventListener('createAtLocation', this.createAtLocationListener as EventListener);
     this.radiusSubject.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  ngAfterViewChecked() {
+    // Once *ngIf renders createCmp, flush any pending location set
+    if (this.pendingLocation && this.createCmp) {
+      this.createCmp.setLocation(this.pendingLocation.lat, this.pendingLocation.lng);
+      this.pendingLocation = null;
+    }
   }
 
   onMapReady(map: L.Map) {
     this.map = map;
-    
+
     // Refresh activities and update circle when map stops moving
     this.map.on('moveend', () => {
-      this.updateRadiusCircle();
-      this.loadActivities();
+      this.ngZone.run(() => {
+        this.updateRadiusCircle();
+        this.loadActivities();
+      });
     });
 
-    // Handle clicks for activity creation
+    // Map click: in CREATE mode update location, otherwise show "+ here" popup
     this.map.on('click', (e: L.LeafletMouseEvent) => {
-      if (this.panelMode === 'CREATE') {
+      this.ngZone.run(() => {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
-        
-        if (this.tempMarker) {
-          this.map.removeLayer(this.tempMarker);
-        }
-        
-        // Use custom marker icon for temp marker too!
-        const tempIcon = L.divIcon({
-          className: 'custom-leaflet-marker-wrapper',
-          html: `
-            <div class="custom-leaflet-marker" style="background-color: #3b82f6; border-color: #3b82f644; transform: scale(1.1);">
-              <i class="material-icons marker-icon" style="font-size: 16px; color: white;">add_location</i>
-            </div>
-          `,
-          iconSize: [36, 36],
-          iconAnchor: [18, 18]
-        });
 
-        this.tempMarker = L.marker([lat, lng], { icon: tempIcon }).addTo(this.map);
-        
-        if (this.createCmp) {
-          this.createCmp.setLocation(lat, lng);
+        if (this.panelMode === 'CREATE') {
+          // Update location marker and form
+          this.placeTempMarker(lat, lng);
+          if (this.createCmp) {
+            this.createCmp.setLocation(lat, lng);
+            this.snackBar.open('📍 Location updated!', 'OK', { duration: 1500 });
+          }
+        } else if (this.panelMode !== 'DETAIL') {
+          // Show selection popup with "Create activity here" button
+          this.showSelectionPopup(lat, lng);
         }
-        
-        this.snackBar.open('Location selected on map.', 'OK', { duration: 2000 });
-      }
+      });
     });
-    
+
     // Draw initial radius circle
     this.updateRadiusCircle();
   }
@@ -163,34 +190,38 @@ export class MapComponent implements OnInit, OnDestroy {
     if (!silent) {
       this.snackBar.open('Acquiring GPS location...', 'Dismiss', { duration: 2000 });
     }
-    
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          this.userLocation = L.latLng(lat, lng);
-          
-          if (this.map && this.map.getPane('mapPane')) {
-            this.map.setView([lat, lng], 13);
-          } else {
-            this.options.center = L.latLng(lat, lng);
-          }
-          
-          if (!silent) {
-            this.snackBar.open('Location centered!', 'Success', { duration: 3000 });
-          }
-          
-          // Draw circle after map is ready
-          setTimeout(() => this.updateRadiusCircle(), 100);
-          this.loadActivities(lat, lng);
+          this.ngZone.run(() => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            this.userLocation = L.latLng(lat, lng);
+
+            if (this.map && this.map.getPane('mapPane')) {
+              this.map.setView([lat, lng], 13);
+            } else {
+              this.options.center = L.latLng(lat, lng);
+            }
+
+            if (!silent) {
+              this.snackBar.open('Location centered!', 'Success', { duration: 3000 });
+            }
+
+            // Draw circle after map is ready
+            setTimeout(() => this.updateRadiusCircle(), 100);
+            this.loadActivities(lat, lng);
+          });
         },
         (error) => {
-          console.warn('Geolocation failed, using default location.');
-          if (!silent) {
-            this.snackBar.open('Unable to retrieve location. Using default.', 'OK', { duration: 3000 });
-          }
-          this.loadActivities();
+          this.ngZone.run(() => {
+            console.warn('Geolocation failed, using default location.');
+            if (!silent) {
+              this.snackBar.open('Unable to retrieve location. Using default.', 'OK', { duration: 3000 });
+            }
+            this.loadActivities();
+          });
         }
       );
     } else {
@@ -208,11 +239,12 @@ export class MapComponent implements OnInit, OnDestroy {
       lat = center.lat;
       lng = center.lng;
     }
-    
+
     this.activityService.getNearby(lat, lng, this.filters).subscribe({
       next: (data: ActivityResponse[]) => {
         this.activities = data;
         this.updateMarkers();
+        this.openRouteActivity();
       },
       error: (err: any) => {
         console.error('Failed to load activities', err);
@@ -225,7 +257,7 @@ export class MapComponent implements OnInit, OnDestroy {
   getMarkerIcon(category: string, type: 'MEETUP' | 'TRIP', isDestination = false): L.DivIcon {
     let color = '#0f766e'; // teal default
     let icon = 'groups'; // default meetup icon
-    
+
     if (isDestination) {
       color = '#ef4444'; // red destination
       icon = 'flag';
@@ -275,10 +307,10 @@ export class MapComponent implements OnInit, OnDestroy {
     const title = this.escapeHtml(act.title);
     const address = this.escapeHtml(act.address || 'Location TBA');
     const activityType = act.activityType === 'TRIP' ? 'Trip' : 'Meetup';
-    const dateText = new Date(act.scheduledAt).toLocaleDateString('fr-FR', { 
-      day: '2-digit', 
-      month: 'long', 
-      year: 'numeric' 
+    const dateText = new Date(act.scheduledAt).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
     }).replace(/^\w/, c => c.toUpperCase());
     const count = act.participantCount || 0;
     const maxParticipants = act.maxParticipants || '∞';
@@ -331,7 +363,7 @@ export class MapComponent implements OnInit, OnDestroy {
     this.activities.forEach(act => {
       const type = act.activityType || 'MEETUP';
       const category = act.category || '';
-      
+
       if (type === 'MEETUP' && act.latitude && act.longitude) {
         const markerIcon = this.getMarkerIcon(category, 'MEETUP');
         const marker = L.marker([act.latitude, act.longitude], { icon: markerIcon });
@@ -342,15 +374,15 @@ export class MapComponent implements OnInit, OnDestroy {
         const marker = L.marker([act.startLatitude, act.startLongitude], { icon: markerIcon });
         marker.bindPopup(this.buildPopupHtml(act));
         this.layers.push(marker);
-        
+
         if (act.destLatitude && act.destLongitude) {
           const destIcon = this.getMarkerIcon(category, 'TRIP', true);
           const destMarker = L.marker([act.destLatitude, act.destLongitude], { icon: destIcon });
           destMarker.bindPopup(this.buildPopupHtml(act, true));
           this.layers.push(destMarker);
-          
+
           const line = L.polyline(
-            [[act.startLatitude, act.startLongitude], [act.destLatitude, act.destLongitude]], 
+            [[act.startLatitude, act.startLongitude], [act.destLatitude, act.destLongitude]],
             { color: '#f97316', weight: 3, dashArray: '6, 8', opacity: 0.8 }
           );
           this.layers.push(line);
@@ -420,8 +452,9 @@ export class MapComponent implements OnInit, OnDestroy {
     }
 
     const centerPoint = this.userLocation || (this.map ? this.map.getCenter() : null);
-    
-    if (!centerPoint || !this.map) {
+
+    // Guard: map must exist and its overlay pane must be ready in the DOM
+    if (!centerPoint || !this.map || !this.map.getPane('overlayPane')) {
       return;
     }
 
@@ -440,40 +473,134 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   openCreate() {
-    this.panelMode = 'CREATE';
-    this.isFormVisible = true; // Afficher le formulaire
-    // Ne pas ouvrir le sidenav - le formulaire s'affichera au centre
-    if (this.map) {
-      this.map.getContainer().style.cursor = 'crosshair';
+    this.editActivity = null;
+    this.selectedActivity = null;
+
+    // Use GPS location directly when + is clicked
+    const fallback = () => {
+      const center = this.map ? this.map.getCenter() : L.latLng(48.8566, 2.3522);
+      this.startCreateAtLocation(center.lat, center.lng);
+    };
+
+    if (navigator.geolocation) {
+      this.snackBar.open('📍 Getting your location...', '', { duration: 2000 });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => this.ngZone.run(() =>
+          this.startCreateAtLocation(pos.coords.latitude, pos.coords.longitude)
+        ),
+        () => this.ngZone.run(fallback),
+        { timeout: 5000, maximumAge: 30000 }
+      );
+    } else {
+      fallback();
     }
-    this.snackBar.open('Click anywhere on the map to set activity location.', 'Got it', { duration: 4000 });
+  }
+
+  startCreateAtLocation(lat: number, lng: number) {
+    // Clear any selection popup
+    if (this.selectionMarker && this.map) {
+      this.map.removeLayer(this.selectionMarker);
+      this.selectionMarker = null;
+    }
+
+    this.panelMode = 'CREATE';
+    this.isFormVisible = true;
+    if (this.map) this.map.getContainer().style.cursor = 'crosshair';
+
+    this.placeTempMarker(lat, lng);
+    this.pendingLocation = { lat, lng };
+    // ngAfterViewChecked will call createCmp.setLocation() once *ngIf renders it
+  }
+
+  placeTempMarker(lat: number, lng: number) {
+    if (this.tempMarker && this.map) this.map.removeLayer(this.tempMarker);
+    const icon = L.divIcon({
+      className: 'custom-leaflet-marker-wrapper',
+      html: `
+        <div class="custom-leaflet-marker" style="background-color:#3b82f6;border-color:#3b82f644;transform:scale(1.1);">
+          <i class="material-icons marker-icon" style="font-size:16px;color:white;">add_location</i>
+        </div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+    this.tempMarker = L.marker([lat, lng], { icon }).addTo(this.map);
+  }
+
+  showSelectionPopup(lat: number, lng: number) {
+    if (this.selectionMarker && this.map) {
+      this.map.removeLayer(this.selectionMarker);
+      this.selectionMarker = null;
+    }
+
+    const selIcon = L.divIcon({
+      className: 'custom-leaflet-marker-wrapper',
+      html: `
+        <div class="custom-leaflet-marker" style="background-color:#64748b;border-color:#64748b44;">
+          <i class="material-icons marker-icon" style="font-size:16px;color:white;">location_on</i>
+        </div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36]
+    });
+
+    this.selectionMarker = L.marker([lat, lng], { icon: selIcon }).addTo(this.map);
+
+    const popup = L.popup({
+      closeButton: false,
+      className: 'create-here-popup',
+      offset: [0, -38],
+      autoPan: false
+    }).setContent(`
+      <button class="create-here-btn"
+        onclick="document.dispatchEvent(new CustomEvent('createAtLocation',{detail:{lat:${lat},lng:${lng}}}))"
+      >
+        <i class="material-icons" style="font-size:18px;vertical-align:middle;">add_circle</i>
+        &nbsp;Create activity here
+      </button>
+    `);
+
+    this.selectionMarker.bindPopup(popup).openPopup();
+  }
+
+  openEdit(activity: ActivityResponse) {
+    this.panelMode = 'CREATE';
+    this.editActivity = activity;
+    this.selectedActivity = null;
+    this.sidenav.open();
+
+    // Place temp marker at current location
+    if (activity.activityType === 'MEETUP' && activity.latitude && activity.longitude) {
+      this.placeTempMarker(activity.latitude, activity.longitude);
+    } else if (activity.startLatitude && activity.startLongitude) {
+      this.map.setView([activity.startLatitude, activity.startLongitude], 13);
+    }
   }
 
   openDetail(activity: ActivityResponse) {
     this.selectedActivity = activity;
+    this.editActivity = null;
     this.panelMode = 'DETAIL';
     this.sidenav.open();
-    
+
     if (this.map) {
       this.map.getContainer().style.cursor = '';
+      const lat = activity.latitude || activity.startLatitude;
+      const lng = activity.longitude || activity.startLongitude;
+      if (lat && lng) {
+        this.map.setView([lat, lng], 14);
+      }
     }
   }
 
   closePanel() {
-    if (this.panelMode === 'DETAIL') {
-      this.sidenav.close();
-    }
+    if (this.panelMode === 'DETAIL' || this.panelMode === 'CREATE') this.sidenav.close();
     this.panelMode = 'NONE';
     this.selectedActivity = null;
-    this.isFormVisible = true; // Réinitialiser la visibilité
-    
-    if (this.tempMarker && this.map) {
-      this.map.removeLayer(this.tempMarker);
-      this.tempMarker = null;
-    }
-    if (this.map) {
-      this.map.getContainer().style.cursor = '';
-    }
+    this.editActivity = null;
+    this.isFormVisible = true;
+
+    if (this.tempMarker && this.map) { this.map.removeLayer(this.tempMarker); this.tempMarker = null; }
+    if (this.selectionMarker && this.map) { this.map.removeLayer(this.selectionMarker); this.selectionMarker = null; }
+    if (this.map) this.map.getContainer().style.cursor = '';
   }
 
   hideCreateForm() {
@@ -489,7 +616,61 @@ export class MapComponent implements OnInit, OnDestroy {
 
   onActivityCreated(activity: any) {
     this.snackBar.open('🎉 Activity created successfully!', 'Hooray', { duration: 4000 });
-    this.closePanel();
     this.loadActivities();
+    this.openDetail(activity);
+  }
+
+  onActivityUpdated(activity: any) {
+    this.snackBar.open('✅ Activity updated!', 'OK', { duration: 3000 });
+    this.loadActivities();
+    this.openDetail(activity);
+  }
+
+  onActivityChanged(activity: ActivityResponse) {
+    this.activities = this.activities.map(item =>
+      item.id === activity.id ? activity : item
+    );
+    this.selectedActivity = activity;
+    this.updateMarkers();
+  }
+
+  onActivityDeleted() {
+    this.snackBar.open('Activity deleted.', 'OK', { duration: 3000 });
+    this.loadActivities();
+    this.closePanel();
+  }
+
+  private openRouteActivity() {
+    const activityId = this.pendingActivityId;
+    if (!activityId) return;
+
+    const act = this.activities.find(a => a.id === activityId);
+    if (act) {
+      this.openDetail(act);
+      this.consumeActivityRouteParam();
+      return;
+    }
+
+    this.activityService.getById(activityId).subscribe({
+      next: (activity) => {
+        this.activities = this.activities.some(item => item.id === activity.id)
+          ? this.activities.map(item => item.id === activity.id ? activity : item)
+          : [...this.activities, activity];
+        this.updateMarkers();
+        this.openDetail(activity);
+        this.consumeActivityRouteParam();
+      },
+      error: () => this.consumeActivityRouteParam()
+    });
+  }
+
+  private consumeActivityRouteParam() {
+    this.pendingActivityId = null;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { activityId: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 }

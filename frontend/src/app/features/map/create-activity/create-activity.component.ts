@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
-import { ActivityService } from '../../../core/services/activity.service';
+import { ActivityResponse, ActivityService } from '../../../core/services/activity.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -31,8 +31,10 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './create-activity.component.html',
   styleUrls: ['./create-activity.component.scss']
 })
-export class CreateActivityComponent {
+export class CreateActivityComponent implements OnChanges {
+  @Input() editActivity: ActivityResponse | null = null;
   @Output() created = new EventEmitter<any>();
+  @Output() updated = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
   @Output() hide = new EventEmitter<void>(); // Nouveau: pour cacher le formulaire
 
@@ -51,8 +53,10 @@ export class CreateActivityComponent {
       participationMode: ['DIRECT', Validators.required],
       maxParticipants: [null],
       scheduledAt: ['', Validators.required],
-      scheduledTime: ['18:00', Validators.required], // Heure par défaut à 18h00
-      durationMinutes: [120],
+      scheduledTime: ['18:00', Validators.required],
+      durationDays: [0],
+      durationHours: [2],
+      durationMins: [0],
       category: [''],
       
       // Coordinates
@@ -66,6 +70,44 @@ export class CreateActivityComponent {
     });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['editActivity'] && this.editActivity) {
+      this.fillFormForEdit(this.editActivity);
+    }
+  }
+
+  private fillFormForEdit(activity: ActivityResponse): void {
+    const scheduled = new Date(activity.scheduledAt);
+    const durationTotal = activity.durationMinutes || 0;
+    const days = Math.floor(durationTotal / (24 * 60));
+    const hours = Math.floor((durationTotal % (24 * 60)) / 60);
+    const mins = durationTotal % 60;
+
+    const pad = (num: number) => num.toString().padStart(2, '0');
+    const timeStr = `${pad(scheduled.getHours())}:${pad(scheduled.getMinutes())}`;
+
+    this.activityForm.patchValue({
+      title: activity.title,
+      description: activity.description,
+      activityType: activity.activityType,
+      participationMode: activity.participationMode,
+      maxParticipants: activity.maxParticipants,
+      scheduledAt: scheduled,
+      scheduledTime: timeStr,
+      durationDays: days,
+      durationHours: hours,
+      durationMins: mins,
+      category: activity.category,
+      latitude: activity.latitude,
+      longitude: activity.longitude,
+      startLatitude: activity.startLatitude,
+      startLongitude: activity.startLongitude,
+      destLatitude: activity.destLatitude,
+      destLongitude: activity.destLongitude,
+      address: activity.address
+    });
+  }
+
   // Called when map clicks occur (we'll emit an event from MapComponent)
   setLocation(lat: number, lng: number) {
     if (this.activityForm.get('activityType')?.value === 'MEETUP') {
@@ -74,10 +116,10 @@ export class CreateActivityComponent {
       // Logic for TRIP (start vs dest)
       if (!this.activityForm.get('startLatitude')?.value) {
         this.activityForm.patchValue({ startLatitude: lat, startLongitude: lng });
-        this.snackBar.open('📍 Trip start point set!', 'OK', { duration: 2500 });
+        this.snackBar.open('Trip start point set!', 'OK', { duration: 2500 });
       } else {
         this.activityForm.patchValue({ destLatitude: lat, destLongitude: lng });
-        this.snackBar.open('🏁 Trip destination set!', 'OK', { duration: 2500 });
+        this.snackBar.open('Trip destination set!', 'OK', { duration: 2500 });
       }
     }
   }
@@ -98,26 +140,54 @@ export class CreateActivityComponent {
 
     this.loading = true;
     const formValue = this.activityForm.value;
+
+    // Compute total duration in minutes from days/hours/minutes
+    const totalMinutes =
+      (formValue.durationDays || 0) * 24 * 60 +
+      (formValue.durationHours || 0) * 60 +
+      (formValue.durationMins || 0);
+
     const payload = {
       ...formValue,
-      scheduledAt: this.toLocalDateTime(formValue.scheduledAt, formValue.scheduledTime)
+      scheduledAt: this.toLocalDateTime(formValue.scheduledAt, formValue.scheduledTime),
+      durationMinutes: totalMinutes || null
     };
 
-    // Remove scheduledTime from payload as it's not needed by the backend
+    // Remove helper fields not needed by the backend
     delete payload.scheduledTime;
+    delete payload.durationDays;
+    delete payload.durationHours;
+    delete payload.durationMins;
 
-    this.activityService.create(payload).subscribe({
-      next: (res: any) => {
-        this.loading = false;
-        this.created.emit(res);
-      },
-      error: (err: any) => {
-        this.loading = false;
-        console.error('Failed to create activity', err);
-        const errMsg = err?.error?.error || 'Failed to create activity. Please pick a future date and try again.';
-        this.snackBar.open(errMsg, 'Close', { duration: 5000 });
-      }
-    });
+    if (this.editActivity) {
+      this.activityService.updateActivity(this.editActivity.id, payload).subscribe({
+        next: (res: any) => {
+          this.loading = false;
+          this.updated.emit(res);
+          this.snackBar.open('✅ Activity updated!', 'OK', { duration: 3000 });
+        },
+        error: (err: any) => {
+          this.loading = false;
+          console.error('Failed to update activity', err);
+          const errMsg = err?.error?.error || 'Failed to update activity.';
+          this.snackBar.open(errMsg, 'Close', { duration: 5000 });
+        }
+      });
+    } else {
+      this.activityService.createActivity(payload).subscribe({
+        next: (res: any) => {
+          this.loading = false;
+          this.created.emit(res);
+          this.snackBar.open('🎉 Activity created!', 'OK', { duration: 3000 });
+        },
+        error: (err: any) => {
+          this.loading = false;
+          console.error('Failed to create activity', err);
+          const errMsg = err?.error?.error || 'Failed to create activity. Please pick a future date and try again.';
+          this.snackBar.open(errMsg, 'Close', { duration: 5000 });
+        }
+      });
+    }
   }
 
   private toLocalDateTime(dateValue: unknown, timeValue: unknown): string {
@@ -125,41 +195,51 @@ export class CreateActivityComponent {
       return '';
     }
 
-    const dateStr = String(dateValue);
-    const timeStr = String(timeValue);
-    
-    // Parse date (format: YYYY-MM-DD)
-    const dateParts = dateStr.split('-');
-    if (dateParts.length !== 3) {
-      return '';
+    let year: number;
+    let month: number;
+    let day: number;
+
+    if (dateValue instanceof Date) {
+      year = dateValue.getFullYear();
+      month = dateValue.getMonth();
+      day = dateValue.getDate();
+    } else {
+      const dateStr = String(dateValue);
+      const dateParts = dateStr.split('-');
+      if (dateParts.length === 3) {
+        year = parseInt(dateParts[0], 10);
+        month = parseInt(dateParts[1], 10) - 1;
+        day = parseInt(dateParts[2], 10);
+      } else {
+        const parsed = new Date(dateStr);
+        if (isNaN(parsed.getTime())) {
+          return '';
+        }
+        year = parsed.getFullYear();
+        month = parsed.getMonth();
+        day = parsed.getDate();
+      }
     }
-    
-    // Parse time (format: HH:MM)
+
+    const timeStr = String(timeValue);
     const timeParts = timeStr.split(':');
     if (timeParts.length !== 2) {
       return '';
     }
-    
-    const year = parseInt(dateParts[0], 10);
-    const month = parseInt(dateParts[1], 10) - 1; // Month is 0-indexed in Date
-    const day = parseInt(dateParts[2], 10);
+
     const hours = parseInt(timeParts[0], 10);
     const minutes = parseInt(timeParts[1], 10);
-    
+
     const selectedDateTime = new Date(year, month, day, hours, minutes, 0, 0);
-    
-    // Ensure the selected date/time is in the future (with a small margin)
     const now = new Date();
     const minFuture = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
-    
+
     if (selectedDateTime <= minFuture) {
-      // If selected time is too close to now, adjust it to be at least 5 minutes in the future
-      const adjustedDateTime = new Date(minFuture.getTime() + 60 * 1000); // Add 1 more minute for safety
+      const adjustedDateTime = new Date(minFuture.getTime() + 60 * 1000);
       const pad = (num: number) => num.toString().padStart(2, '0');
       return `${adjustedDateTime.getFullYear()}-${pad(adjustedDateTime.getMonth() + 1)}-${pad(adjustedDateTime.getDate())}T${pad(adjustedDateTime.getHours())}:${pad(adjustedDateTime.getMinutes())}:00`;
     }
-    
-    // Format as ISO string for backend (YYYY-MM-DDTHH:MM:SS)
+
     const pad = (num: number) => num.toString().padStart(2, '0');
     return `${year}-${pad(month + 1)}-${pad(day)}T${pad(hours)}:${pad(minutes)}:00`;
   }

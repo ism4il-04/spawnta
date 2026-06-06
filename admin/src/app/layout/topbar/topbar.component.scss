@@ -1,64 +1,14 @@
 .topbar {
   height: 72px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0 2rem;
   position: sticky;
   top: 0;
   z-index: 40;
-}
-
-.topbar-left {
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.search-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  max-width: 400px;
-
-  .search-icon {
-    position: absolute;
-    left: 12px;
-    color: #94a3b8;
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 0.625rem 0.75rem 0.625rem 2.5rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    transition: all 0.2s;
-    background: #f8fafc;
-
-    &:focus {
-      outline: none;
-      background: #ffffff;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-  }
-
-  .search-shortcut {
-    position: absolute;
-    right: 12px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 0.75rem;
-    color: #94a3b8;
-    font-family: inherit;
-    pointer-events: none;
-  }
 }
 
 .topbar-right {
@@ -70,7 +20,7 @@
 .topbar-btn {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
@@ -81,44 +31,22 @@
   position: relative;
 
   &:hover {
-    background: #f1f5f9;
-    color: #0f172a;
-  }
-}
-
-.notification-wrapper {
-  position: relative;
-
-  .badge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background: #ef4444;
-    color: white;
-    font-size: 0.625rem;
-    font-weight: 700;
-    min-width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-    border: 2px solid #ffffff;
+    background: var(--bg-hover, var(--background));
+    color: var(--text-main);
   }
 }
 
 .divider {
   width: 1px;
   height: 24px;
-  background: #e2e8f0;
+  background: var(--border);
   margin: 0 0.5rem;
 }
 
 .admin-avatar {
   width: 36px;
   height: 36px;
-  background: #0f172a;
+  background: var(--primary);
   color: white;
   border-radius: 50%;
   display: flex;

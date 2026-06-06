@@ -68,7 +68,7 @@ export interface CreateActivityRequest {
   providedIn: 'root'
 })
 export class ActivityService {
-  private apiUrl = 'http://localhost:8080/api/activities';
+  private apiUrl = '/api/activities';
 
   constructor(private http: HttpClient) {}
 
@@ -98,13 +98,21 @@ export class ActivityService {
     return this.http.get<ActivityResponse>(`${this.apiUrl}/${id}`);
   }
 
-  create(data: CreateActivityRequest): Observable<ActivityResponse> {
-    return this.http.post<ActivityResponse>(this.apiUrl, data);
+  createActivity(request: CreateActivityRequest): Observable<ActivityResponse> {
+    return this.http.post<ActivityResponse>(this.apiUrl, request);
   }
 
-  join(id: number, introMessage?: string): Observable<any> {
+  updateActivity(id: number, request: CreateActivityRequest): Observable<ActivityResponse> {
+    return this.http.put<ActivityResponse>(`${this.apiUrl}/${id}`, request);
+  }
+
+  deleteActivity(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  joinActivity(activityId: number, introMessage?: string): Observable<void> {
     const body = introMessage ? { introMessage } : {};
-    return this.http.post(`${this.apiUrl}/${id}/join`, body);
+    return this.http.post<void>(`${this.apiUrl}/${activityId}/join`, body);
   }
 
   approveParticipant(activityId: number, participantId: number): Observable<any> {
@@ -114,4 +122,21 @@ export class ActivityService {
   getPendingParticipants(activityId: number): Observable<ActivityParticipantResponse[]> {
     return this.http.get<ActivityParticipantResponse[]>(`${this.apiUrl}/${activityId}/participants/pending`);
   }
+
+  getMyActivities(): Observable<MyActivityResponse[]> {
+    return this.http.get<MyActivityResponse[]>(`${this.apiUrl}/my`);
+  }
+}
+
+export interface MyActivityResponse {
+  activity: ActivityResponse;
+  participation: {
+    host: boolean;
+    joined: boolean;
+    pendingRequest: boolean;
+    canCheckIn: boolean;
+    canRate: boolean;
+    hasRated: boolean;
+    attendanceStatus: string | null;
+  };
 }

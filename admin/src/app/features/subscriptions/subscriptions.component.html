@@ -19,8 +19,8 @@
     <article class="summary-card"><span>Actifs</span><strong>{{ data?.activeSubscriptions ?? 0 }}</strong></article>
     <article class="summary-card warning"><span>En attente</span><strong>{{ data?.pendingSubscriptions ?? 0 }}</strong></article>
     <article class="summary-card danger"><span>Past due</span><strong>{{ data?.pastDueSubscriptions ?? 0 }}</strong></article>
-    <article class="summary-card"><span>Paiements</span><strong>{{ (data?.successfulPayments ?? 0) | number:'1.0-2' }}</strong></article>
-    <article class="summary-card success"><span>MRR estime</span><strong>{{ estimatedMrr() | currency:'EUR':'symbol':'1.0-0' }}</strong></article>
+    <article class="summary-card"><span>Paiements</span><strong>{{ (data?.successfulPayments ?? 0) | number:'1.0-2' }} €</strong></article>
+    <article class="summary-card success"><span>MRR réel</span><strong>{{ (data?.monthlyRecurringRevenue ?? 0) | currency:'EUR':'symbol':'1.0-0' }}</strong></article>
     <article class="summary-card muted"><span>Churn</span><strong>{{ churnRate() | number:'1.0-1' }}%</strong></article>
   </div>
 
@@ -62,6 +62,9 @@
   </section>
 
   <section class="table-shell">
+    <div class="table-header">
+      <h2>Abonnements récents</h2>
+    </div>
     <table>
       <thead>
         <tr>
@@ -85,6 +88,35 @@
         </tr>
         <tr *ngIf="!data?.subscriptions?.length && !loading">
           <td colspan="5" class="empty-row">Aucun abonnement utilisateur pour le moment.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="table-shell secondary">
+    <div class="table-header">
+      <h2>Paiements récents</h2>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Utilisateur</th>
+          <th>Montant</th>
+          <th>Statut</th>
+          <th>Date</th>
+          <th>ID Stripe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transaction of data?.recentTransactions">
+          <td>{{ transaction.userEmail }}</td>
+          <td><strong>{{ transaction.amount | currency:transaction.currency:'symbol':'1.0-2' }}</strong></td>
+          <td><span class="pill" [class]="transaction.status.toLowerCase()">{{ transaction.status }}</span></td>
+          <td>{{ transaction.timestamp | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td><small class="mono">{{ transaction.stripeId || '-' }}</small></td>
+        </tr>
+        <tr *ngIf="!data?.recentTransactions?.length && !loading">
+          <td colspan="5" class="empty-row">Aucun paiement enregistré pour le moment.</td>
         </tr>
       </tbody>
     </table>

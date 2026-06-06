@@ -1,11 +1,11 @@
 <div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
 
-  <!-- ══════════ SIDEBAR ══════════ -->
-  <aside class="sidebar" role="navigation" aria-label="Menu principal">
+  <!-- ══════════ SIDEBAR (Desktop) ══════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Main menu">
 
     <!-- Brand -->
     <div class="sidebar-brand">
-      <span class="brand-globe">🌍</span>
+
       <span class="brand-text">Spawnta</span>
     </div>
 
@@ -15,12 +15,18 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
          class="nav-item" id="nav-accueil">
         <mat-icon class="nav-icon">home</mat-icon>
-        <span class="nav-label">Accueil</span>
+        <span class="nav-label">Home</span>
       </a>
 
       <a routerLink="/map" routerLinkActive="active" class="nav-item" id="nav-carte">
         <mat-icon class="nav-icon">map</mat-icon>
-        <span class="nav-label">Carte</span>
+        <span class="nav-label">Map</span>
+      </a>
+
+      <a *ngIf="authService.isLoggedIn()" routerLink="/my-activities" routerLinkActive="active"
+         class="nav-item" id="nav-my-activities">
+        <mat-icon class="nav-icon">event_note</mat-icon>
+        <span class="nav-label">My Activities</span>
       </a>
 
       <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active"
@@ -31,40 +37,42 @@
             {{ count > 0 ? count : null }}
           </span>
         </span>
-        <span class="nav-label">Messagerie</span>
+        <span class="nav-label">Messages</span>
       </a>
 
       <a *ngIf="authService.isLoggedIn()" routerLink="/profile" routerLinkActive="active"
          class="nav-item" id="nav-profil">
         <mat-icon class="nav-icon">person_outline</mat-icon>
-        <span class="nav-label">Profil</span>
+        <span class="nav-label">Profile</span>
       </a>
 
       <a routerLink="/subscription" routerLinkActive="active"
          class="nav-item" id="nav-abonnement">
         <mat-icon class="nav-icon">workspace_premium</mat-icon>
-        <span class="nav-label">Abonnement</span>
+        <span class="nav-label">Subscription</span>
       </a>
+
+      <div class="nav-separator" *ngIf="!authService.isLoggedIn()"></div>
 
       <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active"
          class="nav-item" id="nav-connexion">
         <mat-icon class="nav-icon">login</mat-icon>
-        <span class="nav-label">Connexion</span>
+        <span class="nav-label">Login</span>
       </a>
 
       <a *ngIf="!authService.isLoggedIn()" routerLink="/signup" routerLinkActive="active"
          class="nav-item" id="nav-inscription">
         <mat-icon class="nav-icon">person_add</mat-icon>
-        <span class="nav-label">Inscription</span>
+        <span class="nav-label">Sign Up</span>
       </a>
 
     </nav>
 
     <!-- Collapse button -->
     <button class="sidebar-collapse-btn" (click)="toggleSidebar()" id="btn-collapse-sidebar"
-            [attr.aria-label]="sidebarCollapsed ? 'Développer le menu' : 'Réduire le menu'">
+            [attr.aria-label]="sidebarCollapsed ? 'Expand menu' : 'Collapse menu'">
       <mat-icon class="collapse-icon">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-      <span class="nav-label">Réduire</span>
+      <span class="nav-label">Collapse</span>
     </button>
   </aside>
 
@@ -74,22 +82,17 @@
     <!-- Topbar -->
     <header class="app-topbar" role="banner">
 
-      <div class="topbar-search">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input id="topbar-search-input" type="search" class="search-input"
-               placeholder="Rechercher des activités, lieux…" autocomplete="off">
-      </div>
 
       <div class="topbar-end">
 
-        <button *ngIf="authService.isLoggedIn()" class="icon-btn" id="btn-notifications"
-                aria-label="Notifications">
-          <mat-icon>notifications_none</mat-icon>
+        <app-notifications-dropdown *ngIf="authService.isLoggedIn()"></app-notifications-dropdown>
+
+        <button class="icon-btn" (click)="toggleTheme()" id="btn-theme-toggle"
+                [attr.aria-label]="isLightTheme ? 'Switch to Dark Mode' : 'Switch to Light Mode'"
+                [title]="isLightTheme ? 'Switch to Dark Mode' : 'Switch to Light Mode'">
+          <mat-icon>{{ isLightTheme ? 'dark_mode' : 'light_mode' }}</mat-icon>
         </button>
 
-        <button class="icon-btn" id="btn-settings" aria-label="Paramètres">
-          <mat-icon>settings</mat-icon>
-        </button>
 
         <!-- Logged-in: avatar + dropdown -->
         <div *ngIf="authService.isLoggedIn()" class="user-menu-wrapper">
@@ -102,30 +105,34 @@
 
           <div *ngIf="userMenuOpen" class="user-dropdown" role="menu">
             <div class="dropdown-header">
-              <strong>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</strong>
+              <span class="dropdown-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
               <span class="dropdown-email">{{ currentUser?.email }}</span>
             </div>
-            <hr class="dropdown-divider">
+            <div class="dropdown-divider"></div>
             <button class="dropdown-item" role="menuitem"
                     (click)="navigateToProfile()" id="menu-profil">
-              <mat-icon>person</mat-icon> Mon profil
+              <mat-icon>person</mat-icon>
+              <span>My Profile</span>
             </button>
             <button class="dropdown-item" role="menuitem"
                     (click)="navigateToSubscription()" id="menu-abonnement">
-              <mat-icon>workspace_premium</mat-icon> Abonnement
+              <mat-icon>workspace_premium</mat-icon>
+              <span>Subscription</span>
             </button>
+            <div class="dropdown-divider"></div>
             <button class="dropdown-item logout-item" role="menuitem"
                     (click)="logout()" id="menu-deconnexion">
-              <mat-icon>logout</mat-icon> Déconnexion
+              <mat-icon>logout</mat-icon>
+              <span>Log out</span>
             </button>
           </div>
         </div>
 
         <!-- Guest: auth links -->
         <ng-container *ngIf="!authService.isLoggedIn()">
-          <a routerLink="/login" class="auth-link" id="topbar-login">Connexion</a>
+          <a routerLink="/login" class="auth-link" id="topbar-login">Log in</a>
           <a routerLink="/signup" class="auth-link auth-link--primary" id="topbar-signup">
-            Inscription
+            Sign up
           </a>
         </ng-container>
 
@@ -138,4 +145,41 @@
     </main>
 
   </div>
+
+  <!-- ══════════ MOBILE BOTTOM NAV ══════════ -->
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="mobile-nav-item">
+      <mat-icon>home</mat-icon>
+      <span>Home</span>
+    </a>
+    <a routerLink="/map" routerLinkActive="active" class="mobile-nav-item">
+      <mat-icon>map</mat-icon>
+      <span>Map</span>
+    </a>
+    <a *ngIf="authService.isLoggedIn()" routerLink="/my-activities" routerLinkActive="active" class="mobile-nav-item">
+      <mat-icon>event_note</mat-icon>
+      <span>Activities</span>
+    </a>
+    <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active" class="mobile-nav-item">
+      <div class="nav-icon-wrap">
+        <mat-icon>chat_bubble_outline</mat-icon>
+        <span class="nav-badge" *ngIf="(chatService.unreadCount$ | async) as count">
+          {{ count > 0 ? count : null }}
+        </span>
+      </div>
+      <span>Messages</span>
+    </a>
+    <a *ngIf="authService.isLoggedIn()" routerLink="/profile" routerLinkActive="active" class="mobile-nav-item">
+      <mat-icon>person_outline</mat-icon>
+      <span>Profile</span>
+    </a>
+    <a *ngIf="!authService.isLoggedIn()" routerLink="/login" routerLinkActive="active" class="mobile-nav-item">
+      <mat-icon>login</mat-icon>
+      <span>Login</span>
+    </a>
+  </nav>
+
 </div>
+
+<!-- Toast Notifications Container -->
+<app-toast-container></app-toast-container>

@@ -8,6 +8,8 @@ export interface SubscriptionPlan {
   name: string;
   description: string;
   monthlyPrice: number;
+  discountedPrice?: number;
+  discountReason?: string;
   features: string[];
 }
 
@@ -31,9 +33,9 @@ export interface CheckoutSessionResponse {
   providedIn: 'root'
 })
 export class SubscriptionService {
-  private readonly apiUrl = 'http://localhost:8080/api/subscription';
+  private readonly apiUrl = '/api/subscription';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getPlans(): Observable<SubscriptionPlan[]> {
     return this.http.get<SubscriptionPlan[]>(`${this.apiUrl}/plans`);
@@ -50,5 +52,9 @@ export class SubscriptionService {
       successUrl: `${origin}/subscription?checkout=success`,
       cancelUrl: `${origin}/subscription?checkout=cancel`
     });
+  }
+
+  cancelSubscription(reason: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/cancel`, { reason });
   }
 }

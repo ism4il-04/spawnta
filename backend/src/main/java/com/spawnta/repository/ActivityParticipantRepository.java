@@ -15,5 +15,10 @@ public interface ActivityParticipantRepository extends JpaRepository<ActivityPar
 
     long countByActivityIdAndStatus(Long activityId, ParticipationStatus status);
 
+    List<ActivityParticipant> findByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT p FROM ActivityParticipant p LEFT JOIN FETCH p.activity a LEFT JOIN FETCH a.participants WHERE p.user.id = :userId")
+    List<ActivityParticipant> findByUserIdWithActivityAndParticipants(Long userId);
+
     List<ActivityParticipant> findAllByActivityIdAndStatusOrderByJoinedAtAsc(Long activityId, ParticipationStatus status);
 }
