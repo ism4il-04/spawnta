@@ -1,7 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
+private readonly apiUrl = `${environment.apiUrl}/api/auth`;
 export interface AdminActivity {
   id: number;
   title: string;

@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
+
 
 export interface AdminAuthResponse {
   accessToken: string;
@@ -15,6 +17,8 @@ export interface AdminAuthResponse {
   providedIn: 'root'
 })
 export class AdminAuthService {
+  private readonly apiUrl = `${environment.apiUrl}/api/auth`;
+
   private readonly apiUrl = '/api/auth';
   private readonly currentAdminSubject = new BehaviorSubject<AdminAuthResponse | null>(null);
 

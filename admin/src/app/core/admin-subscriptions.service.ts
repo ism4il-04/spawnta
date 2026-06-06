@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 export interface SubscriptionPlanAdmin {
   id: number;
   tier: string;
@@ -52,7 +52,7 @@ export interface AdminSubscriptions {
 })
 export class AdminSubscriptionsService {
   private readonly apiUrl = '/api/admin/subscriptions';
-
+private readonly apiUrl = `${environment.apiUrl}/api/auth`;
   constructor(private http: HttpClient) {}
 
   getSubscriptions(): Observable<AdminSubscriptions> {
