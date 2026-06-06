@@ -16,7 +16,8 @@ services:
   admin:
     image: aymanesbe3/spawnta-admin:${IMAGE_TAG:-latest}
     build: !reset null
-    ports: !reset []
+    ports:
+      - "4300:80"
 
   nginx:
     image: aymanesbe3/spawnta-nginx:${IMAGE_TAG:-latest}
