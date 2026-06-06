@@ -21,6 +21,8 @@ export interface UserProfile {
 }
 
 export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
   bio: string | null;
   facebook: string | null;
   instagram: string | null;

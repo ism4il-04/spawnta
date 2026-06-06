@@ -76,6 +76,8 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     this.profileLoadError = false;
     this.profileForm = this.fb.group({
+      firstName: ['', [Validators.required, Validators.maxLength(100)]],
+      lastName: ['', [Validators.required, Validators.maxLength(100)]],
       bio: ['', Validators.maxLength(500)],
       facebook: ['', Validators.maxLength(255)],
       instagram: ['', Validators.maxLength(255)],
@@ -104,6 +106,8 @@ export class ProfileComponent implements OnInit {
         this.selectedInterests = new Set(p.interests);
         if (this.isOwnProfile) {
           this.profileForm.patchValue({
+            firstName: p.firstName ?? '',
+            lastName: p.lastName ?? '',
             bio: p.bio ?? '',
             facebook: p.facebook ?? '',
             instagram: p.instagram ?? '',
@@ -197,6 +201,8 @@ export class ProfileComponent implements OnInit {
     const formVal = this.profileForm.value;
     this.profileService.updateProfile({
       bio: formVal.bio || null,
+      firstName: formVal.firstName.trim(),
+      lastName: formVal.lastName.trim(),
       facebook: formVal.facebook || null,
       instagram: formVal.instagram || null,
       whatsapp: formVal.whatsapp || null,
@@ -210,6 +216,7 @@ export class ProfileComponent implements OnInit {
     ).subscribe({
       next: (p: UserProfile) => {
         this.profile = p;
+        this.authService.updateCurrentUserName(p.firstName, p.lastName);
         this.snackBar.open('Profile updated!', 'Close', { duration: 3000 });
       },
       error: () => {

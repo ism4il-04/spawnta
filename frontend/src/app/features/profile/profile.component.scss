@@ -277,9 +277,9 @@
   width: 100%;
 }
 
+.name-row,
 .social-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
   gap: var(--space-md);
   margin-top: var(--space-sm);
   margin-bottom: var(--space-md);
@@ -333,6 +333,14 @@
     height: 1rem;
     color: var(--accent);
   }
+}
+
+.name-row {
+  grid-template-columns: 1fr 1fr;
+}
+
+.social-row {
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .actions {
@@ -724,6 +732,7 @@
     }
   }
 
+  .name-row,
   .social-row {
     grid-template-columns: 1fr;
     gap: var(--space-sm);

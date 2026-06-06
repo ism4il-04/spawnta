@@ -156,6 +156,10 @@
       <mat-icon>map</mat-icon>
       <span>Map</span>
     </a>
+    <a *ngIf="authService.isLoggedIn()" routerLink="/my-activities" routerLinkActive="active" class="mobile-nav-item">
+      <mat-icon>event_note</mat-icon>
+      <span>Activities</span>
+    </a>
     <a *ngIf="authService.isLoggedIn()" routerLink="/chat" routerLinkActive="active" class="mobile-nav-item">
       <div class="nav-icon-wrap">
         <mat-icon>chat_bubble_outline</mat-icon>

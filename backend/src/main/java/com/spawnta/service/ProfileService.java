@@ -45,6 +45,8 @@ public class ProfileService {
     @Transactional
     public UserProfileResponse updateProfile(String email, @Valid UpdateProfileRequest request) {
         User user = findUser(email);
+        user.setFirstName(request.firstName().trim());
+        user.setLastName(request.lastName().trim());
         user.setBio(request.bio());
         user.setFacebook(request.facebook());
         user.setInstagram(request.instagram());
