@@ -5,6 +5,7 @@ import { Client, IMessage } from '@stomp/stompjs';
 import { AuthService } from './auth.service';
 import { NotificationToastService } from './notification-toast.service';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 export interface ChatResponse {
   id: number;
@@ -52,7 +53,7 @@ export class ChatService {
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
 
-  private readonly apiUrl = '/api/chats';
+  private readonly apiUrl = `${environment.apiUrl}/chats`;
   private stompClient: Client | null = null;
   
   // Real-time events stream for active chat room
@@ -123,7 +124,7 @@ export class ChatService {
 
     // Config Stomp Client
     this.stompClient = new Client({
-      brokerURL: `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`,
+      brokerURL: environment.apiUrl.replace(/^http/, 'ws').replace(/\/api$/, '/ws'),
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
